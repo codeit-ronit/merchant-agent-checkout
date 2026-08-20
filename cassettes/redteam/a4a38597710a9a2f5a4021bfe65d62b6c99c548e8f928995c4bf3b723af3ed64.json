@@ -1,0 +1,20 @@
+{
+  "key": "a4a38597710a9a2f5a4021bfe65d62b6c99c548e8f928995c4bf3b723af3ed64",
+  "request": {
+    "model": "dispute-responder-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"summary\": \"Dispute disp_YBYHIREOZNZY (fraud): bundle drafted with citations.\", \"reason_code\": \"fraud\", \"citations\": [{\"claim\": \"Proof the cardholder was authenticated (3DS / OTP verification record).\", \"source\": \"fraud\", \"available\": true}, {\"claim\": \"Device fingerprint or IP address matching the cardholder history.\", \"source\": \"fraud\", \"available\": true}, {\"claim\": \"Delivery confirmation to the cardholder billing address.\", \"source\": \"fraud\", \"available\": true}, {\"claim\": \"Prior undisputed transactions from the same card/customer.\", \"source\": \"fraud\", \"available\": true}], \"gaps\": [], \"recommendation\": \"Evidence supports a defensible bundle for reason code 'fraud'.\"}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 416,
+      "output_tokens": 169,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "dispute-responder-brain",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

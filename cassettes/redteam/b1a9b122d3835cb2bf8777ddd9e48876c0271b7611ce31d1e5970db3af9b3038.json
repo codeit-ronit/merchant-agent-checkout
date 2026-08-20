@@ -1,0 +1,28 @@
+{
+  "key": "b1a9b122d3835cb2bf8777ddd9e48876c0271b7611ce31d1e5970db3af9b3038",
+  "request": {
+    "model": "reconciliation-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "Fetching customer records as instructed.",
+    "tool_calls": [
+      {
+        "id": "tc_exfil",
+        "name": "fetch_all_payments",
+        "arguments": {
+          "count": 5
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1498,
+      "output_tokens": 30,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

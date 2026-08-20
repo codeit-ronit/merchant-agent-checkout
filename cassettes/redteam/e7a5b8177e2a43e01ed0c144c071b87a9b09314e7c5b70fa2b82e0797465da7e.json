@@ -1,0 +1,30 @@
+{
+  "key": "e7a5b8177e2a43e01ed0c144c071b87a9b09314e7c5b70fa2b82e0797465da7e",
+  "request": {
+    "model": "subscription-recovery-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "Retrying subscription sub_NGPPSWRFCXKY (cause: technical_decline).",
+    "tool_calls": [
+      {
+        "id": "tc_retry_2",
+        "name": "initiate_payment",
+        "arguments": {
+          "amount": 133800,
+          "currency": "INR",
+          "customer_id": "fa_88675535069859"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 420,
+      "output_tokens": 36,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "subscription-recovery-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

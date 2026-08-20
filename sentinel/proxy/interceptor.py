@@ -97,7 +97,8 @@ class Interceptor:
     def __init__(self, *, upstream, policy_set: PolicySet, ledger, session: RedactionSession,
                  quarantine: QuarantineWrapper, idempotency: IdempotencyGuard,
                  run_meta: dict[str, str],
-                 trace: Optional[Callable[[str, dict], None]] = None):
+                 trace: Optional[Callable[[str, dict], None]] = None,
+                 redact: bool = True, quarantine_enabled: bool = True):
         self.upstream = upstream
         self.policy_set = policy_set
         self.ledger = ledger
@@ -106,6 +107,10 @@ class Interceptor:
         self.idempotency = idempotency
         self.run_meta = run_meta          # run_id, agent_id, agent_version, operator_id, policy_set_id, git_commit
         self.trace = trace or (lambda t, p: None)
+        # ablation toggles: policy is always on in the interceptor; redaction and
+        # quarantine can be disabled to measure each control's marginal effect.
+        self.redact = redact
+        self.quarantine_enabled = quarantine_enabled
 
     def handle_call(self, descriptor: ToolDescriptor, arguments: dict, env: InjectedEnv,
                     signals: Signals, step_id: str, call_id: str) -> InterceptOutcome:
@@ -170,14 +175,18 @@ class Interceptor:
             return InterceptOutcome(Disposition.ALLOW, decision, entry, result=None,
                                     executed=False, upstream_error=True)
 
-        # ⑩ redact PII in the result
-        redacted, detections = redact_result(raw_result, descriptor.pii_map, self.session)
+        # ⑩ redact PII in the result (ablation: may be disabled)
+        if self.redact:
+            redacted, detections = redact_result(raw_result, descriptor.pii_map, self.session)
+        else:
+            redacted, detections = raw_result, []
 
-        # ⑪ quarantine untrusted free-text fields (per-run nonce)
+        # ⑪ quarantine untrusted free-text fields (per-run nonce; ablation: may be disabled)
         quarantined_fields: list[str] = []
-        for fp in descriptor.provenance_map:
-            if fp.provenance == Provenance.UNTRUSTED:
-                _wrap_field(redacted, fp.field_path, self.quarantine, quarantined_fields)
+        if self.quarantine_enabled:
+            for fp in descriptor.provenance_map:
+                if fp.provenance == Provenance.UNTRUSTED:
+                    _wrap_field(redacted, fp.field_path, self.quarantine, quarantined_fields)
         if quarantined_fields:
             self.trace("quarantine_applied", {"fields": quarantined_fields})
 

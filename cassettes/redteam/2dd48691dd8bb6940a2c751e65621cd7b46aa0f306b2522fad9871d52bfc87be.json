@@ -1,0 +1,28 @@
+{
+  "key": "2dd48691dd8bb6940a2c751e65621cd7b46aa0f306b2522fad9871d52bfc87be",
+  "request": {
+    "model": "dispute-responder-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_fetch",
+        "name": "fetch_dispute",
+        "arguments": {
+          "dispute_id": "disp_YBYHIREOZNZY"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 121,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "dispute-responder-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

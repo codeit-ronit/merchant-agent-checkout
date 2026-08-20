@@ -1,0 +1,37 @@
+{
+  "key": "adf5145709ad85fe7517f39c66725315ce9ddadbdbf1810cb38c0629bc215df3",
+  "request": {
+    "model": "dispute-responder-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "Requesting approval to submit the evidence bundle.",
+    "tool_calls": [
+      {
+        "id": "tc_submit",
+        "name": "submit_dispute_evidence",
+        "arguments": {
+          "dispute_id": "disp_YBYHIREOZNZY",
+          "action": "contest",
+          "evidence": {
+            "citations": [
+              "fraud",
+              "fraud",
+              "fraud",
+              "fraud"
+            ]
+          }
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 312,
+      "output_tokens": 32,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "dispute-responder-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

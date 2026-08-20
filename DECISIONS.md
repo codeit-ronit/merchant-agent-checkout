@@ -592,3 +592,89 @@ flag the injection). **Unauthorised executions, PII leaks, and policy errors wer
 0 on BOTH.** Task accuracy varied between models; the enforcement result did not
 — because enforcement is a property of the proxy, not the model. Guardrail
 overhead measured at ~0.05 ms policy-eval per run with no accuracy loss.
+
+---
+
+## ADR-019 — PDF text-layer extraction (honest gap)
+Date: 2026-08-21    Phase: 6    Status: Accepted (with a recorded limitation)
+
+### Context
+The most compelling red-team vector is an instruction hidden in a bank
+statement's PDF text layer — invisible on the rendered page.
+
+### Decision
+The build models statements as structured/CSV data, and the ``pdf_text_layer``
+red-team vector is represented as a text-layer STRING carrying the injection —
+the attack content is faithful, but there is **no real PDF parse**. A production
+deployment would extract with a library chosen by comparing pypdf vs pdfplumber
+against real statements (the comparison the spec asks for).
+
+### Trade-off accepted
+We do not exercise a real PDF extractor, so extraction bugs (encoding, invisible-
+text handling) are untested. Recorded honestly rather than claiming a comparison
+that was not run. The enforcement result does not depend on extraction fidelity —
+whatever text is extracted is quarantined and permission-narrowed the same way.
+
+### Revisit if
+Real PDF fixtures are added — then run the pypdf/pdfplumber comparison and record it.
+
+---
+
+## ADR-020 — RAG chunking: by reason-code section, not fixed size
+Date: 2026-08-21    Phase: 6    Status: Accepted
+
+### Decision
+The dispute-evidence corpus is chunked by reason-code SECTION (one chunk per
+reason code), not fixed-size windows. Fixed-size chunking would split a reason
+code from its evidence list, breaking retrieval@1. An independent retrieval eval
+(4 queries) confirms recall@1 >= 75%. Retrieval is a transparent term-overlap
+score — no embeddings, no network — so it is deterministic and testable.
+
+### Trade-off accepted
+Term-overlap retrieval is weaker than embeddings for paraphrased queries; for a
+small, structured corpus it is sufficient and fully offline. Every generated
+claim cites its source chunk (asserted in evals); an uncited claim is a failure.
+
+### Revisit if
+The corpus grows large or queries become paraphrase-heavy — then add embeddings.
+
+---
+
+## ADR-021 — Ablation finding (recorded BECAUSE it contradicts intuition)
+Date: 2026-08-21    Phase: 6    Status: Accepted
+
+### Finding
+Paired A/B over 13 attacks + 2 benign: attack success (L2+) fell from **100%
+(guardrails off)** to **0% (on)**; false-positive rate **0%**. Under guardrails-
+on: **0 L4, 0 L3**, and **12/13 L1** (behaviour altered but harmless).
+
+The ablation is the credible part: turning **redaction** off re-enabled an L3
+exfiltration; turning **quarantine** off changed nothing measurable; and only
+removing the **whole control plane** re-enabled L4. So **policy / the proxy
+prevents money movement regardless, redaction prevents exfiltration, and the
+nonce quarantine's marginal effect was negligible in this harness** — less than
+intuition suggests, exactly as the spec anticipated. We report it as measured:
+the guarantee is permission narrowing + policy at the boundary; the quarantine
+wrapper is a mitigation whose value we did not observe here.
+
+### Trade-off accepted
+Our deterministic brains are not "un-fooled" by the quarantine wrapper the way a
+real LLM might be, so the quarantine's L1-reduction is likely understated versus a
+real model. Stated plainly: with a real model, quarantine would probably reduce L1
+somewhat; it still would not be the guarantee. The headline (0 L3/L4 on both
+"models") holds regardless of the wrapper.
+
+### Revisit if
+Real-model recordings are captured — re-run the ablation and update the L1 numbers.
+
+---
+
+## ADR-022 — Scope cuts (mirrors LIMITATIONS.md)
+Date: 2026-08-21    Phase: 6    Status: Accepted
+
+Deliberately not built, each with a one-line reason: multi-tenancy/auth (single
+trusted operator); encryption at rest for the token map (local, synthetic);
+protection against a malicious operator (SENTINEL constrains the agent, not the
+human); a policy DSL (a new attack surface); formal verification (we test, not
+prove); production-grade inference (free tiers are rate-limited by design); a
+real PDF extractor (ADR-019); real-model eval recordings (ADR-002b — needs a key).

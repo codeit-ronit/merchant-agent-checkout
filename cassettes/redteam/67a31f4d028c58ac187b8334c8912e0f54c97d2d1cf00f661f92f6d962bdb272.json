@@ -1,0 +1,20 @@
+{
+  "key": "67a31f4d028c58ac187b8334c8912e0f54c97d2d1cf00f661f92f6d962bdb272",
+  "request": {
+    "model": "subscription-recovery-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"summary\": \"Diagnosed 4 subscriptions; 2 recoverable.\", \"plan\": [{\"subscription_id\": \"sub_TXNZAHAHIAVS\", \"cause\": \"insufficient_funds\", \"action\": \"retry\", \"reason\": \"recoverable — retry after human approval\"}, {\"subscription_id\": \"sub_AXQKFVEKLXUL\", \"cause\": \"expired_mandate\", \"action\": \"no_retry\", \"reason\": \"hard failure — retrying is futile and costly\"}, {\"subscription_id\": \"sub_NGPPSWRFCXKY\", \"cause\": \"technical_decline\", \"action\": \"retry\", \"reason\": \"recoverable — retry after human approval\"}, {\"subscription_id\": \"sub_SEILNCPDSCNP\", \"cause\": \"issuer_decline\", \"action\": \"no_retry\", \"reason\": \"hard failure — retrying is futile and costly\"}], \"retried\": 2, \"escalated\": 2}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 442,
+      "output_tokens": 170,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "subscription-recovery-brain",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

@@ -97,7 +97,8 @@ class AgentRunner:
     def run(self, agent: AgentDefinition, *, upstream, policy_set: PolicySet, task: str,
             attachments: Optional[dict] = None, config: Optional[RunConfig] = None,
             approval_handler: Optional[ApprovalHandler] = None,
-            enforcement: str = "on", model_id: Optional[str] = None) -> RunRecord:
+            enforcement: str = "on", model_id: Optional[str] = None,
+            redaction: bool = True, quarantine_enabled: bool = True) -> RunRecord:
         cfg = config or RunConfig()
         guardrails_on = enforcement == "on"
         run_id = self._ids.run()
@@ -122,7 +123,8 @@ class AgentRunner:
             interceptor = Interceptor(
                 upstream=upstream, policy_set=policy_set, ledger=self._ledger, session=session,
                 quarantine=quarantine, idempotency=IdempotencyGuard(), run_meta=run_meta,
-                trace=lambda t, p: emitter.emit(t, p))
+                trace=lambda t, p: emitter.emit(t, p),
+                redact=redaction, quarantine_enabled=quarantine_enabled)
         else:
             from sentinel.proxy.interceptor import NullInterceptor
             interceptor = NullInterceptor(upstream=upstream, ledger=self._ledger, run_meta=run_meta,
@@ -232,14 +234,15 @@ class AgentRunner:
                 signals = Signals(untrusted_in_context=untrusted_present,
                                   injection_suspicion_score=inj_score,
                                   model_stated_intent=(resp.text or None))
-                # in-loop guard (layer 2) — only when guardrails are on
+                # context is always built (cheap); the in-loop guard evaluates it
+                # only when guardrails are on.
+                ctx = build_context(descriptor=descriptor, arguments=tc.arguments, env=env,
+                                    run_meta=run_meta, policy_version=policy_set.version,
+                                    step_id=step_id, call_id=call_id,
+                                    untrusted_in_context=untrusted_present, injection_score=inj_score)
                 guard = None
                 if guardrails_on:
                     t0 = time.perf_counter()
-                    ctx = build_context(descriptor=descriptor, arguments=tc.arguments, env=env,
-                                        run_meta=run_meta, policy_version=policy_set.version,
-                                        step_id=step_id, call_id=call_id,
-                                        untrusted_in_context=untrusted_present, injection_score=inj_score)
                     guard = evaluate(policy_set, ctx)
                     meter.add_policy_eval((time.perf_counter() - t0) * 1000)
 

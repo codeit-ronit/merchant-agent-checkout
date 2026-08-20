@@ -1,0 +1,29 @@
+{
+  "key": "5fe44a7a97bb157163c427e56b78f7735b1c9b6b0129700b3b156502539efa26",
+  "request": {
+    "model": "reconciliation-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_settle_0",
+        "name": "fetch_all_settlements",
+        "arguments": {
+          "count": 10,
+          "skip": 0
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 819,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}
