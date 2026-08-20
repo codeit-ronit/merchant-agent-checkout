@@ -3,7 +3,9 @@
 # Test-mode keys only, ever. Never live keys.
 
 PY := .venv/bin/python
-PYTEST := .venv/bin/pytest
+# `python -m pytest` (not bare pytest) so the repo root is on sys.path and the
+# top-level evals/ and redteam/ packages import cleanly.
+PYTEST := .venv/bin/python -m pytest
 
 .DEFAULT_GOAL := help
 
