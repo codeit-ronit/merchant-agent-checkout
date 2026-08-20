@@ -1,0 +1,40 @@
+# SENTINEL — RECONCILIATION-READONLY policy set (least privilege).
+#
+# The reconciliation agent reads settlements and payments and does nothing else.
+# This set demonstrates least privilege: everything that is not an explicitly
+# named read-only tool is denied by the fail-closed default. There is no
+# tool_class rule granting writes, so any write falls through to DENY_FAIL_CLOSED.
+
+id: reconciliation-readonly
+version: "1"
+description: "Least privilege for the read-only reconciliation agent: named reads only, everything else denied."
+author: sentinel
+
+rules:
+  - id: reads_only
+    type: tool_class
+    description: "Only read operations are permitted; no writes of any kind."
+    class_dispositions:
+      READ: ALLOW
+      # REVERSIBLE_WRITE / IRREVERSIBLE_WRITE / MONEY_MOVEMENT intentionally omitted
+      # -> they fall through to the fail-closed default (DENY_FAIL_CLOSED).
+
+  - id: allowed_read_tools
+    type: tool_allow
+    description: "The exact read tools this agent may use."
+    tools:
+      - fetch_all_settlements
+      - fetch_settlement_with_id
+      - fetch_settlement_recon_details
+      - fetch_all_payments
+      - fetch_payment
+      - fetch_all_payouts
+      - fetch_payout_by_id
+
+  # even reads narrow to the operator's scope once untrusted content is ingested
+  - id: provenance_narrowing
+    type: provenance_guard
+    description: "After reading an untrusted document, the agent cannot read outside the operator's original scope."
+    escalate_irreversible: true
+    escalate_reversible: true
+    restrict_reads_to_scope: true

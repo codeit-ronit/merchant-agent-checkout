@@ -1,0 +1,77 @@
+# SENTINEL — STRICT policy set (the default).
+#
+# Money movement ALWAYS escalates to a human. Irreversible writes escalate.
+# Reads and reversible writes are auto-allowed within scope. Untrusted content
+# narrows permissions. A never-seen counterparty always escalates.
+#
+# Amounts are integer minor units (paise). ₹10,000 = 1000000.
+
+id: strict
+version: "1"
+description: "Default posture: money movement always needs a human; least privilege elsewhere."
+author: sentinel
+
+rules:
+  # --- baseline disposition by risk class ---
+  - id: class_baseline
+    type: tool_class
+    description: "Reads and reversible writes are allowed; irreversible and money-moving actions need a reviewer."
+    class_dispositions:
+      READ: ALLOW
+      REVERSIBLE_WRITE: ALLOW
+      IRREVERSIBLE_WRITE: REQUIRE_APPROVAL
+      MONEY_MOVEMENT: REQUIRE_APPROVAL
+
+  # --- a hard ceiling no reviewer can override (a DENY, not an escalation) ---
+  - id: refund_hard_ceiling
+    type: amount_cap
+    description: "No single money-moving action over ₹1,00,000 — cannot be approved by anyone."
+    scope: per_call
+    max_minor: 10000000        # ₹1,00,000
+    currency: INR
+    applies_to_classes: [MONEY_MOVEMENT]
+
+  - id: run_spend_ceiling
+    type: amount_cap
+    description: "No more than ₹2,00,000 of money movement in a single run."
+    scope: per_run
+    max_minor: 20000000
+    currency: INR
+    applies_to_classes: [MONEY_MOVEMENT]
+
+  # --- an amount threshold that forces review below the hard ceiling ---
+  - id: review_threshold
+    type: approval_required
+    description: "Any money movement over ₹10,000 needs a finance reviewer."
+    amount_over_minor: 1000000    # ₹10,000
+    currency: INR
+
+  # --- rate limit on money movement ---
+  - id: money_movement_rate
+    type: rate_limit
+    description: "At most 5 money-moving calls per run."
+    scope: class
+    key: MONEY_MOVEMENT
+    max_count: 5
+    window: run
+
+  # --- injection defence: untrusted content narrows permissions ---
+  - id: provenance_narrowing
+    type: provenance_guard
+    description: "If this run processed untrusted content, writes escalate and reads stay within the operator's scope."
+    escalate_irreversible: true
+    escalate_reversible: true
+    restrict_reads_to_scope: true
+
+  # --- a new destination is the sharp edge in payments fraud ---
+  - id: novel_counterparty
+    type: counterparty_novelty
+    description: "A payout or charge to a destination never seen before always needs a reviewer."
+
+  # --- currency must be INR for money movement (declarative arg constraint) ---
+  - id: inr_only
+    type: argument_constraint
+    description: "Money movement must be denominated in INR in this deployment."
+    arg_path: currency
+    op: currency_in
+    value: [INR]

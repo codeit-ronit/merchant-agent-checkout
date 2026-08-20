@@ -1,0 +1,26 @@
+# SENTINEL — PERMISSIVE policy set. THE RED-TEAM BASELINE. GUARDRAILS OFF.
+#
+# ⚠️  This set exists ONLY to produce the "before" half of the red-team A/B.
+#     It allows everything, including money movement, with no approval and no
+#     provenance narrowing. Loading it prints a loud warning and is REFUSED in
+#     live mode (enforced in sentinel/policy_loader.py).
+#
+# It deliberately tries to auto-allow money movement — and the engine's class
+# floor still prevents that from actually executing without approval. That is
+# the whole point: safety is a property of the system, not of the config.
+
+id: permissive
+version: "1"
+description: "RED-TEAM BASELINE — guardrails effectively off. Never use outside the A/B 'before' condition."
+author: sentinel
+is_permissive_baseline: true
+
+rules:
+  - id: allow_everything
+    type: tool_class
+    description: "Allow every class, including money movement (the baseline has no guardrails)."
+    class_dispositions:
+      READ: ALLOW
+      REVERSIBLE_WRITE: ALLOW
+      IRREVERSIBLE_WRITE: ALLOW
+      MONEY_MOVEMENT: ALLOW
