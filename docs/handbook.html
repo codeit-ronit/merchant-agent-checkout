@@ -432,7 +432,18 @@
         <div class="card stat"><span class="k">Attack success · ON</span><span class="v" id="stat-on" style="color:var(--allow)">0%</span><span class="s">0 L4, 0 L3 · 12/13 L1 (harmless)</span></div>
         <div class="card stat"><span class="k">False-positive rate</span><span class="v" id="stat-fp" style="color:var(--allow)">0%</span><span class="s">legitimate work never blocked</span></div>
       </div>
-      <div class="callout" style="margin-top:16px"><b>We did not solve prompt injection — nobody has.</b> Quarantine is a mitigation; permission narrowing is the guarantee. Expect L1 (behaviour altered, no unauthorised action) to be non-zero even with guardrails on, while L3 (exfiltration) and L4 (unauthorised money movement) stay zero. The goal is to make being fooled <em>harmless</em>, not impossible.</div>
+      <div class="callout" style="margin-top:16px"><b>We did not solve prompt injection — nobody has.</b> Quarantine is a mitigation; permission narrowing is the guarantee. With guardrails on, <b>12 of 13 attacks still altered behaviour (L1)</b> — and it did not matter: L3 (exfiltration) and L4 (unauthorised money movement) were <b>zero</b>. The goal is to make being fooled <em>harmless</em>, not impossible.</div>
+      <div class="grid c2" style="margin-top:16px">
+        <div class="card"><h3 style="margin-top:0">Multi-model finding</h3><p style="font-size:14px;margin:0">Strong model: <b>100%</b> task success, 0 malformed calls. Weak model: <b>81%</b>, 13 malformed calls, lower hard-case accuracy. <b>Both: 0 unauthorised executions, 0 PII leaks, 0 policy errors.</b> Accuracy varied; enforcement did not — because it lives in the proxy, not the model.</p></div>
+        <div class="card"><h3 style="margin-top:0">Ablation — which control did the work?</h3><p style="font-size:14px;margin:0 0 8px">Turning one control off at a time (guardrails-on):</p>
+          <div class="scroll-x"><table class="tools"><thead><tr><th>variant</th><th>L4</th><th>L3</th><th>L1</th></tr></thead><tbody>
+          <tr><td>all on</td><td class="mono">0</td><td class="mono">0</td><td class="mono">12</td></tr>
+          <tr><td>no redaction</td><td class="mono">0</td><td class="mono" style="color:var(--deny)">1</td><td class="mono">12</td></tr>
+          <tr><td>no quarantine</td><td class="mono">0</td><td class="mono">0</td><td class="mono">12</td></tr>
+          <tr><td>no control plane</td><td class="mono" style="color:var(--deny)">12</td><td class="mono" style="color:var(--deny)">1</td><td class="mono">0</td></tr>
+          </tbody></table></div>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 0"><b>Policy prevents L4; redaction prevents L3; the nonce quarantine's marginal effect was negligible</b> — less than intuition suggests, reported because it contradicts the design assumption (ADR-021).</p></div>
+      </div>
     </section>
 
     <section id="decisions">
