@@ -67,6 +67,10 @@ class AuditEntry(Contract):
 
     def chain_payload(self) -> dict[str, Any]:
         """The canonical view that ``entry_hash`` is computed over: everything
-        EXCEPT ``entry_hash`` itself. Includes ``previous_hash`` and ``sequence``."""
+        EXCEPT ``entry_hash`` itself. Includes ``previous_hash`` and ``sequence``.
+
+        Timing floats are stringified (ADR-010) so the structure canonicalises
+        deterministically without risking IEEE-754 round-trips changing a hash."""
+        from sentinel.common.canonical import stringify_floats
         data = self.model_dump(mode="json", exclude={"entry_hash"})
-        return data
+        return stringify_floats(data)

@@ -97,3 +97,20 @@ def sha256_hex(value: Any) -> str:
 def sha256_hex_bytes(data: bytes) -> str:
     """SHA-256 hex digest over raw bytes (for cassette keys built from a string)."""
     return hashlib.sha256(data).hexdigest()
+
+
+def stringify_floats(value: Any) -> Any:
+    """Recursively convert floats to a fixed-precision string, so a structure
+    containing timing floats (audit latencies) can be canonicalised. This is the
+    RFC 8785 recommendation for non-integer numbers: carry them as strings rather
+    than risk IEEE-754 round-trips changing the hash. Fixed 6-decimal precision
+    makes the representation stable across runs."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, float):
+        return f"{value:.6f}"
+    if isinstance(value, dict):
+        return {k: stringify_floats(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [stringify_floats(v) for v in value]
+    return value

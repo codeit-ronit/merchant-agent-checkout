@@ -1,0 +1,267 @@
+"""The decision pipeline — lifecycle steps 4–12 (docs/spec/02 §5).
+
+This is the enforcement boundary in code. Given a resolved tool, the arguments
+the model emitted, and the injected run environment, it:
+
+  ④ resolves the risk class (UNKNOWN/FORBIDDEN -> deny)
+  ⑤ validates arguments against the declared schema (malformed -> deny, never guessed)
+  ⑥ rehydrates placeholder tokens (an unissued token -> deny + exfiltration flag)
+  ⑦ evaluates policy (authoritative) -> ALLOW / DENY / REQUIRE_APPROVAL
+  ⑧ checks idempotency (seen -> stored result, no execution)
+  ⑨ forwards to upstream
+  ⑩⑪ redacts the result and quarantines untrusted fields
+  ⑫ writes the audit entry
+
+Every step can fail closed independently. The in-loop guard (Phase 4) calls the
+same policy engine first; the proxy is the authoritative repeat.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
+
+from sentinel.common.canonical import sha256_hex
+from sentinel.contracts.audit import AuditEntry
+from sentinel.contracts.decision import DecisionContext, InjectedEnv, MoneySemantics, PolicyDecision
+from sentinel.contracts.enums import Disposition, Provenance, RiskClass
+from sentinel.contracts.reasons import ReasonCode, render_reason
+from sentinel.contracts.tools import ToolDescriptor
+from sentinel.policy import evaluate
+from sentinel.policy.rules import PolicySet
+from sentinel.proxy.idempotency import IdempotencyGuard, idempotency_key
+from sentinel.redaction.engine import RedactionSession, redact_result, rehydrate_arguments
+from sentinel.redaction.quarantine import QuarantineWrapper, UnissuedTokenError
+
+
+@dataclass
+class Signals:
+    """Run-level provenance/injection signals the runtime tracks and passes in."""
+    untrusted_in_context: bool = False
+    injection_suspicion_score: float = 0.0
+    provenance_present: tuple[Provenance, ...] = ()
+    model_stated_intent: Optional[str] = None
+
+
+@dataclass
+class InterceptOutcome:
+    disposition: Disposition
+    decision: PolicyDecision
+    audit_entry: AuditEntry
+    result: Optional[dict] = None       # redacted + quarantined, if forwarded/replayed
+    executed: bool = False
+    idempotent_replay: bool = False
+    security_event: bool = False
+    upstream_error: bool = False
+    quarantined_fields: tuple[str, ...] = ()
+    redaction_count: int = 0
+
+
+def _get_path(obj: dict, path: str) -> Any:
+    cur: Any = obj
+    for part in path.split("."):
+        if isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
+            return None
+    return cur
+
+
+def _validate_schema(arguments: dict, schema: dict) -> Optional[str]:
+    """Minimal JSON-schema check: required fields present + loose type match.
+    Returns an error string, or None if valid. Malformed -> the caller denies;
+    a money-moving call's arguments are never guessed or repaired."""
+    if not schema:
+        return None
+    for req in schema.get("required", []):
+        if req not in arguments or arguments[req] is None:
+            return f"missing required argument '{req}'"
+    props = schema.get("properties", {})
+    type_ok = {"string": str, "integer": int, "boolean": bool, "object": dict, "number": (int, float)}
+    for key, value in arguments.items():
+        spec = props.get(key)
+        if not spec:
+            continue
+        expected = spec.get("type")
+        py = type_ok.get(expected)
+        if py and value is not None and not isinstance(value, py):
+            # bool is a subclass of int; reject bool where integer expected
+            if expected == "integer" and isinstance(value, bool):
+                return f"argument '{key}' must be an integer, not a boolean"
+            if not isinstance(value, py):
+                return f"argument '{key}' has wrong type (expected {expected})"
+    return None
+
+
+class Interceptor:
+    def __init__(self, *, upstream, policy_set: PolicySet, ledger, session: RedactionSession,
+                 quarantine: QuarantineWrapper, idempotency: IdempotencyGuard,
+                 run_meta: dict[str, str],
+                 trace: Optional[Callable[[str, dict], None]] = None):
+        self.upstream = upstream
+        self.policy_set = policy_set
+        self.ledger = ledger
+        self.session = session
+        self.quarantine = quarantine
+        self.idempotency = idempotency
+        self.run_meta = run_meta          # run_id, agent_id, agent_version, operator_id, policy_set_id, git_commit
+        self.trace = trace or (lambda t, p: None)
+
+    # -- money/entity extraction from arguments via the descriptor --
+    def _money(self, d: ToolDescriptor, args: dict) -> MoneySemantics:
+        amount = _get_path(args, d.amount_arg_path) if d.amount_arg_path else None
+        currency = _get_path(args, d.currency_arg_path) if d.currency_arg_path else None
+        targets = tuple(str(_get_path(args, p)) for p in d.entity_arg_paths if _get_path(args, p) is not None)
+        cp = _get_path(args, d.counterparty_arg_path) if d.counterparty_arg_path else None
+        return MoneySemantics(
+            moves_money=d.moves_money,
+            amount_minor=amount if isinstance(amount, int) and not isinstance(amount, bool) else None,
+            currency=currency if isinstance(currency, str) else (None if not d.moves_money else "INR"),
+            target_entities=targets,
+            counterparty_ref=str(cp) if cp is not None else None,
+        )
+
+    def handle_call(self, descriptor: ToolDescriptor, arguments: dict, env: InjectedEnv,
+                    signals: Signals, step_id: str, call_id: str) -> InterceptOutcome:
+        rm = self.run_meta
+        redacted_args = arguments                       # model only ever saw tokens
+        arg_hash = sha256_hex(redacted_args)
+        idem_key = idempotency_key(rm["run_id"], descriptor.upstream_name, redacted_args)
+        money = self._money(descriptor, arguments)
+
+        ctx = DecisionContext(
+            run_id=rm["run_id"], step_id=step_id, call_id=call_id,
+            agent_id=rm["agent_id"], agent_version=rm["agent_version"], operator_id=rm["operator_id"],
+            policy_set_id=rm["policy_set_id"], policy_set_version=self.policy_set.version,
+            tool_name=descriptor.name, upstream_tool_name=descriptor.upstream_name,
+            risk_class=descriptor.risk_class, arguments_redacted=redacted_args,
+            argument_hash=arg_hash, idempotency_key=idem_key, env=env,
+            provenance_present=signals.provenance_present,
+            quarantined_content_in_context=signals.untrusted_in_context,
+            model_stated_intent=signals.model_stated_intent,
+            injection_suspicion_score=signals.injection_suspicion_score,
+            money=money,
+        )
+        self.trace("tool_call_requested", {"tool": descriptor.name, "risk_class": descriptor.risk_class.value})
+
+        # ⑤ schema validation (before policy; a malformed call is denied, not guessed)
+        err = _validate_schema(arguments, descriptor.input_schema)
+        if err is not None:
+            return self._deny(ctx, ReasonCode.DENY_SCHEMA_INVALID, {"tool": descriptor.name},
+                              outcome="blocked", detail=err)
+
+        # ⑥ rehydrate tokens; an unissued token is a suspected exfiltration attempt
+        try:
+            rehydrated = rehydrate_arguments(arguments, descriptor.rehydratable_arg_paths, self.session)
+        except UnissuedTokenError as exc:
+            self.trace("security_event", {"kind": "unissued_token", "tool": descriptor.name})
+            return self._deny(ctx, ReasonCode.DENY_SUSPECTED_EXFILTRATION, {"tool": descriptor.name},
+                              outcome="security_event", security_event=True, detail=str(exc.token))
+
+        # ⑦ authoritative policy evaluation
+        decision = evaluate(self.policy_set, ctx)
+        self.trace("policy_decision", {"disposition": decision.disposition.value,
+                                       "reason_code": decision.reason_code.value,
+                                       "human_reason": decision.human_reason,
+                                       "matched_rules": list(decision.matched_rules)})
+
+        if decision.disposition == Disposition.DENY:
+            entry = self._audit(ctx, decision, outcome="blocked")
+            return InterceptOutcome(Disposition.DENY, decision, entry)
+
+        if decision.disposition == Disposition.REQUIRE_APPROVAL:
+            self.trace("approval_requested", {"tool": descriptor.name, "amount": ctx.money.amount_minor})
+            entry = self._audit(ctx, decision, outcome="escalated")
+            return InterceptOutcome(Disposition.REQUIRE_APPROVAL, decision, entry)
+
+        # ⑧ idempotency: a seen mutating call returns the stored result, no re-execution
+        if descriptor.risk_class in (RiskClass.REVERSIBLE_WRITE, RiskClass.IRREVERSIBLE_WRITE,
+                                     RiskClass.MONEY_MOVEMENT) and self.idempotency.seen(idem_key):
+            stored = self.idempotency.get(idem_key)
+            self.trace("idempotent_replay", {"tool": descriptor.name})
+            entry = self._audit(ctx, decision, outcome="idempotent_replay")
+            return InterceptOutcome(Disposition.ALLOW, decision, entry, result=stored,
+                                    executed=False, idempotent_replay=True)
+
+        # ⑨ forward to upstream with rehydrated arguments — fail closed on error
+        self.trace("tool_call_forwarded", {"tool": descriptor.upstream_name})
+        try:
+            raw_result = self.upstream.call_tool(descriptor.upstream_name, rehydrated)
+        except Exception:  # upstream unreachable / bad id -> record, do not crash the run
+            self.trace("run_failed", {"tool": descriptor.upstream_name, "error": "upstream_error"})
+            entry = self._audit(ctx, decision, outcome="upstream_error")
+            return InterceptOutcome(Disposition.ALLOW, decision, entry, result=None,
+                                    executed=False, upstream_error=True)
+
+        # ⑩ redact PII in the result
+        redacted, detections = redact_result(raw_result, descriptor.pii_map, self.session)
+
+        # ⑪ quarantine untrusted free-text fields (per-run nonce)
+        quarantined_fields: list[str] = []
+        for fp in descriptor.provenance_map:
+            if fp.provenance == Provenance.UNTRUSTED:
+                _wrap_field(redacted, fp.field_path, self.quarantine, quarantined_fields)
+        if quarantined_fields:
+            self.trace("quarantine_applied", {"fields": quarantined_fields})
+
+        if descriptor.risk_class in (RiskClass.REVERSIBLE_WRITE, RiskClass.IRREVERSIBLE_WRITE,
+                                     RiskClass.MONEY_MOVEMENT):
+            self.idempotency.record(idem_key, redacted)
+
+        self.trace("tool_result_received", {"tool": descriptor.name, "redactions": len(detections)})
+        entry = self._audit(ctx, decision, outcome="forwarded")
+        return InterceptOutcome(
+            Disposition.ALLOW, decision, entry, result=redacted, executed=True,
+            quarantined_fields=tuple(quarantined_fields), redaction_count=len(detections))
+
+    # -- helpers --
+    def _deny(self, ctx, reason_code, params, *, outcome, security_event=False, detail="") -> InterceptOutcome:
+        decision = PolicyDecision(
+            disposition=Disposition.DENY, reason_code=reason_code,
+            human_reason=render_reason(reason_code, **params),
+            deciding_rule="__proxy__", policy_set_version=self.policy_set.version)
+        self.trace("policy_decision", {"disposition": "DENY", "reason_code": reason_code.value,
+                                       "human_reason": decision.human_reason})
+        entry = self._audit(ctx, decision, outcome=outcome)
+        return InterceptOutcome(Disposition.DENY, decision, entry, security_event=security_event)
+
+    def _audit(self, ctx: DecisionContext, decision: PolicyDecision, *, outcome: str) -> AuditEntry:
+        return self.ledger.record(
+            run_id=ctx.run_id, step_id=ctx.step_id, call_id=ctx.call_id,
+            timestamp_ms=ctx.env.now_epoch_ms, tool_name=ctx.tool_name,
+            risk_class=ctx.risk_class, arguments_redacted=ctx.arguments_redacted,
+            argument_hash=ctx.argument_hash, decision=decision, outcome=outcome,
+            policy_set_version=self.policy_set.version,
+            agent_version=self.run_meta.get("agent_version"),
+            git_commit=self.run_meta.get("git_commit"),
+        )
+
+
+def _wrap_field(obj: Any, path: str, quarantine: QuarantineWrapper, wrapped: list[str]) -> None:
+    """Wrap a single (possibly ``items[]``) field's string value(s) in the nonce
+    quarantine, in place."""
+    parts = path.split(".")
+
+    def walk(node: Any, ps: list[str], trail: str):
+        if not ps:
+            return
+        head, rest = ps[0], ps[1:]
+        if head.endswith("[]"):
+            key = head[:-2]
+            seq = node.get(key) if isinstance(node, dict) else None
+            if isinstance(seq, list):
+                for i, elem in enumerate(seq):
+                    if not rest and isinstance(elem, str):
+                        seq[i], _ = quarantine.wrap(elem)
+                        wrapped.append(f"{trail}{key}[{i}]")
+                    else:
+                        walk(elem, rest, f"{trail}{key}[{i}].")
+        else:
+            if isinstance(node, dict) and head in node:
+                if not rest and isinstance(node[head], str):
+                    node[head], _ = quarantine.wrap(node[head])
+                    wrapped.append(f"{trail}{head}")
+                else:
+                    walk(node[head], rest, f"{trail}{head}.")
+
+    walk(obj, parts, "")
