@@ -46,3 +46,6 @@ cassettes/redteam/
 cassettes/api/
 cassettes/demo/
 # artifacts/ ARE committed on purpose (reference manifest + eval/redteam results).
+
+# TS incremental build info
+*.tsbuildinfo

@@ -20,8 +20,12 @@ install: ## Create venv and install dependencies
 	$(PY) -m pip install -q -e ".[dev]"
 
 .PHONY: demo
-demo: ## Start everything in fixture mode (control-plane API + fixture upstream), no keys required
+demo: frontend-if-needed ## Start everything in fixture mode (operator surface + API), no keys required
 	SENTINEL_MODE=fixture $(PY) -m sentinel.api.main
+
+.PHONY: frontend-if-needed
+frontend-if-needed: ## Build the operator surface only if it has not been built
+	@test -f frontend/dist/index.html || $(MAKE) frontend
 
 .PHONY: demo-cli
 demo-cli: ## Run the headline CLI demonstration: a money-movement denial with a plain-language reason (offline)
