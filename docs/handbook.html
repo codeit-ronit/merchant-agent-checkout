@@ -1,0 +1,584 @@
+<title>SENTINEL — Project Handbook</title>
+<style>
+  :root {
+    /* ground + neutrals (slate-biased, chosen not defaulted) */
+    --bg: #f4f5f7;
+    --bg-sunk: #eceef1;
+    --panel: #ffffff;
+    --panel-2: #f8f9fb;
+    --ink: #1b2230;
+    --ink-soft: #3d4658;
+    --muted: #6b7385;
+    --line: #dfe3ea;
+    --line-strong: #c7cdd8;
+    /* accent: muted brass/bronze — ledgers, seals, chain of custody */
+    --accent: #8a6626;
+    --accent-soft: #b98f45;
+    --accent-wash: #f3ecdd;
+    /* semantic decision states (NOT the accent; each has a glyph too) */
+    --allow: #157f52;
+    --allow-wash: #e2f2ea;
+    --deny: #c22f36;
+    --deny-wash: #fbe6e7;
+    --escalate: #a9741a;
+    --escalate-wash: #f7edd8;
+    --await: #2f6bb0;
+    --await-wash: #e4eef8;
+    --shadow: 0 1px 2px rgba(20,28,44,.06), 0 8px 24px rgba(20,28,44,.06);
+    --radius: 10px;
+    --maxw: 1180px;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f131b;
+      --bg-sunk: #0a0d13;
+      --panel: #161b25;
+      --panel-2: #1b212d;
+      --ink: #e7eaf0;
+      --ink-soft: #b8c0cf;
+      --muted: #8a93a6;
+      --line: #262d3a;
+      --line-strong: #333c4c;
+      --accent: #cca25c;
+      --accent-soft: #b98f45;
+      --accent-wash: #2a2317;
+      --allow: #46b787; --allow-wash: #12271e;
+      --deny: #e5686d; --deny-wash: #2a1416;
+      --escalate: #e0aa4b; --escalate-wash: #2a2113;
+      --await: #6aa6e6; --await-wash: #12212f;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f7; --bg-sunk:#eceef1; --panel:#fff; --panel-2:#f8f9fb;
+    --ink:#1b2230; --ink-soft:#3d4658; --muted:#6b7385; --line:#dfe3ea; --line-strong:#c7cdd8;
+    --accent:#8a6626; --accent-soft:#b98f45; --accent-wash:#f3ecdd;
+    --allow:#157f52; --allow-wash:#e2f2ea; --deny:#c22f36; --deny-wash:#fbe6e7;
+    --escalate:#a9741a; --escalate-wash:#f7edd8; --await:#2f6bb0; --await-wash:#e4eef8;
+    --shadow:0 1px 2px rgba(20,28,44,.06),0 8px 24px rgba(20,28,44,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg:#0f131b; --bg-sunk:#0a0d13; --panel:#161b25; --panel-2:#1b212d;
+    --ink:#e7eaf0; --ink-soft:#b8c0cf; --muted:#8a93a6; --line:#262d3a; --line-strong:#333c4c;
+    --accent:#cca25c; --accent-soft:#b98f45; --accent-wash:#2a2317;
+    --allow:#46b787; --allow-wash:#12271e; --deny:#e5686d; --deny-wash:#2a1416;
+    --escalate:#e0aa4b; --escalate-wash:#2a2113; --await:#6aa6e6; --await-wash:#12212f;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+    font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---- masthead ---- */
+  header.mast { border-bottom: 1px solid var(--line); background:
+    linear-gradient(180deg, var(--panel), var(--bg)); }
+  .mast-inner { display: flex; flex-direction: column; gap: 18px; padding: 40px 0 32px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-soft);
+    background: var(--panel-2); }
+  .tag.warn { color: var(--deny); border-color: var(--deny); background: var(--deny-wash); }
+  .tag.accent { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-wash); }
+  h1.title { font-family: var(--serif); font-weight: 600; letter-spacing: .18em; font-size: clamp(34px, 6vw, 58px);
+    margin: 0; text-transform: uppercase; }
+  .thesis { font-family: var(--serif); font-size: clamp(19px, 2.4vw, 25px); line-height: 1.4;
+    max-width: 40ch; color: var(--ink-soft); margin: 0; text-wrap: balance; }
+  .thesis b { color: var(--ink); font-weight: 600; }
+  .mast-meta { display:flex; gap:22px; flex-wrap:wrap; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .mast-meta span b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---- layout: rail + content ---- */
+  .layout { display: grid; grid-template-columns: 232px 1fr; gap: 44px; align-items: start;
+    padding: 40px 0 90px; }
+  nav.rail { position: sticky; top: 20px; font-size: 13.5px; display: flex; flex-direction: column; gap: 2px; }
+  nav.rail a { display: grid; grid-template-columns: 26px 1fr; gap: 6px; align-items: baseline;
+    color: var(--muted); text-decoration: none; padding: 5px 8px; border-radius: 7px; border: 1px solid transparent; }
+  nav.rail a:hover { color: var(--ink); background: var(--panel-2); }
+  nav.rail a .n { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  nav.rail a.active { color: var(--ink); background: var(--panel); border-color: var(--line); font-weight: 600; }
+  .theme-btn { margin-top: 14px; font-family: var(--mono); font-size: 12px; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft); padding: 7px 10px;
+    border-radius: 7px; text-align: left; }
+  .theme-btn:hover { border-color: var(--accent-soft); color: var(--ink); }
+
+  main { min-width: 0; }
+  section { scroll-margin-top: 20px; padding: 8px 0 40px; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: none; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent-soft); display:inline-block; }
+  h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 3.4vw, 33px); margin: 0 0 14px;
+    letter-spacing: .01em; text-wrap: balance; line-height: 1.2; }
+  h3 { font-family: var(--sans); font-weight: 650; font-size: 17px; margin: 26px 0 8px; color: var(--ink); }
+  p { margin: 0 0 14px; max-width: 68ch; }
+  p.lead { font-size: 18px; color: var(--ink-soft); max-width: 66ch; }
+  a { color: var(--accent); }
+  code { font-family: var(--mono); font-size: .88em; background: var(--panel-2); border: 1px solid var(--line);
+    padding: 1px 5px; border-radius: 5px; color: var(--ink); }
+  ul, ol { max-width: 68ch; padding-left: 22px; } li { margin: 5px 0; }
+  strong { color: var(--ink); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px 22px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 720px){ .grid.c2 { grid-template-columns: 1fr 1fr; } .grid.c3 { grid-template-columns: repeat(3,1fr); } }
+
+  /* stat tiles */
+  .stat { display:flex; flex-direction:column; gap:2px; }
+  .stat .k { font-family: var(--mono); font-size: 11px; letter-spacing:.06em; text-transform:uppercase; color: var(--muted); }
+  .stat .v { font-family: var(--serif); font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .s { font-size: 12.5px; color: var(--muted); }
+  .pending { color: var(--muted); font-style: italic; }
+
+  /* decision-state chips (distinguishable without colour via glyph) */
+  .chip { display:inline-flex; align-items:center; gap:6px; font-family: var(--mono); font-size: 12px;
+    padding: 3px 9px; border-radius: 999px; border: 1px solid; font-weight: 600; }
+  .chip .g { font-weight: 700; }
+  .chip.allow { color: var(--allow); border-color: var(--allow); background: var(--allow-wash); }
+  .chip.deny { color: var(--deny); border-color: var(--deny); background: var(--deny-wash); }
+  .chip.escalate { color: var(--escalate); border-color: var(--escalate); background: var(--escalate-wash); }
+  .chip.await { color: var(--await); border-color: var(--await); background: var(--await-wash); }
+
+  /* diagram (stacked boundary layers) */
+  .stack { display:flex; flex-direction:column; gap:0; font-family: var(--mono); font-size: 13px;
+    border:1px solid var(--line-strong); border-radius: var(--radius); overflow:hidden; }
+  .layer { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .layer:last-child{ border-bottom:none; }
+  .layer .lh { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .layer .lt { font-weight:700; color: var(--ink); letter-spacing:.02em; }
+  .layer .ld { color: var(--muted); font-size:12px; margin-top:4px; }
+  .layer.guarantee { background: var(--accent-wash); border-left: 3px solid var(--accent); }
+  .layer.advisory { background: var(--bg-sunk); }
+  .arrow { text-align:center; color: var(--muted); font-family: var(--mono); font-size: 14px; padding: 3px 0; }
+
+  /* lifecycle steps */
+  ol.life { list-style:none; padding:0; counter-reset: step; display:flex; flex-direction:column; gap:0; max-width:none; }
+  ol.life li { display:grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 11px 0; border-bottom: 1px dashed var(--line); align-items:start; }
+  ol.life li::before { counter-increment: step; content: counter(step,decimal-leading-zero);
+    font-family: var(--mono); font-size: 12px; color: var(--accent); background: var(--accent-wash);
+    border:1px solid var(--accent-soft); border-radius: 6px; width: 34px; height: 26px; display:flex; align-items:center; justify-content:center; }
+  ol.life li b { color: var(--ink); }
+  ol.life li .failclosed { color: var(--deny); font-family: var(--mono); font-size: 11px; }
+
+  /* audit chain signature element */
+  .chain { display:flex; flex-wrap:wrap; gap:0; align-items:center; margin: 8px 0 4px; }
+  .block { position:relative; font-family: var(--mono); background: var(--panel); border:1px solid var(--line-strong);
+    border-radius: 8px; padding: 9px 11px; min-width: 92px; text-align:center; transition: all .2s ease; }
+  .block .seq { font-size: 10px; color: var(--muted); }
+  .block .hash { font-size: 12px; color: var(--allow); font-weight:600; letter-spacing:.02em; }
+  .block.broken .hash { color: var(--deny); }
+  .block.broken { border-color: var(--deny); background: var(--deny-wash); }
+  .link { width: 22px; height: 2px; background: var(--line-strong); }
+  .link.broken { background: var(--deny); position: relative; }
+  .chain-tools { display:flex; gap:10px; align-items:center; margin-top: 12px; flex-wrap:wrap; }
+  .btn { font-family: var(--mono); font-size: 12.5px; cursor:pointer; background: var(--panel-2);
+    border:1px solid var(--line-strong); color: var(--ink); padding: 7px 12px; border-radius: 7px; }
+  .btn:hover { border-color: var(--accent-soft); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .verdict { font-family: var(--mono); font-size: 13px; padding: 6px 10px; border-radius: 7px; }
+  .verdict.ok { color: var(--allow); background: var(--allow-wash); border:1px solid var(--allow); }
+  .verdict.bad { color: var(--deny); background: var(--deny-wash); border:1px solid var(--deny); }
+
+  /* phase board */
+  .phase { display:grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items:center; padding: 12px 14px;
+    border:1px solid var(--line); border-radius: 9px; background: var(--panel); }
+  .phase .pn { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .phase .pt { font-weight: 600; } .phase .pd { font-size: 13px; color: var(--muted); }
+  .status { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing:.05em;
+    padding: 3px 9px; border-radius: 999px; border:1px solid; white-space:nowrap; }
+  .status.done { color: var(--allow); border-color: var(--allow); background: var(--allow-wash); }
+  .status.wip { color: var(--escalate); border-color: var(--escalate); background: var(--escalate-wash); }
+  .status.todo { color: var(--muted); border-color: var(--line-strong); background: var(--panel-2); }
+
+  /* adr */
+  details.adr { border:1px solid var(--line); border-radius: 9px; background: var(--panel); margin-bottom: 8px; }
+  details.adr summary { cursor:pointer; padding: 12px 16px; font-weight:600; display:flex; gap:10px; align-items:baseline; list-style:none; }
+  details.adr summary::-webkit-details-marker { display:none; }
+  details.adr summary .id { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  details.adr[open] summary { border-bottom:1px solid var(--line); }
+  details.adr .body { padding: 6px 16px 16px; font-size: 14.5px; color: var(--ink-soft); }
+  details.adr .body .to { color: var(--deny); }
+
+  table.tools { width:100%; border-collapse: collapse; font-size: 13.5px; }
+  table.tools th, table.tools td { text-align:left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+  table.tools th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing:.05em; color: var(--muted); }
+  table.tools td.mono { font-family: var(--mono); font-size: 12.5px; }
+  .scroll-x { overflow-x: auto; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-wash); padding: 12px 16px;
+    border-radius: 0 8px 8px 0; font-size: 14.5px; color: var(--ink-soft); }
+  .callout b { color: var(--ink); }
+  footer { color: var(--muted); font-size: 13px; padding: 28px 0 60px; text-align:center; }
+  footer code { font-size: 12px; }
+
+  @media (max-width: 860px){
+    .layout { grid-template-columns: 1fr; }
+    nav.rail { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    nav.rail a { grid-template-columns: auto auto; }
+  }
+  @media (prefers-reduced-motion: reduce){ * { transition: none !important; } }
+</style>
+
+<header class="mast">
+  <div class="wrap mast-inner">
+    <div class="badge-row">
+      <span class="tag accent">Project Handbook</span>
+      <span class="tag">Independent · open source</span>
+      <span class="tag warn">Test mode only · not affiliated with Razorpay</span>
+    </div>
+    <h1 class="title">Sentinel</h1>
+    <p class="thesis">Prompt-level guardrails are <b>advisory</b>. SENTINEL makes them mandatory by moving enforcement to the <b>tool-call boundary</b> — a process the model does not control — and then <b>proves</b> it works.</p>
+    <div class="mast-meta">
+      <span><b>Domain</b> · LLM agents on payment infrastructure</span>
+      <span><b>Runs</b> · offline, fixture mode, no API key</span>
+      <span><b>Updated</b> · Phase 0 complete</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="rail" id="rail">
+    <a href="#overview"><span class="n">00</span><span>Overview</span></a>
+    <a href="#problem"><span class="n">01</span><span>The problem</span></a>
+    <a href="#architecture"><span class="n">02</span><span>Architecture</span></a>
+    <a href="#lifecycle"><span class="n">03</span><span>Request lifecycle</span></a>
+    <a href="#policy"><span class="n">04</span><span>Policy engine</span></a>
+    <a href="#redaction"><span class="n">05</span><span>Redaction &amp; quarantine</span></a>
+    <a href="#audit"><span class="n">06</span><span>Audit chain</span></a>
+    <a href="#agents"><span class="n">07</span><span>The agents</span></a>
+    <a href="#eval"><span class="n">08</span><span>Eval &amp; red-team</span></a>
+    <a href="#decisions"><span class="n">09</span><span>Key decisions</span></a>
+    <a href="#research"><span class="n">10</span><span>Research</span></a>
+    <a href="#build"><span class="n">11</span><span>Build status</span></a>
+    <a href="#run"><span class="n">12</span><span>How to run</span></a>
+    <button class="theme-btn" id="themeBtn" type="button">◐ Toggle theme</button>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <div class="eyebrow">What this is</div>
+      <h2>A control plane that sits between an agent and its money-moving tools</h2>
+      <p class="lead">Agents are increasingly pointed at APIs that move money. The standard guardrail is a sentence in a system prompt — a request to the model, not a property of the system. SENTINEL intercepts every tool call at the protocol boundary, classifies it, redacts PII, evaluates it against declarative policy, and allows, denies, or escalates it to a human — <em>before it executes</em>.</p>
+      <div class="grid c2" style="margin-top:18px">
+        <div class="card">
+          <h3 style="margin-top:0">It does four things</h3>
+          <ol style="margin-bottom:0">
+            <li><b>Enforces policy at the tool-call boundary</b>, not in the prompt.</li>
+            <li><b>Redacts PII</b> before it reaches the model and <b>quarantines</b> untrusted text.</li>
+            <li>Writes a <b>tamper-evident, hash-chained audit trail</b> of every decision.</li>
+            <li><b>Proves</b> it works via a deterministic eval harness and a red-team A/B suite.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">The decision vocabulary</h3>
+          <p style="font-size:14px">Every tool call ends in one of these states — legible at a glance, and distinguishable without colour via its glyph:</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <span class="chip allow"><span class="g">✓</span> ALLOW</span>
+            <span class="chip deny"><span class="g">✕</span> DENY</span>
+            <span class="chip escalate"><span class="g">▲</span> REQUIRE_APPROVAL</span>
+            <span class="chip await"><span class="g">⏱</span> AWAITING</span>
+          </div>
+          <p style="font-size:13.5px; color:var(--muted); margin-top:14px; margin-bottom:0">Every decision carries an enumerated reason code and a plain sentence an operator can act on. A block without a reason is a bug.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:18px">
+        <b>The one claim everything serves:</b> a completely different MCP client pointed at the proxy is subject to the same policy. That is not true of any prompt. Prompt guardrails are requests to the model; proxy guardrails are properties of the system — and only the second kind can be tested, audited, or trusted with money.
+      </div>
+    </section>
+
+    <section id="problem">
+      <div class="eyebrow">01 · Why it exists</div>
+      <h2>An agent with write access is a security surface, not a feature</h2>
+      <p>A no-code builder is about to let non-engineers point LLM agents at APIs that move money. Those agents read PANs, bank statements, and settlement records, and they ingest <strong>attacker-controlled text by design</strong>: support tickets, chargeback evidence, uploaded statements, merchant notes. Four concrete failures follow:</p>
+      <div class="grid c2">
+        <div class="card"><h3 style="margin-top:0">1 · Guardrails live in the prompt</h3><p style="margin-bottom:0; font-size:14.5px">"Never refund without confirming" is a request, not a constraint. It degrades under long context and adversarial input, cannot be unit tested, and produces no artefact when it works or fails.</p></div>
+        <div class="card"><h3 style="margin-top:0">2 · Attacker text reaches the model with tools attached</h3><p style="margin-bottom:0; font-size:14.5px">A chargeback bundle, a bank-statement text layer, a support ticket — any can carry an instruction. The agent has no principled way to tell "data I was asked to analyse" from "instructions I was given."</p></div>
+        <div class="card"><h3 style="margin-top:0">3 · No record survives scrutiny</h3><p style="margin-bottom:0; font-size:14.5px">When an agent does something wrong with money: what did it do, in what order, on whose authority, with what inputs — and could the log have been altered? Standard logging answers none of these well.</p></div>
+        <div class="card"><h3 style="margin-top:0">4 · No way to know if a change made things worse</h3><p style="margin-bottom:0; font-size:14.5px">Prompt tweaks, model upgrades, and new tools ship on vibes. "It seemed fine when I tried it" is the state of the art for agents touching financial APIs.</p></div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="eyebrow">02 · The central decision</div>
+      <h2>Enforcement in a process the model does not control</h2>
+      <p class="lead">There are three places to put a guardrail. SENTINEL implements the second and third, and treats the first as documentation.</p>
+      <div class="stack" style="margin: 18px 0">
+        <div class="layer advisory"><div class="lh"><span class="lt">System prompt</span><span class="chip await" style="border-style:dashed"><span class="g">◌</span> ADVISORY</span></div><div class="ld">The model may comply. Adversarial input, context pressure, and model updates all erode it. Untestable.</div></div>
+        <div class="arrow">↓</div>
+        <div class="layer"><div class="lh"><span class="lt">In-loop guard · layer 2 — the experience</span><span class="tag">STRONG</span></div><div class="ld">Runs in our process. Gives structured, model-readable denials and rich context (stated reasoning, step number, run state). Not the guarantee — it shares a process with attacker text.</div></div>
+        <div class="arrow">↓</div>
+        <div class="layer guarantee"><div class="lh"><span class="lt">SENTINEL MCP proxy · layer 1 — THE GUARANTEE</span><span class="tag accent">STRONGEST</span></div><div class="ld">Protocol-level. Cannot be bypassed. Fails closed. Enforces regardless of which agent, framework, or model — survives the agent being replaced entirely. classify → redact → evaluate → allow/deny/escalate → idempotency → forward.</div></div>
+      </div>
+      <p>Both layers call the <strong>same pure policy engine</strong> with the same context builder. If they ever disagree, the proxy wins and the disagreement is logged as a <code>LAYER_DISAGREEMENT</code> P0 incident — because it means one of them has a bug. The model runtime is <strong>provider-agnostic by design</strong>: an in-house ~200-line loop over a thin abstraction, demonstrated across two providers, so the enforcement result can be shown to hold regardless of model.</p>
+      <h3>Components, each with exactly one job</h3>
+      <div class="grid c3">
+        <div class="card"><b>MCP Proxy</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Speaks MCP both sides. Discovers &amp; filters the tool manifest. Runs the decision pipeline.</p></div>
+        <div class="card"><b>Policy Engine</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">A pure function. No I/O, no clock, no randomness. Exhaustively testable.</p></div>
+        <div class="card"><b>Redaction Service</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">PII → stable tokens inbound; rehydrate only where a tool legitimately needs it.</p></div>
+        <div class="card"><b>Quarantine</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Untrusted text wrapped in a per-run nonce delimiter; permissions narrow.</p></div>
+        <div class="card"><b>Audit Ledger</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Append-only, SHA-256 hash-chained, gapless sequence, with a verifier.</p></div>
+        <div class="card"><b>Approval Store</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Single-use, argument-bound, expiring escalations. Re-validated on resume.</p></div>
+        <div class="card"><b>Provider Abstraction</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Normalised tool calling, failover, rate-limit governor, cassette record/replay.</p></div>
+        <div class="card"><b>Idempotency Guard</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">A retried refund is not a second refund. Deterministic key per mutating call.</p></div>
+        <div class="card"><b>Fixture Server</b><p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">A faithful, deterministic double of the upstream. The red-team runs here only.</p></div>
+      </div>
+    </section>
+
+    <section id="lifecycle">
+      <div class="eyebrow">03 · One tool call, end to end</div>
+      <h2>The request lifecycle</h2>
+      <p>The sequence to implement and the sequence to explain. Every one of steps 04–12 can fail closed independently.</p>
+      <ol class="life">
+        <li><span>Agent loop sends messages + tool manifest via the provider abstraction. <b>Cassette hit → replay; miss → call &amp; record.</b> Rate limit → back off, fail over.</span></li>
+        <li><span>Provider returns a tool call. Loop builds a <code>DecisionContext</code> and runs the <b>in-loop guard</b>. A DENY short-circuits with a structured, model-readable denial.</span></li>
+        <li><span>Call reaches the SENTINEL MCP proxy over the MCP protocol.</span></li>
+        <li><span>Classifier resolves the risk class. <span class="failclosed">UNKNOWN → DENY, fail closed.</span></span></li>
+        <li><span>Argument validation against the declared schema. <span class="failclosed">Malformed → DENY. Never guess a money-moving call's arguments.</span></span></li>
+        <li><span>Redaction rehydrates placeholder tokens. <span class="failclosed">A token never issued → DENY + flag suspected exfiltration.</span></span></li>
+        <li><span>Policy engine evaluates (authoritative). ALLOW → continue · DENY → block+audit · ESCALATE → create approval, suspend, await human.</span></li>
+        <li><span>Idempotency guard checks the key. Seen → return the stored result, no execution.</span></li>
+        <li><span>Forward to upstream (fixture or live).</span></li>
+        <li><span>Result returns. Scan for PII → redact → replace with stable tokens.</span></li>
+        <li><span>Classify field provenance. Wrap UNTRUSTED text in the nonce-delimited quarantine.</span></li>
+        <li><span>Write the audit entry: decision, reason code, matched rule, redacted args, latency, tokens, provider, model, cost, chain hash.</span></li>
+        <li><span>Return to the model. The loop appends the result and iterates.</span></li>
+        <li><span>Trace event streamed to the UI and persisted for eval replay.</span></li>
+      </ol>
+    </section>
+
+    <section id="policy">
+      <div class="eyebrow">04 · The pure decision core</div>
+      <h2>Policy is a file a non-engineer can read and a test can assert on</h2>
+      <p>The engine is <code>evaluate(policy_set, decision_context) → PolicyDecision</code> — a <strong>pure function</strong>: no I/O, no clock, no network, no randomness. Time, spend, counts, and approval status are all injected via the context. That purity buys exhaustive unit testing, property-based testing, and <em>replay</em> (apply a candidate policy to a historical run and see exactly which decisions change).</p>
+      <div class="grid c2">
+        <div class="card">
+          <h3 style="margin-top:0">Evaluation semantics</h3>
+          <ul style="margin-bottom:0; font-size:14.5px">
+            <li>All rules evaluate — no short-circuit — so every match is recorded.</li>
+            <li><b>Most-restrictive-wins:</b> DENY &gt; REQUIRE_APPROVAL &gt; ALLOW, unconditionally.</li>
+            <li>No permitting rule → DENY <code>DENY_FAIL_CLOSED</code>.</li>
+            <li>Any exception → DENY <code>DENY_POLICY_EVALUATION_ERROR</code> + abort the run.</li>
+            <li>Precedence is by restrictiveness, never file order.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">A closed set of rule types — not a DSL</h3>
+          <p style="font-size:13.5px; color:var(--muted); margin-top:0">An expressive DSL is a new attack surface and an untestable space. The two most interesting:</p>
+          <ul style="margin-bottom:0; font-size:14.5px">
+            <li><b>provenance_guard</b> — untrusted text in context → the permission set actually shrinks. The structural answer to injection.</li>
+            <li><b>counterparty_novelty</b> — a payout to an unseen destination is the highest-risk action; it always escalates.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px"><b>A system invariant, not a config default:</b> no policy file — however maliciously written — can auto-allow a <code>MONEY_MOVEMENT</code> tool without approval. This is enforced above the policy layer, and a test proves a hand-crafted file cannot configure it away.</div>
+    </section>
+
+    <section id="redaction">
+      <div class="eyebrow">05 · The model never needs the digits</div>
+      <h2>Redaction and the trust quarantine</h2>
+      <p>For almost every task these agents do, PII is used as an <em>identity token</em>, not a value. A reconciliation agent needs to know account <code>ACCT_a17f</code> appears in both records — not the digits. So we replace PII with a stable, greppable token before it ever reaches the model, and keep the token→value map in a store the model cannot address.</p>
+      <h3>The invariant we test relentlessly</h3>
+      <p>No real PII value appears in any prompt, trace event, audit entry, log, API response, or file on disk outside the token store. Implemented as a parametrised test that seeds the pipeline with known synthetic PII and greps every output surface. <strong>The highest-value test in the repo.</strong></p>
+      <h3>Two mechanisms against injection — and only the second holds</h3>
+      <div class="grid c2">
+        <div class="card"><b>1 · Nonce-delimited quarantine <span class="chip escalate" style="font-size:11px">mitigation</span></b><p style="font-size:14px;margin:8px 0 0">Untrusted text is wrapped by the <em>proxy</em> in a delimiter carrying a per-run cryptographic nonce. A fixed delimiter is trivially defeated by anyone who reads the source; a random nonce cannot be guessed. Reduces attack success — does not eliminate it.</p></div>
+        <div class="card" style="border-color:var(--accent-soft)"><b>2 · Permission narrowing <span class="chip allow" style="font-size:11px">the guarantee</span></b><p style="font-size:14px;margin:8px 0 0">When untrusted content enters a run, the agent's permissions shrink for the rest of it: irreversible writes downgrade to escalation, reads tighten to entities already in scope. <b>We do not need to know whether the injection worked — we assume it might have and reduce what a compromised agent can do.</b></p></div>
+      </div>
+    </section>
+
+    <section id="audit">
+      <div class="eyebrow">06 · The signature element</div>
+      <h2>A record that visibly breaks when tampered</h2>
+      <p>Each ledger entry contains the SHA-256 hash of the previous entry; its own hash covers its canonical serialisation <em>including</em> that previous hash. Alter any entry and every entry after it fails verification. Try it — tamper with a block and run the verifier:</p>
+      <div class="scroll-x"><div class="chain" id="chain"></div></div>
+      <div class="chain-tools">
+        <button class="btn" id="tamperBtn" type="button">✎ Tamper with entry #3</button>
+        <button class="btn" id="verifyBtn" type="button">⛓ Verify chain</button>
+        <button class="btn" id="resetBtn" type="button">↺ Reset</button>
+        <span class="verdict ok" id="verdict">chain intact — 6 entries</span>
+      </div>
+      <div class="callout" style="margin-top:18px"><b>Honest by design — tamper-EVIDENT, not tamper-PROOF.</b> Anyone who can write to the database can recompute the whole chain from any point and it will verify cleanly. Real tamper-resistance needs an external anchor (an RFC 6962-style transparency log) or write-once storage — neither is implemented, and that is stated plainly in <code>LIMITATIONS.md</code>.</div>
+    </section>
+
+    <section id="agents">
+      <div class="eyebrow">07 · Exercising the control plane</div>
+      <h2>Three agents across the full risk spectrum</h2>
+      <p>The agents are the demo; the control plane is the contribution. Each exercises strictly more of the system than the last.</p>
+      <div class="scroll-x">
+      <table class="tools">
+        <thead><tr><th>Agent</th><th>Highest risk class</th><th>What it proves</th></tr></thead>
+        <tbody>
+          <tr><td><b>Reconciliation</b></td><td><span class="chip allow" style="font-size:11px"><span class="g">✓</span> READ</span></td><td>The whole pipeline on a useful task with zero write risk. Ingests untrusted documents — the red-team carrier.</td></tr>
+          <tr><td><b>Dispute Responder</b></td><td><span class="chip escalate" style="font-size:11px"><span class="g">▲</span> IRREVERSIBLE_WRITE</span></td><td>RAG with citations, structured output, and approval gating on a non-money irreversible action.</td></tr>
+          <tr><td><b>Subscription Recovery</b></td><td><span class="chip deny" style="font-size:11px"><span class="g">✕</span> MONEY_MOVEMENT</span></td><td>The full escalation path. Provably incapable of unattended money movement. <code>counterparty_novelty</code> fires here.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="eval">
+      <div class="eyebrow">08 · The rarest skill in the space</div>
+      <h2>Making "did this get better?" a number, with no API key</h2>
+      <p>Everything runs against fixtures and committed <strong>cassettes</strong> — recorded model interactions keyed by a content hash of everything that could change the response. A reviewer clones the repo and reproduces the exact eval numbers with <em>no credentials</em>. A cassette miss in replay mode is a hard failure, never a silent fall-through to the network.</p>
+      <h3>The red-team A/B — the evidence</h3>
+      <p>Every injection payload runs under identical conditions with guardrails off and on. Grading is <strong>rule-based and deterministic</strong>, derived from the trace and audit log — never a model judging outputs. Three numbers, all reported honestly:</p>
+      <div class="grid c3" style="margin-top:6px">
+        <div class="card stat"><span class="k">Attack success · OFF</span><span class="v pending" id="stat-off">— %</span><span class="s">guardrails disabled</span></div>
+        <div class="card stat"><span class="k">Attack success · ON</span><span class="v pending" id="stat-on">— %</span><span class="s">L3/L4 must be zero</span></div>
+        <div class="card stat"><span class="k">False-positive rate</span><span class="v pending" id="stat-fp">— %</span><span class="s">legitimate work blocked</span></div>
+      </div>
+      <div class="callout" style="margin-top:16px"><b>We did not solve prompt injection — nobody has.</b> Quarantine is a mitigation; permission narrowing is the guarantee. Expect L1 (behaviour altered, no unauthorised action) to be non-zero even with guardrails on, while L3 (exfiltration) and L4 (unauthorised money movement) stay zero. The goal is to make being fooled <em>harmless</em>, not impossible.</div>
+    </section>
+
+    <section id="decisions">
+      <div class="eyebrow">09 · Every choice, with its cost named</div>
+      <h2>Key decisions</h2>
+      <p>Recorded at the time in <code>DECISIONS.md</code>. An ADR without a named trade-off is marketing. A selection:</p>
+      <details class="adr" open><summary><span class="id">ADR-000</span> Offline-first, credential-free demonstration</summary><div class="body">Fixture upstream + committed cassettes + a deterministic scripted provider, with real provider adapters that activate only when a key is present. <span class="to"><b>Trade-off:</b></span> cassettes must be authored and kept fresh; an incomplete cassette key would produce stale replays that look like passing tests.</div></details>
+      <details class="adr"><summary><span class="id">ADR-001</span> Enforcement placement: proxy + in-loop, prompt as docs</summary><div class="body">The proxy is the guarantee; the in-loop guard is the experience. Both call the same pure engine. <span class="to"><b>Trade-off:</b></span> two enforcement paths to keep in sync, guarded by a permanent layer-agreement test.</div></details>
+      <details class="adr"><summary><span class="id">ADR-002a</span> Providers: Groq primary, Gemini fallback</summary><div class="body">Both OpenAI-compatible, so one adapter shape covers both and the loop never branches on provider. Verified live 2026-08-21. <span class="to"><b>Trade-off:</b></span> Gemini's free tier trains on inputs — mitigated by synthetic-only data, stated in the README.</div></details>
+      <details class="adr"><summary><span class="id">ADR-006</span> Money is integer minor units, enforced at serialisation</summary><div class="body">Razorpay uses integer paise (₹299 = 29900). The canonical serialiser <em>raises on any float</em>. <span class="to"><b>Trade-off:</b></span> callers convert at the edge; the engine never divides.</div></details>
+      <details class="adr"><summary><span class="id">ADR-010</span> Canonical JSON (RFC 8785-inspired) + SHA-256</summary><div class="body">Stricter than the RFC: floats forbidden, large ints carried as strings. <span class="to"><b>Trade-off:</b></span> tamper-evident, not tamper-proof — needs an external anchor for real resistance.</div></details>
+      <details class="adr"><summary><span class="id">ADR-011</span> Our own idempotency guard</summary><div class="body">Native Razorpay idempotency is payout-only, and the MCP server exposes no payout tool — so no reachable money-moving tool has native coverage. We supply a deterministic key per mutating call. <span class="to"><b>Trade-off:</b></span> per-run guard, not an upstream guarantee.</div></details>
+      <details class="adr"><summary><span class="id">ADR-018</span> Rule-based red-team grading; make being fooled harmless</summary><div class="body">Grading from trace + audit, never a model judge. Corpus informed by OWASP LLM01, Spotlighting, CaMeL, AgentDojo, InjecAgent. <span class="to"><b>Trade-off:</b></span> rule-based grading can miss subtle behaviour changes; we accept coarser but trustworthy grades.</div></details>
+    </section>
+
+    <section id="research">
+      <div class="eyebrow">10 · Verified live, not from memory</div>
+      <h2>What the research found</h2>
+      <p>Free-tier catalogues and the upstream tool inventory change monthly, so all of this was fetched from live sources on 2026-08-21 and dated in <code>DECISIONS.md</code>.</p>
+      <div class="grid c2">
+        <div class="card"><h3 style="margin-top:0">Razorpay MCP surface (~45 tools)</h3><p style="font-size:14px;margin-bottom:8px">Money-movement set: <code>capture_payment</code>, <code>initiate_payment</code>, <code>submit_otp</code>, <code>create_refund</code>, <code>create_instant_settlement</code>. Notably <b>no create-payout tool</b> and <b>no dispute tools</b> exist upstream.</p><p style="font-size:14px;margin:0">Amounts are integer paise. Pagination is offset-based (<code>count</code>/<code>skip</code>, default 10, max 100). The server does not enforce test-mode — so our proxy must.</p></div>
+        <div class="card"><h3 style="margin-top:0">Indian PII formats + safe generation</h3><p style="font-size:14px;margin:0">Checksummed types (Aadhaar/Verhoeff, GSTIN/Luhn-36, card/Luhn-10) get a deliberately wrong check digit; checksum-free types (IFSC, VPA, UTR, mobile, account) use structural reservation (<code>ZZZZ</code> bank code, <code>@invalid</code> handle, impossible Julian day). No synthetic value can collide with a real one.</p></div>
+        <div class="card"><h3 style="margin-top:0">Canonical form + hash</h3><p style="font-size:14px;margin:0">RFC 8785 (JCS) — with its number-handling landmine avoided by forbidding floats and carrying large ints as strings. SHA-256 for the chain (RFC 6962 family). Tamper-evidence reduces to collision resistance.</p></div>
+        <div class="card"><h3 style="margin-top:0">Injection taxonomy</h3><p style="font-size:14px;margin:0">OWASP LLM01 (direct/indirect/multimodal); Spotlighting/datamarking measured but incomplete under adaptive attack; the CaMeL framing — separate control from data, least privilege. Benchmarks cited: AgentDojo (has a Banking domain), InjecAgent.</p></div>
+      </div>
+    </section>
+
+    <section id="build">
+      <div class="eyebrow">11 · Front-load the thing that proves itself</div>
+      <h2>Build status</h2>
+      <p>Built phase by phase; every phase ends with a demonstrable artefact and a decision-log entry.</p>
+      <div class="grid" style="gap:8px" id="phaseBoard">
+        <div class="phase"><span class="pn">P0</span><span><span class="pt">Scaffold + data contracts</span><br><span class="pd">Contracts, reason codes, canonical form, IDs, research, 46 tests green</span></span><span class="status done">Done</span></div>
+        <div class="phase"><span class="pn">P1</span><span><span class="pt">Fixture server + tool classification</span><br><span class="pd">Synthetic generators, faithful double, classify every tool</span></span><span class="status todo">Next</span></div>
+        <div class="phase"><span class="pn">P2</span><span><span class="pt">Pure policy engine</span><br><span class="pd">Closed rule set, most-restrictive-wins, property tests, purity check</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P3</span><span><span class="pt">Proxy + redaction + audit + idempotency</span><br><span class="pd">The enforcement boundary; the PII invariant test</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P4</span><span><span class="pt">Runtime + providers + cassettes + Reconciliation</span><br><span class="pd">End-to-end from the CLI — the milestone that matters most</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P5</span><span><span class="pt">Eval harness</span><br><span class="pd">Golden set, regression gates, guardrail-overhead number</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P6</span><span><span class="pt">Dispute + Subscription agents + red-team</span><br><span class="pd">Full risk coverage and the headline A/B</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P7</span><span><span class="pt">Operator surface</span><br><span class="pd">Six views: run console, approvals, policy, eval, red-team, audit</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P8</span><span><span class="pt">Ship</span><br><span class="pd">README, demo video, one-command start, security pass</span></span><span class="status todo">Planned</span></div>
+      </div>
+    </section>
+
+    <section id="run">
+      <div class="eyebrow">12 · No credentials required</div>
+      <h2>How to run it</h2>
+      <p>The demo, tests, evals, and red-team all run offline in fixture mode with cassette replay.</p>
+      <div class="card" style="font-family:var(--mono); font-size:13.5px; line-height:2; background:var(--bg-sunk)">
+        <div><span style="color:var(--muted)">$</span> make install &nbsp;&nbsp;<span style="color:var(--muted)"># venv + deps</span></div>
+        <div><span style="color:var(--muted)">$</span> make test &nbsp;&nbsp;<span style="color:var(--muted)"># tiers 1–3, fast, no model</span></div>
+        <div><span style="color:var(--muted)">$</span> make demo-cli &nbsp;&nbsp;<span style="color:var(--muted)"># a money-movement denial with a plain reason</span></div>
+        <div><span style="color:var(--muted)">$</span> make verify-audit &nbsp;&nbsp;<span style="color:var(--muted)"># walk the hash chain</span></div>
+        <div><span style="color:var(--muted)">$</span> make eval &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)"># golden set + regression gates</span></div>
+        <div><span style="color:var(--muted)">$</span> make redteam &nbsp;<span style="color:var(--muted)"># paired A/B, fixture-only</span></div>
+      </div>
+    </section>
+
+    <footer>
+      SENTINEL · independent open-source project · not affiliated with, endorsed by, or produced by Razorpay ·
+      <code>rzp_test_*</code> keys and synthetic data only. This handbook is regenerated as each phase completes.
+    </footer>
+  </main>
+</div>
+
+<script>
+  // theme toggle
+  (function(){
+    var btn = document.getElementById('themeBtn');
+    btn && btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var cur = root.getAttribute('data-theme');
+      var dark = cur ? cur === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    });
+  })();
+
+  // scroll-spy for the rail
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.rail a[href^="#"]'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('active'); });
+          var a = map[e.target.id]; if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -80% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function(s){ obs.observe(s); });
+  })();
+
+  // audit-chain signature interaction
+  (function(){
+    var GEN = '000000';
+    var seeds = ['a17f9c','4e2b81','c93d05','7f1a6e','b0e4d2','5c8f30'];
+    var chainEl = document.getElementById('chain');
+    var verdict = document.getElementById('verdict');
+    var state;
+
+    function fakeHash(prev, seed){
+      // deterministic pseudo-hash for display only (not the real SHA-256 chain)
+      var h = 0, s = prev + seed;
+      for (var i=0;i<s.length;i++){ h = ((h<<5)-h + s.charCodeAt(i))|0; }
+      return (h>>>0).toString(16).padStart(6,'0').slice(0,6);
+    }
+    function build(){
+      state = seeds.map(function(seed,i){ return { seq:i, seed:seed, tampered:false }; });
+    }
+    function render(){
+      var prev = GEN, html = '';
+      for (var i=0;i<state.length;i++){
+        var s = state[i];
+        var seed = s.tampered ? s.seed.toUpperCase() : s.seed;
+        var hash = fakeHash(prev, seed);
+        // a downstream block is broken if any prior block was tampered (recompute mismatch)
+        var brokenClass = s.brokenView ? ' broken' : '';
+        if (i>0) html += '<div class="link'+(state[i-1].brokenView?' broken':'')+'"></div>';
+        html += '<div class="block'+brokenClass+'"><div class="seq">#'+s.seq+'</div><div class="hash">'+hash+'</div></div>';
+        prev = hash;
+      }
+      chainEl.innerHTML = html;
+    }
+    function reset(){ build(); state.forEach(function(s){ s.brokenView=false; }); render();
+      verdict.className='verdict ok'; verdict.textContent='chain intact — 6 entries'; }
+    function tamper(){
+      state[3].tampered = !state[3].tampered;
+      render(); // re-hash but do not yet mark broken until verify
+      verdict.className='verdict ok'; verdict.textContent = state[3].tampered
+        ? 'entry #3 edited — run Verify to detect it' : 'chain restored — run Verify';
+    }
+    function verify(){
+      // the verifier walks from genesis and reports the first block whose stored
+      // hash no longer matches a recompute. Any tampered entry breaks itself + all after.
+      var firstBreak = -1;
+      for (var i=0;i<state.length;i++){ if (state[i].tampered){ firstBreak = i; break; } }
+      for (var j=0;j<state.length;j++){ state[j].brokenView = (firstBreak>-1 && j>=firstBreak); }
+      render();
+      if (firstBreak === -1){ verdict.className='verdict ok'; verdict.textContent='verified — 6 entries, chain intact'; }
+      else { verdict.className='verdict bad'; verdict.textContent='CHAIN BROKEN at entry #'+firstBreak+' — refusing to certify'; }
+    }
+    document.getElementById('tamperBtn').addEventListener('click', tamper);
+    document.getElementById('verifyBtn').addEventListener('click', verify);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    reset();
+  })();
+</script>

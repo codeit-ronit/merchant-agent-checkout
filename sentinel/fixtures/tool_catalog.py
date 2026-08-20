@@ -139,6 +139,8 @@ FIXTURE_EXTENSIONS: list[dict[str, Any]] = [
     _tool("fetch_all_disputes", "(fixture extension) Fetch all disputes.", dict(_PAGINATION)),
     _tool("submit_dispute_evidence", "(fixture extension) Submit an evidence bundle to contest a dispute (irreversible once submitted).",
           {"dispute_id": _STR, "evidence": {"type": "object"}, "action": _STR}, ["dispute_id", "evidence", "action"]),
+    _tool("fetch_all_subscriptions", "(fixture extension) Fetch all subscriptions, including recent failed charges.", dict(_PAGINATION)),
+    _tool("fetch_subscription", "(fixture extension) Fetch a subscription and its last failure detail.", {"subscription_id": _STR}, ["subscription_id"]),
 ]
 
 EXTENSION_NAMES = frozenset(t["name"] for t in FIXTURE_EXTENSIONS)

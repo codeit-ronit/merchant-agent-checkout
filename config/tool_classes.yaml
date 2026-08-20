@@ -1,0 +1,143 @@
+# SENTINEL tool risk classification — reconciled against the upstream tools/list
+# at startup. A tool present on the server but ABSENT here is UNKNOWN -> denied
+# (fail closed). A tool here but absent from the server is STALE -> warn.
+#
+# Classified conservatively (docs/spec/07): if a tool could move funds, it is
+# MONEY_MOVEMENT. Rationale for every money-movement classification is in
+# DECISIONS.md (ADR-003). Money amounts are integer minor units (paise).
+#
+# Field paths in provenance_map / pii_map use: "field", "obj.field",
+# "items[].field" (each element of a collection). Provenance defaults to
+# TOOL_STRUCTURED (machine data, never instructions); free-text fields are
+# UNTRUSTED and get quarantined by the proxy.
+
+version: "1"
+classified_on: "2026-08-21"
+
+# Tools explicitly banned in this deployment: removed from the manifest entirely.
+forbidden: []
+
+# ---------------- Payments ----------------
+tools:
+  capture_payment:
+    risk_class: MONEY_MOVEMENT
+    moves_money: true
+    amount_arg_path: amount
+    currency_arg_path: currency
+    entity_arg_paths: [payment_id]
+  initiate_payment:
+    risk_class: MONEY_MOVEMENT
+    moves_money: true
+    amount_arg_path: amount
+    currency_arg_path: currency
+    entity_arg_paths: [customer_id, order_id]
+    counterparty_arg_path: customer_id      # novelty: charging a never-seen mandate/customer
+    rehydratable_arg_paths: [token]
+  submit_otp:
+    risk_class: MONEY_MOVEMENT              # finalises the charge
+    moves_money: true
+    entity_arg_paths: [payment_id]
+  resend_otp:
+    risk_class: REVERSIBLE_WRITE            # sends an OTP to a real person (side effect)
+    entity_arg_paths: [payment_id]
+  fetch_payment:
+    risk_class: READ
+    entity_arg_paths: [payment_id]
+    pii_map: {email: EMAIL, contact: PHONE, name: NAME, "card.last4": PAN_CARD, vpa: VPA}
+    provenance_map: {description: UNTRUSTED, "notes.merchant_note": UNTRUSTED}
+  fetch_payment_card_details:
+    risk_class: READ
+    entity_arg_paths: [payment_id]
+    pii_map: {"card.last4": PAN_CARD}
+  fetch_all_payments:
+    risk_class: READ
+    is_paginated: true
+    pii_map: {"items[].email": EMAIL, "items[].contact": PHONE, "items[].name": NAME, "items[].card.last4": PAN_CARD, "items[].vpa": VPA}
+    provenance_map: {"items[].description": UNTRUSTED, "items[].notes.merchant_note": UNTRUSTED}
+  update_payment:
+    risk_class: REVERSIBLE_WRITE
+    entity_arg_paths: [payment_id]
+
+  # ---------------- Payment links ----------------
+  create_payment_link:      {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  create_payment_link_upi:  {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  send_payment_link:        {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
+  update_payment_link:      {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
+  fetch_payment_link:       {risk_class: READ, entity_arg_paths: [payment_link_id]}
+  fetch_all_payment_links:  {risk_class: READ, is_paginated: true}
+
+  # ---------------- Orders ----------------
+  create_order:         {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  update_order:         {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [order_id]}
+  fetch_order:          {risk_class: READ, entity_arg_paths: [order_id]}
+  fetch_all_orders:     {risk_class: READ, is_paginated: true}
+  fetch_order_payments:
+    risk_class: READ
+    entity_arg_paths: [order_id]
+    is_paginated: true
+    pii_map: {"items[].email": EMAIL, "items[].contact": PHONE}
+
+  # ---------------- Refunds ----------------
+  create_refund:
+    risk_class: MONEY_MOVEMENT
+    moves_money: true
+    amount_arg_path: amount
+    entity_arg_paths: [payment_id]
+  fetch_refund:                        {risk_class: READ, entity_arg_paths: [refund_id]}
+  fetch_all_refunds:                   {risk_class: READ, is_paginated: true}
+  update_refund:                       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [refund_id]}
+  fetch_multiple_refunds_for_payment:  {risk_class: READ, entity_arg_paths: [payment_id], is_paginated: true}
+  fetch_specific_refund_for_payment:   {risk_class: READ, entity_arg_paths: [payment_id, refund_id]}
+
+  # ---------------- QR codes ----------------
+  create_qr_code:                {risk_class: REVERSIBLE_WRITE}
+  close_qr_code:                 {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [qr_id]}
+  fetch_qr_code:                 {risk_class: READ, entity_arg_paths: [qr_id]}
+  fetch_all_qr_codes:            {risk_class: READ, is_paginated: true}
+  fetch_qr_codes_by_customer_id: {risk_class: READ, entity_arg_paths: [customer_id]}
+  fetch_qr_codes_by_payment_id:  {risk_class: READ, entity_arg_paths: [payment_id]}
+  fetch_payments_for_qr_code:    {risk_class: READ, entity_arg_paths: [qr_id], is_paginated: true}
+
+  # ---------------- Settlements ----------------
+  fetch_all_settlements:         {risk_class: READ, is_paginated: true}
+  fetch_settlement_with_id:      {risk_class: READ, entity_arg_paths: [settlement_id]}
+  fetch_settlement_recon_details: {risk_class: READ, is_paginated: true}
+  fetch_all_instant_settlements: {risk_class: READ, is_paginated: true}
+  fetch_instant_settlement_with_id: {risk_class: READ, entity_arg_paths: [settlement_id]}
+  create_instant_settlement:
+    risk_class: MONEY_MOVEMENT
+    moves_money: true
+    amount_arg_path: amount
+
+  # ---------------- Payouts (read-only upstream) ----------------
+  fetch_all_payouts:  {risk_class: READ, is_paginated: true, entity_arg_paths: [account_number]}
+  fetch_payout_by_id: {risk_class: READ, entity_arg_paths: [payout_id]}
+
+  # ---------------- Tokens ----------------
+  fetch_tokens:  {risk_class: READ, entity_arg_paths: [customer_id], pii_map: {"items[].vpa": VPA}}
+  revoke_token:  {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [customer_id]}
+
+  # ---------------- Registration / local helpers ----------------
+  create_registration_link: {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  detect_stack:             {risk_class: READ}
+  integrate_razorpay_checkout: {risk_class: REVERSIBLE_WRITE}   # writes local files
+
+  # ---------------- Fixture extensions (not in upstream; parity reports them) ----------------
+  fetch_dispute:
+    risk_class: READ
+    entity_arg_paths: [dispute_id]
+    provenance_map: {customer_message: UNTRUSTED}
+    pii_map: {"payment.email": EMAIL, "payment.contact": PHONE, "payment.name": NAME}
+  fetch_all_disputes:
+    risk_class: READ
+    is_paginated: true
+    provenance_map: {"items[].customer_message": UNTRUSTED}
+  submit_dispute_evidence:
+    risk_class: IRREVERSIBLE_WRITE          # once submitted to the network, cannot be unsent
+    entity_arg_paths: [dispute_id]
+  fetch_all_subscriptions:
+    risk_class: READ
+    is_paginated: true
+  fetch_subscription:
+    risk_class: READ
+    entity_arg_paths: [subscription_id]
