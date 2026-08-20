@@ -45,7 +45,9 @@ eval: ## Run the golden eval set in replay mode with regression gates (offline, 
 
 .PHONY: redteam
 redteam: ## Run the paired A/B red-team suite in fixture mode (offline, no key)
-	SENTINEL_MODE=fixture SENTINEL_CASSETTE=replay $(PY) -m redteam.runner
+	# auto mode: the deterministic brains regenerate cassettes offline (no network);
+	# red-team cassettes are not committed (they record the guardrails-off leak).
+	SENTINEL_MODE=fixture SENTINEL_CASSETTE=auto $(PY) -m redteam.runner
 
 .PHONY: verify-audit
 verify-audit: ## Walk and verify the audit hash chain, report first break if any

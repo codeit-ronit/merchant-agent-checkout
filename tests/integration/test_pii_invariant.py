@@ -89,6 +89,21 @@ def test_no_pii_on_any_output_surface():
     assert not leaked, f"PII leaked to an output surface: {leaked[:5]}"
 
 
+@pytest.mark.critical
+def test_committed_cassettes_are_pii_clean():
+    """Belt-and-braces (docs/spec/02 §4.3): the COMMITTED cassettes must contain
+    no known PII value. Only guardrails-ON eval cassettes are committed; the
+    guardrails-off red-team recordings (which capture the exfiltration
+    counterfactual) are intentionally not committed."""
+    import glob
+    from evals.statements import known_pii_values
+    committed = glob.glob("cassettes/evals/*.json")
+    assert committed, "expected committed eval cassettes"
+    pii = known_pii_values()
+    leaks = [(f, v) for f in committed for v in pii if v in open(f, encoding="utf-8").read()]
+    assert not leaks, f"PII in a committed cassette: {leaks[:3]}"
+
+
 def test_reconciliation_over_all_pages_never_leaks_utr_is_visible():
     """UTRs are transaction references, NOT PII — reconciliation must be able to
     match on them, so they are deliberately left visible."""

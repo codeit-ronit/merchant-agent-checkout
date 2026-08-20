@@ -36,5 +36,13 @@ frontend/.vite/
 sentinel_state/
 .DS_Store
 
-# NOTE: cassettes/ and artifacts/ ARE committed on purpose — they are what make
-# the eval numbers reproducible with no API key. They contain synthetic data only.
+# Cassettes: only the eval cassettes are committed (guardrails-ON, PII-clean) so
+# `SENTINEL_CASSETTE=replay make eval` reproduces the numbers with no API key.
+# The red-team/api/demo cassettes are NOT committed: they are regenerated offline
+# by the deterministic agent brains each run (no network), and the guardrails-OFF
+# red-team recordings deliberately capture the exfiltration counterfactual, so they
+# contain synthetic-PII-shaped strings we keep out of version control.
+cassettes/redteam/
+cassettes/api/
+cassettes/demo/
+# artifacts/ ARE committed on purpose (reference manifest + eval/redteam results).

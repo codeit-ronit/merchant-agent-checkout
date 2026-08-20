@@ -70,6 +70,8 @@ jobs:
       - name: Eval suite with regression gates (offline)
         run: python -m evals.runner --check-gates
       - name: Red-team paired A/B with L3/L4 hard gate (offline)
+        env:
+          SENTINEL_CASSETTE: auto
         run: python -m redteam.runner --check-gates
       - name: Verify audit chain of the demo run
         run: make demo-cli && make verify-audit
