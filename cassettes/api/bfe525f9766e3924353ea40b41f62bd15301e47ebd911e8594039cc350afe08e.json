@@ -1,0 +1,30 @@
+{
+  "key": "bfe525f9766e3924353ea40b41f62bd15301e47ebd911e8594039cc350afe08e",
+  "request": {
+    "model": "subscription-recovery-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "Retrying subscription sub_TXNZAHAHIAVS (cause: insufficient_funds).",
+    "tool_calls": [
+      {
+        "id": "tc_retry_0",
+        "name": "initiate_payment",
+        "arguments": {
+          "amount": 179000,
+          "currency": "INR",
+          "customer_id": "fa_27499241416610"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 402,
+      "output_tokens": 36,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "subscription-recovery-brain",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}
