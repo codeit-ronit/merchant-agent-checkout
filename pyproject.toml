@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A policy enforcement, audit, and evaluation control plane for LLM agents that operate on payment infrastructure. Independent project; not affiliated with Razorpay."
 requires-python = ">=3.11"
 readme = "README.md"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 dependencies = [
     "pydantic>=2",
     "fastapi",
