@@ -1,0 +1,16 @@
+# Pinned-loosely for the demo. Exact versions resolved into the committed .venv.
+# See pyproject.toml for the authoritative dependency list.
+pydantic>=2
+fastapi
+uvicorn[standard]
+sse-starlette
+pyyaml
+httpx
+pypdf
+python-multipart
+mcp
+# dev / test
+pytest
+pytest-asyncio
+hypothesis
+ruff

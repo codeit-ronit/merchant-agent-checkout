@@ -1,0 +1,36 @@
+# SENTINEL — one-command stack.
+#
+# The DEFAULT profile runs everything in FIXTURE mode: no upstream, no keys.
+#   docker compose up sentinel
+#
+# The `live` profile additionally starts the real Razorpay MCP server in
+# TEST MODE. It requires rzp_test_* keys in .env and is opt-in only.
+#   docker compose --profile live up
+#
+# Nothing here ever uses live keys. A key beginning rzp_live_ is rejected at startup.
+
+services:
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SENTINEL_MODE: ${SENTINEL_MODE:-fixture}
+      SENTINEL_CASSETTE: ${SENTINEL_CASSETTE:-replay}
+      # Only consulted in live mode; unset in the default fixture profile.
+      RAZORPAY_MCP_URL: http://razorpay-mcp:8081/mcp
+    ports:
+      - "8080:8080"      # control-plane API + operator surface
+    volumes:
+      - ./sentinel_state:/app/sentinel_state
+    command: ["python", "-m", "sentinel.api.main"]
+
+  # Opt-in only. The upstream open-source MCP server, TEST MODE.
+  razorpay-mcp:
+    image: razorpay/mcp:latest
+    profiles: ["live"]
+    environment:
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+    ports:
+      - "8081:8081"

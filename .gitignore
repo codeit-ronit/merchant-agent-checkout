@@ -1,0 +1,40 @@
+# SENTINEL — .gitignore
+# Test-mode keys ONLY are ever used, and they are injected via environment,
+# never committed. This file is defence-in-depth, not the primary control
+# (see .gitleaks.toml + CI secret scan).
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# environment / secrets — never commit
+.env
+.env.*
+!.env.example
+*.key
+secrets.*
+
+# node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# local runtime state (the ledger, token store, governor counters, approvals db)
+# The demo regenerates these deterministically; they are not committed.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+sentinel_state/
+.DS_Store
+
+# NOTE: cassettes/ and artifacts/ ARE committed on purpose — they are what make
+# the eval numbers reproducible with no API key. They contain synthetic data only.

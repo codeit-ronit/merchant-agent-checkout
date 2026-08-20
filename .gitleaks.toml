@@ -1,0 +1,34 @@
+# SENTINEL secret-scanning rules (gitleaks-compatible + used by scripts/secret_scan.py).
+# The single most important rule: a live Razorpay key must never enter the repo.
+
+title = "SENTINEL secret scan"
+
+[[rules]]
+id = "razorpay-live-key-id"
+description = "Razorpay LIVE key id (rzp_live_*) — forbidden. Test mode only."
+regex = '''rzp_live_[A-Za-z0-9]{10,}'''
+tags = ["razorpay", "live", "forbidden"]
+
+[[rules]]
+id = "razorpay-live-secret-heuristic"
+description = "A Razorpay secret paired with a live key id"
+regex = '''(?i)key_secret['"\s:=]+[A-Za-z0-9]{20,}'''
+tags = ["razorpay", "secret"]
+
+[[rules]]
+id = "generic-api-key-assignment"
+description = "Generic hardcoded API key assignment in source"
+regex = '''(?i)(api[_-]?key|secret|token)['"\s:=]+['"][A-Za-z0-9_\-]{24,}['"]'''
+tags = ["generic"]
+
+[allowlist]
+description = "Synthetic-only fixtures and test-mode placeholders are allowed"
+regexes = [
+  '''rzp_test_[A-Za-z0-9]+''',       # test-mode keys are the ONLY keys we use
+  '''xxxxxxxxxxxxx''',               # .env.example placeholders
+  '''rzp_test_xxxxxxxxxxxxx''',
+]
+paths = [
+  '''docs/spec/.*''',                # the spec pack discusses keys in prose
+  '''\.env\.example''',
+]

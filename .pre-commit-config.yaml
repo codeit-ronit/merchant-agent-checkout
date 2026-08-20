@@ -1,0 +1,17 @@
+# SENTINEL pre-commit hooks. Install with: pre-commit install
+# The secret scan is the load-bearing hook — a live key must never be committed.
+repos:
+  - repo: local
+    hooks:
+      - id: sentinel-secret-scan
+        name: SENTINEL secret scan (no live keys)
+        entry: python -m scripts.secret_scan
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: sentinel-policy-purity
+        name: Policy engine purity (no I/O imports)
+        entry: python -m pytest -q tests/unit/test_policy_purity.py
+        language: system
+        pass_filenames: false
+        always_run: true

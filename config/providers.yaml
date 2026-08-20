@@ -1,0 +1,76 @@
+# SENTINEL inference providers.
+#
+# Verified live on 2026-08-21 (see DECISIONS.md ADR-002a). Free-tier catalogues
+# change monthly — these values and model IDs MUST be re-confirmed at runtime by
+# the startup model probe + a tool-call smoke test before they are trusted.
+# NOTHING here is hardcoded in Python; the abstraction reads this file.
+#
+# Both providers speak the OpenAI-compatible /chat/completions API with
+# tools=[...] and return tool_calls[].function.arguments as a JSON STRING, so a
+# single adapter shape covers both (the agent loop never branches on provider).
+#
+# Secrets are NEVER here — they come from the environment (see .env.example).
+
+verified_on: "2026-08-21"
+
+failover_order: [groq, gemini]   # primary first, then fallback
+
+providers:
+  groq:
+    display_name: "Groq"
+    kind: openai_compatible
+    base_url: "https://api.groq.com/openai/v1"
+    api_key_env: SENTINEL_PROVIDER_A_API_KEY
+    # tool_calls[].function.arguments arrives as a JSON string -> parse+validate.
+    arguments_are_json_string: true
+    usage_fields: { input: prompt_tokens, output: completion_tokens }
+    rate_limit_signal: { status: 429, retry_after_header: "retry-after" }
+    trains_on_free_tier_inputs: false        # Groq does not train on inputs (recorded)
+    requires_card: false
+    models:
+      strong:
+        id: "openai/gpt-oss-120b"
+        # $/1M tokens, for cost derivation (integer micro-currency internally).
+        price_input_per_mtok_micros: 150000    # $0.15
+        price_output_per_mtok_micros: 600000   # $0.60
+        limits: { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 }
+      weak:
+        id: "openai/gpt-oss-20b"
+        price_input_per_mtok_micros: 75000     # $0.075
+        price_output_per_mtok_micros: 300000   # $0.30
+        limits: { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 }
+
+  gemini:
+    display_name: "Google Gemini (AI Studio free tier)"
+    kind: openai_compatible
+    base_url: "https://generativelanguage.googleapis.com/v1beta/openai/"
+    api_key_env: SENTINEL_PROVIDER_B_API_KEY
+    arguments_are_json_string: true
+    usage_fields: { input: prompt_tokens, output: completion_tokens }
+    rate_limit_signal: { status: 429, retry_after_header: "retry-after" }
+    # Free-tier inputs ARE used to improve products/models (recorded honestly).
+    # Not a blocker: all fixture data is synthetic. See README + LIMITATIONS.
+    trains_on_free_tier_inputs: true
+    requires_card: false
+    models:
+      strong:
+        id: "gemini-2.5-flash"
+        # Gemini free tier reports usage but published $/1M varies; cost may be a
+        # gap on free tier -> record the gap rather than estimating.
+        price_input_per_mtok_micros: null
+        price_output_per_mtok_micros: null
+        limits: { rpm: 10, rpd: 250, tpm: 250000 }
+      weak:
+        id: "gemini-2.5-flash-lite"
+        price_input_per_mtok_micros: null
+        price_output_per_mtok_micros: null
+        limits: { rpm: 15, rpd: 1000, tpm: 250000 }
+
+# The rate-limit governor blocks locally BEFORE the provider rejects, using a
+# persistent sliding-window store so a restart does not reset the daily counter.
+governor:
+  backoff_base_ms: 500
+  backoff_max_ms: 8000
+  jitter_ms: 250
+  max_retries_per_call: 3
+  max_failovers_per_run: 2

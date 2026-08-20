@@ -1,0 +1,891 @@
+{
+  "provenance": {
+    "captured_on": "2026-08-21",
+    "method": "derived from README + Razorpay API docs (Docker+test-keys unavailable in build env); see DECISIONS.md ADR-003",
+    "source_repo": "razorpay/razorpay-mcp-server",
+    "tool_count": 45
+  },
+  "tools": [
+    {
+      "name": "capture_payment",
+      "description": "Change payment status from authorized to captured (finalises the charge).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "amount",
+          "currency"
+        ]
+      }
+    },
+    {
+      "name": "fetch_payment",
+      "description": "Fetch payment details by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_payment_card_details",
+      "description": "Fetch card details used for a payment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_payments",
+      "description": "Fetch all payments with filtering and pagination.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "update_payment",
+      "description": "Update the notes field of a payment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "initiate_payment",
+      "description": "Initiate a payment using a saved payment method (charges the customer).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customer_id": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "order_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "name": "resend_otp",
+      "description": "Resend OTP if the previous one was not received or expired.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "submit_otp",
+      "description": "Verify and submit OTP to complete payment authentication (finalises the charge).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "otp": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "otp"
+        ]
+      }
+    },
+    {
+      "name": "create_payment_link",
+      "description": "Create a standard payment link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ]
+      }
+    },
+    {
+      "name": "create_payment_link_upi",
+      "description": "Create a UPI payment link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_payment_links",
+      "description": "Fetch all payment links.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "fetch_payment_link",
+      "description": "Fetch details of a payment link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_link_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_link_id"
+        ]
+      }
+    },
+    {
+      "name": "send_payment_link",
+      "description": "Send a payment link via SMS or email.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_link_id": {
+            "type": "string"
+          },
+          "medium": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_link_id",
+          "medium"
+        ]
+      }
+    },
+    {
+      "name": "update_payment_link",
+      "description": "Update a standard payment link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_link_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payment_link_id"
+        ]
+      }
+    },
+    {
+      "name": "create_order",
+      "description": "Create an order (a container/intent; no money moves).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "receipt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ]
+      }
+    },
+    {
+      "name": "fetch_order",
+      "description": "Fetch order by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_orders",
+      "description": "Fetch all orders.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "update_order",
+      "description": "Update an order's notes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_order_payments",
+      "description": "Fetch all payments for an order.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      }
+    },
+    {
+      "name": "create_refund",
+      "description": "Create a refund (returns funds to the payer).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer"
+          },
+          "speed": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payment_id",
+          "amount"
+        ]
+      }
+    },
+    {
+      "name": "fetch_refund",
+      "description": "Fetch refund by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "refund_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refund_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_refunds",
+      "description": "Fetch all refunds.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "update_refund",
+      "description": "Update refund notes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "refund_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "refund_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_multiple_refunds_for_payment",
+      "description": "Fetch multiple refunds for a payment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_specific_refund_for_payment",
+      "description": "Fetch a specific refund for a payment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "refund_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "refund_id"
+        ]
+      }
+    },
+    {
+      "name": "create_qr_code",
+      "description": "Create a QR code (a collection instrument).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "string"
+          },
+          "fixed_amount": {
+            "type": "boolean"
+          },
+          "payment_amount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "name": "fetch_qr_code",
+      "description": "Fetch QR code by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "qr_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "qr_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_qr_codes",
+      "description": "Fetch all QR codes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "fetch_qr_codes_by_customer_id",
+      "description": "Fetch QR codes by customer ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_qr_codes_by_payment_id",
+      "description": "Fetch QR codes by payment ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_payments_for_qr_code",
+      "description": "Fetch payments for a QR code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "qr_id": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "qr_id"
+        ]
+      }
+    },
+    {
+      "name": "close_qr_code",
+      "description": "Close a QR code (cannot be reopened).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "qr_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "qr_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_settlements",
+      "description": "Fetch all settlements.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "fetch_settlement_with_id",
+      "description": "Fetch settlement details by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "settlement_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "settlement_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_settlement_recon_details",
+      "description": "Fetch the settlement reconciliation report for a period.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "month": {
+            "type": "integer"
+          },
+          "day": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month"
+        ]
+      }
+    },
+    {
+      "name": "create_instant_settlement",
+      "description": "Create an instant settlement (moves merchant balance to bank ahead of schedule).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "settle_full_balance": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_instant_settlements",
+      "description": "Fetch all instant settlements.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "fetch_instant_settlement_with_id",
+      "description": "Fetch instant settlement by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "settlement_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "settlement_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_all_payouts",
+      "description": "Fetch all payouts by account number.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "account_number"
+        ]
+      }
+    },
+    {
+      "name": "fetch_payout_by_id",
+      "description": "Fetch payout by payout ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payout_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payout_id"
+        ]
+      }
+    },
+    {
+      "name": "fetch_tokens",
+      "description": "Get saved payment methods by customer ID or contact.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "name": "revoke_token",
+      "description": "Revoke a saved payment method / token (cannot be undone).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id",
+          "token"
+        ]
+      }
+    },
+    {
+      "name": "create_registration_link",
+      "description": "Create a registration/authorisation link for recurring debits (mandate).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ]
+      }
+    },
+    {
+      "name": "detect_stack",
+      "description": "(Local) Detect the project's language/framework for checkout integration.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "integrate_razorpay_checkout",
+      "description": "(Local) Generate Razorpay Standard Checkout integration code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}
