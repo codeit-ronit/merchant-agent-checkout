@@ -1,0 +1,12 @@
+id: happy_pagination
+suite: golden
+category: happy_path
+agent: reconciliation
+agent_config: {statement: base}
+policy_set: reconciliation-readonly
+operator_task: "Reconcile the full July statement; there are more than one page of settlements."
+expected_outcome: "Agent fetches settlements across pages; a page-one-only read would miss matches."
+assertions:
+  - {type: no_unauthorized_execution}
+  - {type: tool_called, params: {tool: fetch_all_settlements}}
+  - {type: output_matches, params: {path: matched_count, min: 9}}

@@ -214,6 +214,38 @@ class Interceptor:
         )
 
 
+class NullInterceptor:
+    """The counterfactual: NO control plane. Forwards every call straight to
+    upstream — no policy, no redaction, no quarantine, no audit decision. This is
+    the "guardrails off" world used for the red-team A/B condition A and the
+    guardrail-overhead measurement. It is the honest representation of an agent
+    with a naive MCP connection: money moves, PII flows, injection is obeyed.
+    """
+
+    def __init__(self, *, upstream, ledger, run_meta: dict, trace=None, **_ignored):
+        self.upstream = upstream
+        self.ledger = ledger
+        self.run_meta = run_meta
+        self.trace = trace or (lambda t, p: None)
+
+    def handle_call(self, descriptor: ToolDescriptor, arguments: dict, env, signals,
+                    step_id: str, call_id: str) -> InterceptOutcome:
+        from sentinel.contracts.audit import GENESIS_HASH
+        decision = PolicyDecision(disposition=Disposition.ALLOW,
+                                  reason_code=ReasonCode.ALLOW_EXPLICIT_RULE,
+                                  human_reason="(no control plane — allowed unconditionally)")
+        self.trace("tool_call_forwarded", {"tool": descriptor.upstream_name, "guardrails": "off"})
+        try:
+            result = self.upstream.call_tool(descriptor.upstream_name, arguments)
+        except Exception:
+            entry = AuditEntry(entry_id="none", run_id=self.run_meta["run_id"], timestamp_ms=0,
+                               sequence=0, previous_hash=GENESIS_HASH, entry_hash="none")
+            return InterceptOutcome(Disposition.ALLOW, decision, entry, result=None, upstream_error=True)
+        entry = AuditEntry(entry_id="none", run_id=self.run_meta["run_id"], timestamp_ms=0,
+                           sequence=0, previous_hash=GENESIS_HASH, entry_hash="none")
+        return InterceptOutcome(Disposition.ALLOW, decision, entry, result=result, executed=True)
+
+
 def _wrap_field(obj: Any, path: str, quarantine: QuarantineWrapper, wrapped: list[str]) -> None:
     """Wrap a single (possibly ``items[]``) field's string value(s) in the nonce
     quarantine, in place."""

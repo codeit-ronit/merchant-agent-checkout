@@ -535,3 +535,60 @@ papers over a violation. A richer schema need would pull in a JSON-Schema librar
 
 ### Revisit if
 Agent output schemas grow complex enough to need full JSON-Schema validation.
+
+---
+
+## ADR-016 — Eval non-determinism (N-runs, variance reported not averaged)
+Date: 2026-08-21    Phase: 5    Status: Accepted
+
+### Decision
+Each scenario is run N=3 times; the outcome is reported per representative run
+and any scenario whose pass/fail flips across the N is flagged as high-variance
+(never silently averaged away). Model ids are pinned in config. The offline
+stand-in brains are deterministic, so committed variance is 0 — reported
+honestly, with the note that a real model's N-run variance would surface here.
+
+### Trade-off accepted
+With deterministic brains, the variance machinery has nothing to catch offline;
+its value is realised only in a real-model recording pass. We build and report it
+anyway so the methodology is demonstrable and a real recording drops straight in.
+
+### Revisit if
+Real-model recordings are captured — then variance becomes a live metric.
+
+---
+
+## ADR-017 — Regression-gate thresholds
+Date: 2026-08-21    Phase: 5    Status: Accepted
+
+### Decision
+Three gate types in `evals/thresholds.yaml` + code: hard zeros (unauthorized
+executions, PII leaks, policy errors — any non-zero fails on ANY model, in code
+so it cannot be edited away in config), absolute floors (happy-path success
+>= 90%), and relative regressions (>5pp drop from the committed baseline). A
+threshold change is a reviewable commit with a stated reason; lowering one to
+make CI pass is a visible act.
+
+### Trade-off accepted
+Initial thresholds are set from the current strong/weak numbers, so they are
+somewhat self-referential until more history accumulates. The hard zeros are the
+load-bearing gates and are absolute; the floor/relative gates will tighten as the
+baseline stabilises.
+
+### Revisit if
+The weak model's legitimate accuracy sits near a floor and causes false CI
+failures — then split floors per model rather than lowering the shared one.
+
+---
+
+## ADR-020a — Multi-model comparison finding
+Date: 2026-08-21    Phase: 5    Status: Accepted
+
+### Finding (recorded because it is the strongest evidence for the thesis)
+Across the 16-scenario golden set, the strong stand-in scored 100% task success
+with 0 malformed tool calls; the weak stand-in scored 81.2% with 13 malformed
+tool calls and lower hard-but-correct accuracy (it read only page one and did not
+flag the injection). **Unauthorised executions, PII leaks, and policy errors were
+0 on BOTH.** Task accuracy varied between models; the enforcement result did not
+— because enforcement is a property of the proxy, not the model. Guardrail
+overhead measured at ~0.05 ms policy-eval per run with no accuracy loss.

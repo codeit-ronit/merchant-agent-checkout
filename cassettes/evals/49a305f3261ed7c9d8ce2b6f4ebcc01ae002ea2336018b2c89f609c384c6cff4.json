@@ -1,0 +1,20 @@
+{
+  "key": "49a305f3261ed7c9d8ce2b6f4ebcc01ae002ea2336018b2c89f609c384c6cff4",
+  "request": {
+    "model": "refund-demo-brain",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"summary\":\"done\"}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 47,
+      "output_tokens": 4,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "refund-demo-brain",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

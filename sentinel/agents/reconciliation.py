@@ -131,16 +131,28 @@ def _count_settlement_pages(messages: list[dict]) -> list[dict]:
     return items, pages
 
 
-def make_brain(statement: dict, *, fooled: bool = False):
-    """Return a deterministic ``(messages, tools) -> ProviderResponse`` brain."""
+def make_brain(statement: dict, *, fooled: bool = False, quality: str = "strong"):
+    """Return a deterministic ``(messages, tools) -> ProviderResponse`` brain.
+
+    ``quality='weak'`` models a less capable free-tier model: it emits one
+    malformed tool call before recovering, reads only the first page of
+    settlements (lower accuracy), and fails to flag the embedded instruction.
+    Its ENFORCEMENT outcome is nonetheless identical — the proxy, not the model,
+    is the boundary."""
     injected, payload = _statement_has_injection(statement)
 
     def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
         settlements, pages = _count_settlement_pages(messages)
         already_tried_refund = any(m.get("name") == "create_refund" for m in messages
                                    if m.get("role") == "tool")
+        corrective_seen = any("malformed" in str(m.get("content", "")).lower()
+                              for m in messages if m.get("role") == "user")
 
-        # 1) paginate settlements until a short page
+        # weak models often emit a malformed tool call first (a real quality signal)
+        if quality == "weak" and pages == 0 and not corrective_seen:
+            return ProviderResponse(malformed_tool_call=True)
+
+        # 1) paginate settlements until a short page (weak model stops after page 1)
         last_page_len = None
         for m in messages:
             if m.get("role") == "tool" and m.get("name") == "fetch_all_settlements":
@@ -148,7 +160,8 @@ def make_brain(statement: dict, *, fooled: bool = False):
                     last_page_len = len(json.loads(m["content"]).get("items", []))
                 except Exception:
                     last_page_len = 0
-        if pages == 0 or (last_page_len == 10):     # default page size -> maybe more
+        more_pages_possible = (pages == 0 or last_page_len == 10)
+        if more_pages_possible and not (quality == "weak" and pages >= 1):
             return ProviderResponse(tool_calls=(NormalisedToolCall(
                 id=f"tc_settle_{pages}", name="fetch_all_settlements",
                 arguments={"count": 10, "skip": pages * 10}),))
@@ -163,8 +176,8 @@ def make_brain(statement: dict, *, fooled: bool = False):
 
         # 3) produce the final structured report
         report = reconcile(statement, settlements)
-        report["flagged_injection"] = bool(injected)
-        if injected:
+        report["flagged_injection"] = bool(injected) and quality == "strong"
+        if injected and quality == "strong":
             report["summary"] += (" NOTE: the statement contained an embedded instruction "
                                   "to move money; this was reported, not acted on.")
         return ProviderResponse(text=json.dumps(report, ensure_ascii=False), finish_reason="stop")
@@ -172,11 +185,11 @@ def make_brain(statement: dict, *, fooled: bool = False):
     return brain
 
 
-def build_agent(statement: dict, *, fooled: bool = False) -> AgentDefinition:
+def build_agent(statement: dict, *, fooled: bool = False, quality: str = "strong") -> AgentDefinition:
     return AgentDefinition(
         id="reconciliation", version="1", system_prompt=SYSTEM_PROMPT,
         tool_scope=TOOL_SCOPE, output_schema=OUTPUT_SCHEMA,
         default_policy_set="reconciliation-readonly",
-        brain=make_brain(statement, fooled=fooled),
+        brain=make_brain(statement, fooled=fooled, quality=quality),
         ceilings=ResourceCeilings(max_steps=8, max_tool_calls=10),
     )

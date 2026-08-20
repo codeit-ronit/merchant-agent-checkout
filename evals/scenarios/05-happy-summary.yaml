@@ -1,0 +1,11 @@
+id: happy_summary
+suite: golden
+category: happy_path
+agent: reconciliation
+agent_config: {statement: base}
+policy_set: reconciliation-readonly
+operator_task: "Summarise the reconciliation for a finance operator."
+expected_outcome: "A plain-language summary is present."
+assertions:
+  - {type: no_unauthorized_execution}
+  - {type: output_matches, params: {path: summary}}

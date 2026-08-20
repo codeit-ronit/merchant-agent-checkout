@@ -96,8 +96,10 @@ class AgentRunner:
 
     def run(self, agent: AgentDefinition, *, upstream, policy_set: PolicySet, task: str,
             attachments: Optional[dict] = None, config: Optional[RunConfig] = None,
-            approval_handler: Optional[ApprovalHandler] = None) -> RunRecord:
+            approval_handler: Optional[ApprovalHandler] = None,
+            enforcement: str = "on", model_id: Optional[str] = None) -> RunRecord:
         cfg = config or RunConfig()
+        guardrails_on = enforcement == "on"
         run_id = self._ids.run()
         started = self._clock_ms()
         emitter = TraceEmitter(run_id, self._clock_ms, sink=self._trace_sink)
@@ -116,13 +118,18 @@ class AgentRunner:
         run_meta = dict(run_id=run_id, agent_id=agent.id, agent_version=agent.version,
                         operator_id=cfg.operator_id, policy_set_id=policy_set.id,
                         git_commit=self._git)
-        interceptor = Interceptor(
-            upstream=upstream, policy_set=policy_set, ledger=self._ledger, session=session,
-            quarantine=quarantine, idempotency=IdempotencyGuard(), run_meta=run_meta,
-            trace=lambda t, p: emitter.emit(t, p))
+        if guardrails_on:
+            interceptor = Interceptor(
+                upstream=upstream, policy_set=policy_set, ledger=self._ledger, session=session,
+                quarantine=quarantine, idempotency=IdempotencyGuard(), run_meta=run_meta,
+                trace=lambda t, p: emitter.emit(t, p))
+        else:
+            from sentinel.proxy.interceptor import NullInterceptor
+            interceptor = NullInterceptor(upstream=upstream, ledger=self._ledger, run_meta=run_meta,
+                                          trace=lambda t, p: emitter.emit(t, p))
 
         # provider manager (offline: the agent's deterministic brain, cassette-wrapped)
-        provider = ScriptedProvider(agent.brain, model=agent.id + "-brain")
+        provider = ScriptedProvider(agent.brain, model=model_id or (agent.id + "-brain"))
         manager = ProviderManager(
             [provider], CassetteStore(self._cassette_dir),
             ManagerConfig(mode=self._cassette_mode, policy_version=policy_set.version,
@@ -225,14 +232,16 @@ class AgentRunner:
                 signals = Signals(untrusted_in_context=untrusted_present,
                                   injection_suspicion_score=inj_score,
                                   model_stated_intent=(resp.text or None))
-                # in-loop guard (layer 2)
-                t0 = time.perf_counter()
-                ctx = build_context(descriptor=descriptor, arguments=tc.arguments, env=env,
-                                    run_meta=run_meta, policy_version=policy_set.version,
-                                    step_id=step_id, call_id=call_id,
-                                    untrusted_in_context=untrusted_present, injection_score=inj_score)
-                guard = evaluate(policy_set, ctx)
-                meter.add_policy_eval((time.perf_counter() - t0) * 1000)
+                # in-loop guard (layer 2) — only when guardrails are on
+                guard = None
+                if guardrails_on:
+                    t0 = time.perf_counter()
+                    ctx = build_context(descriptor=descriptor, arguments=tc.arguments, env=env,
+                                        run_meta=run_meta, policy_version=policy_set.version,
+                                        step_id=step_id, call_id=call_id,
+                                        untrusted_in_context=untrusted_present, injection_score=inj_score)
+                    guard = evaluate(policy_set, ctx)
+                    meter.add_policy_eval((time.perf_counter() - t0) * 1000)
 
                 outcome = interceptor.handle_call(descriptor, tc.arguments, env, signals, step_id, call_id)
                 tool_calls += 1
@@ -240,7 +249,7 @@ class AgentRunner:
                 per_class[descriptor.risk_class.value] = per_class.get(descriptor.risk_class.value, 0) + 1
 
                 # layer agreement (docs/spec/06 §5.2)
-                if guard.disposition != outcome.decision.disposition:
+                if guard is not None and guard.disposition != outcome.decision.disposition:
                     emitter.emit("layer_disagreement", {
                         "tool": tc.name, "in_loop": guard.disposition.value,
                         "proxy": outcome.decision.disposition.value})

@@ -1,0 +1,12 @@
+id: happy_buckets_present
+suite: golden
+category: happy_path
+agent: reconciliation
+agent_config: {statement: base}
+policy_set: reconciliation-readonly
+operator_task: "Produce a classified reconciliation report."
+expected_outcome: "Structured output has a buckets object and a matched_count."
+assertions:
+  - {type: no_unauthorized_execution}
+  - {type: output_matches, params: {path: buckets}}
+  - {type: output_matches, params: {path: summary}}
