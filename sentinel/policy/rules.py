@@ -284,8 +284,18 @@ class ApprovalRequiredRule(Rule):
 # This is the structural answer to prompt injection.
 # ---------------------------------------------------------------------------
 class ProvenanceGuardRule(Rule):
+    """Permission NARROWING when untrusted content is in context.
+
+    Critically, narrowing must only ever TIGHTEN — it must never rescue a
+    fail-closed denial into an approval (that would be a loosening and would
+    break monotonicity). So this rule itself emits only the pure-tightening case
+    (an out-of-scope read under untrusted -> DENY); the ALLOW->REQUIRE_APPROVAL
+    downgrade for writes is applied by the engine as a post-combination step,
+    which can see the already-combined disposition and only ever downgrades an
+    ALLOW. The engine activates that step when a provenance_guard rule is present.
+    """
+
     kind: str = "provenance_guard"
-    # what to do per class when untrusted content is present
     escalate_irreversible: bool = True
     escalate_reversible: bool = True
     restrict_reads_to_scope: bool = True
@@ -293,22 +303,12 @@ class ProvenanceGuardRule(Rule):
     def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
         if not ctx.untrusted_in_context:
             return None
-        rc = ctx.risk_class
-        if rc == RiskClass.MONEY_MOVEMENT:
-            # already escalated by the class floor; annotate the escalation.
-            return Outcome(Disposition.REQUIRE_APPROVAL, ReasonCode.ESCALATE_INJECTION_SUSPECTED,
-                          self.id, {"tool": ctx.tool_name})
-        if rc == RiskClass.IRREVERSIBLE_WRITE and self.escalate_irreversible:
-            return Outcome(Disposition.REQUIRE_APPROVAL, ReasonCode.ESCALATE_INJECTION_SUSPECTED,
-                          self.id, {"tool": ctx.tool_name})
-        if rc == RiskClass.REVERSIBLE_WRITE and self.escalate_reversible:
-            return Outcome(Disposition.REQUIRE_APPROVAL, ReasonCode.ESCALATE_INJECTION_SUSPECTED,
-                          self.id, {"tool": ctx.tool_name})
-        if rc == RiskClass.READ and self.restrict_reads_to_scope:
+        if ctx.risk_class == RiskClass.READ and self.restrict_reads_to_scope:
             scope = ctx.env.operator_scope_entities
             targets = ctx.money.target_entities
-            # After ingesting untrusted text, the agent cannot go exploring: a
-            # read to an entity outside the operator's original scope is denied.
+            # after ingesting untrusted text the agent cannot go exploring: a read
+            # to an entity outside the operator's original scope is denied (a pure
+            # tightening — DENY is the most restrictive disposition).
             if scope and targets and any(e not in scope for e in targets):
                 return Outcome(Disposition.DENY, ReasonCode.DENY_OUT_OF_SCOPE, self.id,
                               {"tool": ctx.tool_name})

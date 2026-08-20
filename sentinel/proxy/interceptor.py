@@ -21,15 +21,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
-from sentinel.common.canonical import sha256_hex
 from sentinel.contracts.audit import AuditEntry
-from sentinel.contracts.decision import DecisionContext, InjectedEnv, MoneySemantics, PolicyDecision
+from sentinel.contracts.decision import DecisionContext, InjectedEnv, PolicyDecision
 from sentinel.contracts.enums import Disposition, Provenance, RiskClass
 from sentinel.contracts.reasons import ReasonCode, render_reason
 from sentinel.contracts.tools import ToolDescriptor
 from sentinel.policy import evaluate
 from sentinel.policy.rules import PolicySet
-from sentinel.proxy.idempotency import IdempotencyGuard, idempotency_key
+from sentinel.proxy.context import build_context
+from sentinel.proxy.idempotency import IdempotencyGuard
 from sentinel.redaction.engine import RedactionSession, redact_result, rehydrate_arguments
 from sentinel.redaction.quarantine import QuarantineWrapper, UnissuedTokenError
 
@@ -107,41 +107,18 @@ class Interceptor:
         self.run_meta = run_meta          # run_id, agent_id, agent_version, operator_id, policy_set_id, git_commit
         self.trace = trace or (lambda t, p: None)
 
-    # -- money/entity extraction from arguments via the descriptor --
-    def _money(self, d: ToolDescriptor, args: dict) -> MoneySemantics:
-        amount = _get_path(args, d.amount_arg_path) if d.amount_arg_path else None
-        currency = _get_path(args, d.currency_arg_path) if d.currency_arg_path else None
-        targets = tuple(str(_get_path(args, p)) for p in d.entity_arg_paths if _get_path(args, p) is not None)
-        cp = _get_path(args, d.counterparty_arg_path) if d.counterparty_arg_path else None
-        return MoneySemantics(
-            moves_money=d.moves_money,
-            amount_minor=amount if isinstance(amount, int) and not isinstance(amount, bool) else None,
-            currency=currency if isinstance(currency, str) else (None if not d.moves_money else "INR"),
-            target_entities=targets,
-            counterparty_ref=str(cp) if cp is not None else None,
-        )
-
     def handle_call(self, descriptor: ToolDescriptor, arguments: dict, env: InjectedEnv,
                     signals: Signals, step_id: str, call_id: str) -> InterceptOutcome:
         rm = self.run_meta
         redacted_args = arguments                       # model only ever saw tokens
-        arg_hash = sha256_hex(redacted_args)
-        idem_key = idempotency_key(rm["run_id"], descriptor.upstream_name, redacted_args)
-        money = self._money(descriptor, arguments)
-
-        ctx = DecisionContext(
-            run_id=rm["run_id"], step_id=step_id, call_id=call_id,
-            agent_id=rm["agent_id"], agent_version=rm["agent_version"], operator_id=rm["operator_id"],
-            policy_set_id=rm["policy_set_id"], policy_set_version=self.policy_set.version,
-            tool_name=descriptor.name, upstream_tool_name=descriptor.upstream_name,
-            risk_class=descriptor.risk_class, arguments_redacted=redacted_args,
-            argument_hash=arg_hash, idempotency_key=idem_key, env=env,
+        ctx = build_context(
+            descriptor=descriptor, arguments=redacted_args, env=env, run_meta=rm,
+            policy_version=self.policy_set.version, step_id=step_id, call_id=call_id,
+            untrusted_in_context=signals.untrusted_in_context,
+            injection_score=signals.injection_suspicion_score,
             provenance_present=signals.provenance_present,
-            quarantined_content_in_context=signals.untrusted_in_context,
-            model_stated_intent=signals.model_stated_intent,
-            injection_suspicion_score=signals.injection_suspicion_score,
-            money=money,
-        )
+            model_stated_intent=signals.model_stated_intent)
+        idem_key = ctx.idempotency_key
         self.trace("tool_call_requested", {"tool": descriptor.name, "risk_class": descriptor.risk_class.value})
 
         # ⑤ schema validation (before policy; a malformed call is denied, not guessed)

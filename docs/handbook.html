@@ -236,7 +236,7 @@
     <div class="mast-meta">
       <span><b>Domain</b> · LLM agents on payment infrastructure</span>
       <span><b>Runs</b> · offline, fixture mode, no API key</span>
-      <span><b>Updated</b> · Phase 0 complete</span>
+      <span><b>Updated</b> · Phases 0–3 complete · 116 tests green</span>
     </div>
   </div>
 </header>
@@ -466,10 +466,10 @@
       <p>Built phase by phase; every phase ends with a demonstrable artefact and a decision-log entry.</p>
       <div class="grid" style="gap:8px" id="phaseBoard">
         <div class="phase"><span class="pn">P0</span><span><span class="pt">Scaffold + data contracts</span><br><span class="pd">Contracts, reason codes, canonical form, IDs, research, 46 tests green</span></span><span class="status done">Done</span></div>
-        <div class="phase"><span class="pn">P1</span><span><span class="pt">Fixture server + tool classification</span><br><span class="pd">Synthetic generators, faithful double, classify every tool</span></span><span class="status todo">Next</span></div>
-        <div class="phase"><span class="pn">P2</span><span><span class="pt">Pure policy engine</span><br><span class="pd">Closed rule set, most-restrictive-wins, property tests, purity check</span></span><span class="status todo">Planned</span></div>
-        <div class="phase"><span class="pn">P3</span><span><span class="pt">Proxy + redaction + audit + idempotency</span><br><span class="pd">The enforcement boundary; the PII invariant test</span></span><span class="status todo">Planned</span></div>
-        <div class="phase"><span class="pn">P4</span><span><span class="pt">Runtime + providers + cassettes + Reconciliation</span><br><span class="pd">End-to-end from the CLI — the milestone that matters most</span></span><span class="status todo">Planned</span></div>
+        <div class="phase"><span class="pn">P1</span><span><span class="pt">Fixture server + tool classification</span><br><span class="pd">Synthetic generators, faithful double, all 50 tools classified</span></span><span class="status done">Done</span></div>
+        <div class="phase"><span class="pn">P2</span><span><span class="pt">Pure policy engine</span><br><span class="pd">11 rule types, most-restrictive-wins, property tests, class floor holds</span></span><span class="status done">Done</span></div>
+        <div class="phase"><span class="pn">P3</span><span><span class="pt">Proxy + redaction + audit + idempotency</span><br><span class="pd">Enforcement boundary; PII invariant + tamper-at-exact-position proven</span></span><span class="status done">Done</span></div>
+        <div class="phase"><span class="pn">P4</span><span><span class="pt">Runtime + providers + cassettes + Reconciliation</span><br><span class="pd">End-to-end from the CLI — the milestone that matters most</span></span><span class="status wip">Next</span></div>
         <div class="phase"><span class="pn">P5</span><span><span class="pt">Eval harness</span><br><span class="pd">Golden set, regression gates, guardrail-overhead number</span></span><span class="status todo">Planned</span></div>
         <div class="phase"><span class="pn">P6</span><span><span class="pt">Dispute + Subscription agents + red-team</span><br><span class="pd">Full risk coverage and the headline A/B</span></span><span class="status todo">Planned</span></div>
         <div class="phase"><span class="pn">P7</span><span><span class="pt">Operator surface</span><br><span class="pd">Six views: run console, approvals, policy, eval, red-team, audit</span></span><span class="status todo">Planned</span></div>

@@ -65,6 +65,22 @@ class RedactionSession:
     def issued_count(self) -> int:
         return len(self._token_to_value)
 
+    def dump(self) -> dict:
+        """Serialise the token store for suspend/resume. This IS the token store
+        (it holds real values), so it is written only to the run-state file — the
+        token map is not encrypted at rest (a stated limitation), never to any
+        other output surface."""
+        return {"run_id": self.run_id, "salt": self.salt.hex(),
+                "map": self._token_to_value, "debt": self.pattern_on_clean_field}
+
+    @classmethod
+    def load(cls, data: dict) -> "RedactionSession":
+        s = cls(data["run_id"], salt=bytes.fromhex(data["salt"]))
+        s._token_to_value = dict(data.get("map", {}))
+        s._value_to_token = {v: k for k, v in s._token_to_value.items()}
+        s.pattern_on_clean_field = data.get("debt", 0)
+        return s
+
 
 def _redact_string(s: str, structural_values: dict[str, str], session: RedactionSession) -> str:
     out = s

@@ -82,7 +82,20 @@ def _evaluate_inner(policy_set: PolicySet, ctx: DecisionContext) -> PolicyDecisi
     deciding_rule = winner.rule_id
     render_params = dict(winner.render_params)
 
-    # 4. Class floor — MONEY_MOVEMENT is never auto-allowed. This overrides ANY
+    # 4. Provenance narrowing (post-combination TIGHTENING only). When untrusted
+    #    content is in context and the policy set has a provenance_guard rule, an
+    #    otherwise-ALLOW write is downgraded to REQUIRE_APPROVAL. This only ever
+    #    tightens an ALLOW — it never rescues a DENY into an approval, so
+    #    monotonicity holds.
+    has_provenance_guard = any(getattr(r, "kind", "") == "provenance_guard" for r in policy_set.rules)
+    if (has_provenance_guard and ctx.untrusted_in_context and disposition == Disposition.ALLOW
+            and ctx.risk_class in (RiskClass.REVERSIBLE_WRITE, RiskClass.IRREVERSIBLE_WRITE)):
+        disposition = Disposition.REQUIRE_APPROVAL
+        reason_code = ReasonCode.ESCALATE_INJECTION_SUSPECTED
+        deciding_rule = "__provenance_guard__"
+        render_params = {"tool": ctx.tool_name}
+
+    # 5. Class floor — MONEY_MOVEMENT is never auto-allowed. This overrides ANY
     #    rule (including a maliciously-written tool_class -> ALLOW), unless the
     #    disposition is already a DENY (which is more restrictive and wins).
     if ctx.risk_class == RiskClass.MONEY_MOVEMENT and disposition == Disposition.ALLOW:

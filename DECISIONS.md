@@ -466,3 +466,72 @@ need a DB sequence or a single writer. Recorded, not hidden.
 ### Revisit if
 Throughput outgrows a single writer -> Postgres with a sequence, or a per-shard
 chain with a periodic cross-shard anchor.
+
+---
+
+## ADR-002b — Cassette key composition + offline model stand-in
+Date: 2026-08-21    Phase: 4    Status: Accepted
+
+### Decision
+The cassette key hashes system prompt + full message history + tool manifest +
+model id + provider + policy-set version + fixture-dataset version. Policy and
+fixture versions are included because a policy change alters the denial messages
+appended to the history (changing later turns) and a fixture change alters tool
+results — omitting either would produce stale replays that pass while answering a
+question you no longer ask. Redaction salt and quarantine nonce are seeded
+deterministically in fixture mode so the message history is byte-stable and keys
+hit on replay. Offline, the "model" is a deterministic ``ScriptedProvider`` brain
+(no network); the cassette layer + real OpenAI-compatible adapters activate only
+when a key is present (record mode).
+
+### Trade-off accepted
+The scripted brain is a stand-in, not a real LLM, so the committed offline
+numbers reflect deterministic agent logic rather than a live model's variance.
+When a key is supplied, ``record`` mode captures real Groq/Gemini responses into
+cassettes with the same keys, and the same suite replays them. The multi-model
+accuracy-vs-safety comparison therefore requires a one-time recording pass with a
+key; the enforcement result is provable offline regardless.
+
+### Revisit if
+A key becomes available — record real cassettes and report the live model numbers.
+
+---
+
+## ADR-012 — Approval binding + re-evaluation on resume
+Date: 2026-08-21    Phase: 4    Status: Accepted
+
+### Decision
+An approval is single-use, bound to the exact canonical argument hash, and
+absolutely expiring. On resume after suspension the policy is re-evaluated from
+scratch (the pre-suspension decision is not trusted — the world may have changed),
+and the approval only turns an escalation into an allow when it is APPROVED,
+unexpired, unconsumed, and still argument-matching. A one-byte argument change
+re-escalates.
+
+### Trade-off accepted
+Re-evaluation on resume costs a second full policy pass and requires the token
+store to be reconstructable (persisted with the suspended run state — the token
+map is not encrypted at rest, a stated limitation). We accept that over the risk
+of resuming on a stale decision.
+
+### Revisit if
+Approvals need delegation or partial-batch semantics beyond single-use binding.
+
+---
+
+## ADR-015 — Structured output validated at the boundary
+Date: 2026-08-21    Phase: 4    Status: Accepted
+
+### Decision
+Every agent declares an output schema; the runtime validates the final output
+itself (one corrective retry, then fail) regardless of any provider-native
+structured-output support, because that support varies across providers and
+cannot be relied on. Schema-conformance rate is tracked per model.
+
+### Trade-off accepted
+Our validator is a minimal required-fields + shape check, not a full JSON-Schema
+validator — sufficient for the agents' small schemas, and it never silently
+papers over a violation. A richer schema need would pull in a JSON-Schema library.
+
+### Revisit if
+Agent output schemas grow complex enough to need full JSON-Schema validation.
