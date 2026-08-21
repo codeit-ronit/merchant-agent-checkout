@@ -98,6 +98,47 @@ def test_amount_cap_per_run_accumulates():
     assert d.disposition == Disposition.DENY   # 500k already + 600k = 1.1M > 1M
 
 
+def test_amount_cap_denies_unreadable_amount():
+    """A money-moving call whose amount could not be parsed must NOT slip under the
+    hard ceiling into an approvable escalation — it fails closed to DENY."""
+    p = pset(BASELINE, AmountCapRule(id="cap", scope="per_call", max_minor=1000000,
+                                     applies_to_classes=(RiskClass.MONEY_MOVEMENT,)))
+    d = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=None))
+    assert d.disposition == Disposition.DENY and d.reason_code == ReasonCode.DENY_AMOUNT_EXCEEDS_CAP
+
+
+def test_argument_constraint_unknown_op_fails_closed_even_when_arg_absent():
+    """A misconfigured constraint op must DENY, even if the target argument is
+    absent (an absent arg must never mask a bad op)."""
+    p = pset(BASELINE, ArgumentConstraintRule(id="bad", arg_path="nope", op="lt", value=5))
+    d = evaluate(p, ctx(RiskClass.READ, "fetch_payment", args={}))
+    assert d.disposition == Disposition.DENY and d.reason_code == ReasonCode.DENY_ARGUMENT_CONSTRAINT
+
+
+def test_forbidden_tool_denied():
+    d = evaluate(pset(BASELINE), ctx(RiskClass.FORBIDDEN, "banned_tool"))
+    assert d.disposition == Disposition.DENY and d.reason_code == ReasonCode.DENY_FORBIDDEN_TOOL
+
+
+def test_approval_threshold_boundary_is_exclusive():
+    p = pset(ToolClassRule(id="b", class_dispositions={RiskClass.REVERSIBLE_WRITE: Disposition.ALLOW}),
+             ApprovalRequiredRule(id="thr", amount_over_minor=1000000))
+    at = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_payment_link", amount=1000000))
+    assert at.disposition == Disposition.ALLOW                       # exactly at threshold: not over
+    over = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_payment_link", amount=1000001))
+    assert over.disposition == Disposition.REQUIRE_APPROVAL          # one over: escalates
+
+
+def test_hard_deny_is_never_rescued_by_a_valid_approval():
+    """A DENY from a hard cap stays DENY even with a valid, argument-matching
+    approval present — approvals only rescue escalations, never denials."""
+    p = pset(BASELINE, AmountCapRule(id="cap", scope="per_call", max_minor=1000000,
+                                     applies_to_classes=(RiskClass.MONEY_MOVEMENT,)))
+    d = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=2000000,
+                        valid_approval_present=True, approval_argument_hash="hash_A"))
+    assert d.disposition == Disposition.DENY and d.reason_code == ReasonCode.DENY_AMOUNT_EXCEEDS_CAP
+
+
 def test_rate_limit_by_class():
     p = pset(BASELINE, RateLimitRule(id="rl", scope="class", key="MONEY_MOVEMENT", max_count=2))
     ok = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=1000,

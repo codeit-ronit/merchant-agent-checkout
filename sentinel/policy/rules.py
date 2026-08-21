@@ -119,7 +119,16 @@ class AmountCapRule(Rule):
     def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
         if not self._applies(ctx):
             return None
-        amount = ctx.money.amount_minor or 0
+        # A money-moving call whose amount could not be parsed cannot be proven to
+        # sit under the hard ceiling, so it fails closed here rather than falling
+        # through to an approvable escalation — the ceiling is un-approvable.
+        if ctx.money.amount_minor is None:
+            return Outcome(Disposition.DENY, ReasonCode.DENY_AMOUNT_EXCEEDS_CAP, self.id, {
+                "tool": ctx.tool_name,
+                "amount": "an unreadable amount",
+                "cap": format_amount(self.max_minor, self.currency),
+            })
+        amount = ctx.money.amount_minor
         if self.scope == "per_run":
             total = ctx.env.spend_run_minor + amount
         elif self.scope == "per_window":
@@ -201,7 +210,14 @@ class ArgumentConstraintRule(Rule):
                 return None
         return cur
 
+    _KNOWN_OPS = ("equals", "in", "max", "currency_in")
+
     def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
+        # An unrecognised op is a misconfigured policy — fail closed FIRST, before
+        # any short-circuit, so an absent argument can never mask a bad op.
+        if self.op not in self._KNOWN_OPS:
+            return Outcome(Disposition.DENY, ReasonCode.DENY_ARGUMENT_CONSTRAINT, self.id, {
+                "tool": ctx.tool_name, "detail": f"unknown constraint op '{self.op}'"})
         actual = self._get(ctx)
         violated = False
         if self.op == "currency_in":
