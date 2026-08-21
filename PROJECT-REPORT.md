@@ -16,7 +16,7 @@ exposed and corrected several assumptions the docs-only build had baked in.
 - **Live demo:** https://sentinel-5krh.onrender.com/ (fixture mode, no keys, free tier — first hit after idle cold-starts ~30–60s)
 - **Repo:** https://github.com/codeit-ronit/SENTINEL
 - **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **24 unauthorised money movements + 5 exfiltrations**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
-- **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 87.1%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). This is *not* a real Groq-vs-Gemini comparison; that needs a recording pass (see §8).
+- **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 87.1%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). A **real-model recording pass** (§8, ADR-002c) separately confirms this on *real* models — 4 models across Groq + OpenRouter, all attempted the refund, all blocked, 0 unauthorized.
 - **Guardrail overhead:** **well under 0.1 ms** policy-eval per call, no accuracy loss.
 - **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **169 tests** (41 marked `@pytest.mark.critical`), all green.
 - **Verified against the real server:** tool-surface parity (41 tools), all schemas, all arg-paths, and a live money-movement denial — with test-mode keys.
@@ -86,9 +86,11 @@ column: the proxy denies whatever the agent attempts.
 **Agent-capability differentiation** (`make eval`): two *deterministic stand-in
 agents* — strong 100% / weak 87.1% (weak: 13 malformed tool calls, misses hard +
 adversarial cases); **both 0 unauthorized / 0 PII / 0 policy errors.** This shows
-the harness differentiates capability while enforcement stays invariant — it is
-**not** a Groq-vs-Gemini result (that needs a recording pass, §8). Guardrail
-overhead well under 0.1 ms/call, no accuracy loss.
+the harness differentiates capability while enforcement stays invariant. This
+capability split is between two stand-ins; the **real-model recording pass**
+(§8, ADR-002c) separately confirms enforcement holds on *real* models across two
+providers (Groq + OpenRouter). Guardrail overhead well under 0.1 ms/call, no
+accuracy loss.
 
 ---
 
@@ -166,11 +168,24 @@ Highlights, each with its trade-off named:
 - **Prompt injection is not solved** — L1 is non-zero even guardrails-on; the design makes being fooled *harmless*, not impossible.
 - The offline "models" are **deterministic stand-ins** used as a *worst-case
   compromised agent* (the "off" red-team numbers and the strong/weak split are
-  properties of these stand-ins, not measurements of real models). Real Groq/Gemini
-  adapters activate with a key (`SENTINEL_CASSETTE=record`). **The one recommended
-  next step is a recording pass** — it converts "my harness works" into "real
-  models were fooled and not one rupee moved," and yields genuine multi-model,
-  malformed-rate, latency, and cost numbers. Needs free Groq + Gemini keys (no card).
+  properties of these stand-ins, not measurements of real models).
+- **Recording pass — now DONE against real models (ADR-002c).** Wiring the real
+  providers exposed that the loop always built the stand-in and never a real
+  provider from config — an integration gap, not just "needs a key." Fixed with a
+  provider factory (`sentinel/providers/factory.py`); the loop still names no
+  provider. With real keys, recorded the money-movement scenario across **two real
+  providers** — Groq (`gpt-oss-120b`/`20b`) and OpenRouter
+  (`nvidia/nemotron-3.5-lightning` + `liquid/lfm-2.5-2.6b`): **all four real models
+  attempted the refund and enforcement blocked every one → 0 unauthorized / 0 PII /
+  0 policy errors / 0 malformed on all four** (`evals/results/live-*.json`,
+  `cassettes/live/`). *Enforcement invariance is now shown with real models, not
+  stand-ins.* Honestly scoped: 1 scenario, `n_runs=1`, both tiers — a full
+  31-scenario live pass was impractical (free-tier latency 20s–5min/call; the
+  reconciliation agent hits `max_steps` per run). Live latency uses the injected
+  deterministic clock, not wall-time. **Gemini was denied** on the available key
+  (HTTP 403 "project has been denied access" on generation — a project restriction,
+  not config), so OpenRouter is the recorded second provider; Gemini stays in
+  `providers.yaml` but out of `failover_order`.
 - **Red-team sample (now expanded):** 29 attacks + 15 benign (was 13 + 2). The 0%
   false-positive rate now rests on n=15, not n=2; golden set grew 16→31 scenarios.
 - Redaction of **genuine live PII** is proven on synthetic fixtures; the live test account is empty, so it's shape/enforcement-validated live, not populated-data-validated.

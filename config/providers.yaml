@@ -1,19 +1,31 @@
 # SENTINEL inference providers.
 #
-# Verified live on 2026-08-21 (see DECISIONS.md ADR-002a). Free-tier catalogues
-# change monthly — these values and model IDs MUST be re-confirmed at runtime by
-# the startup model probe + a tool-call smoke test before they are trusted.
-# NOTHING here is hardcoded in Python; the abstraction reads this file.
+# Verified live on 2026-08-21 (see DECISIONS.md ADR-002a, ADR-002c). Free-tier
+# catalogues change monthly — these values and model IDs MUST be re-confirmed at
+# runtime by the startup model probe + a tool-call smoke test before they are
+# trusted. NOTHING here is hardcoded in Python; the abstraction reads this file.
 #
-# Both providers speak the OpenAI-compatible /chat/completions API with
-# tools=[...] and return tool_calls[].function.arguments as a JSON STRING, so a
-# single adapter shape covers both (the agent loop never branches on provider).
+# Re-verified 2026-08-21 against real test keys (ADR-002c):
+#   * groq        — WORKS. gpt-oss-120b/20b tool-call correctly (~20s/call).
+#   * openrouter  — WORKS. 18 free tool-capable models; used as the real second
+#                   provider (Gemini access was denied on the test key, below).
+#   * gemini      — the test key authenticates for models/list but every
+#                   generateContent call returns HTTP 403 "project has been
+#                   denied access" (a project-level restriction, not a config
+#                   error). Left here, OUT of failover_order, so it is documented
+#                   but never used until a working key is supplied.
+#
+# All providers speak the OpenAI-compatible /chat/completions API with tools=[...]
+# and return tool_calls[].function.arguments as a JSON STRING, so a single adapter
+# shape covers all (the agent loop never branches on provider — CLAUDE.md 5a).
 #
 # Secrets are NEVER here — they come from the environment (see .env.example).
 
 verified_on: "2026-08-21"
 
-failover_order: [groq, gemini]   # primary first, then fallback
+# primary first, then fallback. gemini is intentionally excluded (access denied
+# on the available test key — see header); add it back when a working key exists.
+failover_order: [groq, openrouter]
 
 providers:
   groq:
@@ -40,6 +52,35 @@ providers:
         price_output_per_mtok_micros: 300000   # $0.30
         limits: { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 }
 
+  openrouter:
+    display_name: "OpenRouter (free tier)"
+    kind: openai_compatible
+    base_url: "https://openrouter.ai/api/v1"
+    api_key_env: SENTINEL_PROVIDER_C_API_KEY
+    arguments_are_json_string: true
+    usage_fields: { input: prompt_tokens, output: completion_tokens }
+    rate_limit_signal: { status: 429, retry_after_header: "retry-after" }
+    # Free models are shared infra: expect occasional per-model 429s -> failover.
+    trains_on_free_tier_inputs: true
+    requires_card: false
+    # Model IDs verified 2026-08-21 to tool-call via OpenRouter (ADR-002c). Free
+    # catalogue rotates monthly — re-confirm with the tool-call smoke test.
+    models:
+      strong:
+        id: "nvidia/nemotron-3.5-lightning:free"
+        price_input_per_mtok_micros: 0
+        price_output_per_mtok_micros: 0
+        limits: { rpm: 20, rpd: 200 }
+      weak:
+        id: "liquid/lfm-2.5-2.6b:free"      # a 2.6B model — a genuinely weaker tier
+        price_input_per_mtok_micros: 0
+        price_output_per_mtok_micros: 0
+        limits: { rpm: 20, rpd: 200 }
+
+  # DENIED on the available test key — kept for documentation, NOT in
+  # failover_order. models/list works but generateContent -> HTTP 403
+  # "project has been denied access" (ADR-002c). The 2.5 IDs are also retired:
+  # the live catalogue now offers gemini-3.6-flash (no 2.5-flash for new users).
   gemini:
     display_name: "Google Gemini (AI Studio free tier)"
     kind: openai_compatible
@@ -48,20 +89,19 @@ providers:
     arguments_are_json_string: true
     usage_fields: { input: prompt_tokens, output: completion_tokens }
     rate_limit_signal: { status: 429, retry_after_header: "retry-after" }
-    # Free-tier inputs ARE used to improve products/models (recorded honestly).
-    # Not a blocker: all fixture data is synthetic. See README + LIMITATIONS.
     trains_on_free_tier_inputs: true
     requires_card: false
+    access_status: "denied_on_test_key_2026-08-21"   # see header + ADR-002c
     models:
       strong:
-        id: "gemini-2.5-flash"
-        # Gemini free tier reports usage but published $/1M varies; cost may be a
-        # gap on free tier -> record the gap rather than estimating.
+        # current catalogue id (was gemini-2.5-flash); UNVERIFIED for generation
+        # because the test key's project is denied access.
+        id: "gemini-3.6-flash"
         price_input_per_mtok_micros: null
         price_output_per_mtok_micros: null
         limits: { rpm: 10, rpd: 250, tpm: 250000 }
       weak:
-        id: "gemini-2.5-flash-lite"
+        id: "gemini-flash-lite-latest"
         price_input_per_mtok_micros: null
         price_output_per_mtok_micros: null
         limits: { rpm: 15, rpd: 1000, tpm: 250000 }

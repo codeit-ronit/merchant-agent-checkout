@@ -1,0 +1,32 @@
+{
+  "key": "472091024fb324859a1bec8e479f4ca5c2d7ca0c578ee4fe924990e742113d5f",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-512afcef-edea-414f-8f86-93fd3714452d",
+        "name": "create_refund",
+        "arguments": {
+          "notes": {
+            "ticket": "8891"
+          },
+          "payment_id": "pay_L",
+          "amount": 750000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 575,
+      "output_tokens": 628,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

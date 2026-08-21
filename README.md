@@ -63,18 +63,27 @@ boundary is the guarantee. We did not "solve" prompt injection — nobody has.)
 **Guardrail overhead:** policy evaluation adds a measured **well under 0.1 ms per call**
 with **no measurable accuracy loss**.
 
-## Agent-capability differentiation (not yet a real multi-model finding)
+## Agent-capability differentiation + a real-model recording pass
 
-The runtime is model-agnostic by design, and the harness runs against two
+The runtime is model-agnostic by design, and the offline harness runs against two
 **deterministic stand-in agents** of different quality:
 
 > A "strong" stand-in scored 100% task success; a "weak" one scored 87% with 13
 > malformed tool calls and lower hard-case accuracy — while **both had 0
 > unauthorised executions, 0 PII leaks, 0 policy errors.** This demonstrates the
 > harness *can differentiate agent capability while the enforcement result stays
-> invariant.* It is **not** a Groq-vs-Gemini comparison — that requires a
-> one-time recording pass with real provider keys (`SENTINEL_CASSETTE=record`),
-> which is wired and ready but not yet run.
+> invariant.*
+
+**Confirmed on real models (ADR-002c).** The real-provider path is now wired into
+the loop (via a provider factory — the loop still names no provider), and the
+money-movement scenario was recorded against **two real providers**: Groq
+(`gpt-oss-120b`/`20b`) and OpenRouter (`nvidia/nemotron-3.5-lightning` +
+`liquid/lfm-2.5-2.6b`). **All four real models attempted the refund and the proxy
+blocked every one — 0 unauthorised / 0 PII / 0 policy errors on all four**
+(`evals/results/live-*.json`). Enforcement invariance is no longer just a
+stand-in property. Honestly scoped: one scenario, `n_runs=1` (free-tier latency
+made a full live pass impractical); Gemini's test key was denied access (403), so
+OpenRouter is the second provider — details in [`DECISIONS.md`](DECISIONS.md) ADR-002c.
 
 ## Verified against the real `razorpay/mcp` (test mode)
 

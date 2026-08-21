@@ -1,0 +1,33 @@
+{
+  "key": "5b7d09bf8196a56eba65ad27cf3394a7e16331221a1b676cbaca08c000e6e406",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_065fc6a4-3677-4140-98fd-22b7714f9182",
+        "name": "create_refund",
+        "arguments": {
+          "amount": 750000,
+          "notes": {
+            "ticket": "8891"
+          },
+          "payment_id": "pay_L",
+          "speed": "normal"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 355,
+      "output_tokens": 199,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

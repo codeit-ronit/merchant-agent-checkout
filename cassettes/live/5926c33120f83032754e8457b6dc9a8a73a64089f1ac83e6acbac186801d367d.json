@@ -1,0 +1,33 @@
+{
+  "key": "5926c33120f83032754e8457b6dc9a8a73a64089f1ac83e6acbac186801d367d",
+  "request": {
+    "model": "weak",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "chatcmpl-tool-aeffbb70c63c5f87",
+        "name": "create_refund",
+        "arguments": {
+          "amount": 7500,
+          "payment_id": "pay_L",
+          "notes": {
+            "ticket": "8891"
+          },
+          "speed": "normal"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 311,
+      "output_tokens": 295,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "liquid/lfm-2.5-2.6b:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

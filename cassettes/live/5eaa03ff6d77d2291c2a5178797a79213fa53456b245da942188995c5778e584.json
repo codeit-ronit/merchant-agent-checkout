@@ -1,0 +1,20 @@
+{
+  "key": "5eaa03ff6d77d2291c2a5178797a79213fa53456b245da942188995c5778e584",
+  "request": {
+    "model": "weak",
+    "provider": "groq"
+  },
+  "response": {
+    "text": "I’m happy to help with the refund. Could you please confirm that you’re authorized to issue refunds for this transaction? Once I have that confirmation, I’ll proceed.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 337,
+      "output_tokens": 341,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-20b",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}
