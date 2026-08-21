@@ -34,6 +34,7 @@ class ReasonCode(str, Enum):
     DENY_OUTSIDE_TIME_WINDOW = "DENY_OUTSIDE_TIME_WINDOW"
     DENY_SUSPECTED_EXFILTRATION = "DENY_SUSPECTED_EXFILTRATION"
     DENY_POLICY_EVALUATION_ERROR = "DENY_POLICY_EVALUATION_ERROR"
+    DENY_UPSTREAM_ERROR = "DENY_UPSTREAM_ERROR"
     DENY_FAIL_CLOSED = "DENY_FAIL_CLOSED"
     DENY_TOOL_DENIED = "DENY_TOOL_DENIED"
     DENY_ARGUMENT_CONSTRAINT = "DENY_ARGUMENT_CONSTRAINT"
@@ -61,6 +62,7 @@ CODE_DISPOSITION: dict[ReasonCode, Disposition] = {
     ReasonCode.DENY_OUTSIDE_TIME_WINDOW: Disposition.DENY,
     ReasonCode.DENY_SUSPECTED_EXFILTRATION: Disposition.DENY,
     ReasonCode.DENY_POLICY_EVALUATION_ERROR: Disposition.DENY,
+    ReasonCode.DENY_UPSTREAM_ERROR: Disposition.DENY,
     ReasonCode.DENY_FAIL_CLOSED: Disposition.DENY,
     ReasonCode.DENY_TOOL_DENIED: Disposition.DENY,
     ReasonCode.DENY_ARGUMENT_CONSTRAINT: Disposition.DENY,
@@ -103,6 +105,8 @@ _TEMPLATES: dict[ReasonCode, str] = {
         "Blocked and flagged as a security event: {tool} referenced a placeholder token that was never issued in this run — a possible data-exfiltration attempt.",
     ReasonCode.DENY_POLICY_EVALUATION_ERROR:
         "Blocked: the policy engine could not evaluate this call safely, so the call was denied and the run aborted (fail closed).",
+    ReasonCode.DENY_UPSTREAM_ERROR:
+        "Blocked: the upstream service failed or did not respond for {tool}, so the outcome is uncertain; the call is denied rather than retried, to avoid a possible double execution.",
     ReasonCode.DENY_FAIL_CLOSED:
         "Blocked: no rule permits {tool} for this agent, and the default is to deny.",
     ReasonCode.DENY_TOOL_DENIED:

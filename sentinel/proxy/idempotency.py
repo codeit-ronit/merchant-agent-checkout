@@ -27,21 +27,58 @@ def idempotency_key(run_id: str, operation: str, arguments: dict[str, Any]) -> s
 
 
 class IdempotencyGuard:
+    """States per key: absent -> reserved (in-flight / ambiguous) -> done (result
+    stored). ``begin`` is the single atomic check-and-reserve that makes both a
+    sequential retry AND a concurrent race safe: exactly one caller gets
+    ``proceed`` for a given key; everyone else gets ``replay`` (a completed call)
+    or ``refuse`` (a call that is in-flight or failed ambiguously — re-executing a
+    money movement is worse than denying it)."""
+
+    _RESERVED = object()
+
     def __init__(self) -> None:
-        self._seen: dict[str, Any] = {}
+        self._seen: dict[str, Any] = {}      # key -> result, or _RESERVED sentinel
         self._lock = threading.Lock()
 
+    def begin(self, key: str) -> tuple[str, Any]:
+        """Atomically reserve ``key`` for execution. Returns one of:
+        ('proceed', None)  -> caller may forward; must call complete()/abandon()
+        ('replay', result) -> already completed; return the stored result, do NOT execute
+        ('refuse', None)   -> reserved by someone else / a prior ambiguous failure; DENY.
+        """
+        with self._lock:
+            if key not in self._seen:
+                self._seen[key] = self._RESERVED
+                return ("proceed", None)
+            stored = self._seen[key]
+            if stored is self._RESERVED:
+                return ("refuse", None)
+            return ("replay", stored)
+
+    def complete(self, key: str, result: Any) -> None:
+        with self._lock:
+            self._seen[key] = result
+
+    def abandon(self, key: str) -> None:
+        """Release a reservation on a CLEAN, retryable failure (upstream provably
+        did nothing). NOT used for money movement, where an ambiguous failure must
+        stay reserved and fail closed."""
+        with self._lock:
+            if self._seen.get(key) is self._RESERVED:
+                del self._seen[key]
+
+    # --- legacy read helpers (kept for callers/tests that only inspect) ---
     def seen(self, key: str) -> bool:
         with self._lock:
             return key in self._seen
 
     def get(self, key: str) -> Any | None:
         with self._lock:
-            return self._seen.get(key)
+            v = self._seen.get(key)
+            return None if v is self._RESERVED else v
 
     def record(self, key: str, result: Any) -> None:
-        with self._lock:
-            self._seen[key] = result
+        self.complete(key, result)
 
 
 class EntityLocks:

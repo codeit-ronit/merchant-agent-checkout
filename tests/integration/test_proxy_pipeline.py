@@ -128,3 +128,75 @@ def test_audit_chain_of_a_run_verifies():
     interc.handle_call(idx["create_refund"], {"payment_id": "pay_X", "amount": 50000}, ENV, Signals(), "s2", "c2")
     res = verify_chain(interc.ledger.entries())
     assert res.ok and res.entry_count == 2
+
+
+# --- fail-closed on upstream failure (CLAUDE.md rule 2) ---
+
+class _Raiser:
+    """An upstream whose every call fails — stands in for unreachable / erroring MCP."""
+    def call_tool(self, name, args):
+        raise RuntimeError("upstream unreachable")
+
+
+class _SlowUpstream:
+    """Delegates to a real fixture upstream but sleeps first, so two concurrent
+    callers are both in `begin()` before either completes."""
+    def __init__(self, real):
+        self.real = real
+    def call_tool(self, name, args):
+        import time
+        time.sleep(0.05)
+        return self.real.call_tool(name, args)
+
+
+def test_upstream_error_on_read_fails_closed():
+    _, idx, interc = build()
+    interc.upstream = _Raiser()
+    out = interc.handle_call(idx["fetch_all_payments"], {"count": 3}, ENV, Signals(), "s", "c")
+    assert out.disposition == Disposition.DENY               # NOT allow
+    assert out.decision.reason_code == ReasonCode.DENY_UPSTREAM_ERROR
+    assert out.upstream_error and not out.executed
+
+
+@pytest.mark.critical
+def test_upstream_error_on_write_denies_and_refuses_retry():
+    """An ambiguous upstream failure on a money movement must DENY and must NOT be
+    silently retried into a possible double execution."""
+    up, idx, interc = build()
+    args = {"payment_id": "pay_X", "amount": 50000}
+    env = InjectedEnv(now_epoch_ms=1000, valid_approval_present=True,
+                      approval_argument_hash=sha256_hex(args))
+    interc.upstream = _Raiser()
+    out1 = interc.handle_call(idx["create_refund"], args, env, Signals(), "s1", "c1")
+    assert out1.disposition == Disposition.DENY and out1.upstream_error and not out1.executed
+    # the identical call retried is REFUSED (reservation held) — never re-executed
+    out2 = interc.handle_call(idx["create_refund"], args, env, Signals(), "s2", "c2")
+    assert out2.disposition == Disposition.DENY
+    assert out2.decision.reason_code == ReasonCode.DENY_UPSTREAM_ERROR
+    assert not out2.executed
+
+
+@pytest.mark.critical
+def test_concurrent_duplicate_write_executes_exactly_once():
+    """Two identical money movements racing through the proxy: exactly one executes."""
+    import threading
+    up, idx, interc = build()
+    interc.upstream = _SlowUpstream(up)
+    args = {"payment_id": "pay_X", "amount": 50000}
+    env = InjectedEnv(now_epoch_ms=1000, valid_approval_present=True,
+                      approval_argument_hash=sha256_hex(args))
+    before = len(up.dataset["refunds"])
+    results: list = []
+    barrier = threading.Barrier(2)
+
+    def call(cid):
+        barrier.wait()
+        results.append(interc.handle_call(idx["create_refund"], args, env, Signals(), cid, cid))
+
+    ts = [threading.Thread(target=call, args=(f"c{i}",)) for i in range(2)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    assert sum(1 for r in results if r.executed) == 1        # exactly one real execution
+    assert len(up.dataset["refunds"]) == before + 1          # exactly one refund landed

@@ -156,24 +156,42 @@ class Interceptor:
             entry = self._audit(ctx, decision, outcome="escalated")
             return InterceptOutcome(Disposition.REQUIRE_APPROVAL, decision, entry)
 
-        # ⑧ idempotency: a seen mutating call returns the stored result, no re-execution
-        if descriptor.risk_class in (RiskClass.REVERSIBLE_WRITE, RiskClass.IRREVERSIBLE_WRITE,
-                                     RiskClass.MONEY_MOVEMENT) and self.idempotency.seen(idem_key):
-            stored = self.idempotency.get(idem_key)
-            self.trace("idempotent_replay", {"tool": descriptor.name})
-            entry = self._audit(ctx, decision, outcome="idempotent_replay")
-            return InterceptOutcome(Disposition.ALLOW, decision, entry, result=stored,
-                                    executed=False, idempotent_replay=True)
+        # ⑧ idempotency: for mutating calls, atomically reserve the key BEFORE
+        # forwarding. A completed call replays its stored result; a call already
+        # reserved (in-flight, or a prior ambiguous failure) or racing a duplicate
+        # is REFUSED — re-executing a money movement is worse than denying it.
+        is_write = descriptor.risk_class in (RiskClass.REVERSIBLE_WRITE,
+                                             RiskClass.IRREVERSIBLE_WRITE, RiskClass.MONEY_MOVEMENT)
+        if is_write:
+            state, stored = self.idempotency.begin(idem_key)
+            if state == "replay":
+                self.trace("idempotent_replay", {"tool": descriptor.name})
+                entry = self._audit(ctx, decision, outcome="idempotent_replay")
+                return InterceptOutcome(Disposition.ALLOW, decision, entry, result=stored,
+                                        executed=False, idempotent_replay=True)
+            if state == "refuse":
+                self.trace("idempotency_refused", {"tool": descriptor.name})
+                return self._deny(ctx, ReasonCode.DENY_UPSTREAM_ERROR, {"tool": descriptor.name},
+                                  outcome="idempotency_refused",
+                                  detail="a prior identical call is in flight or failed ambiguously")
 
-        # ⑨ forward to upstream with rehydrated arguments — fail closed on error
+        # ⑨ forward to upstream with rehydrated arguments — fail CLOSED on error
+        # (CLAUDE.md rule 2: an upstream error is a DENY, never an ALLOW).
         self.trace("tool_call_forwarded", {"tool": descriptor.upstream_name})
         try:
             raw_result = self.upstream.call_tool(descriptor.upstream_name, rehydrated)
-        except Exception:  # upstream unreachable / bad id -> record, do not crash the run
-            self.trace("run_failed", {"tool": descriptor.upstream_name, "error": "upstream_error"})
-            entry = self._audit(ctx, decision, outcome="upstream_error")
-            return InterceptOutcome(Disposition.ALLOW, decision, entry, result=None,
-                                    executed=False, upstream_error=True)
+        except Exception:
+            # The outcome is UNCERTAIN — the upstream may have executed before it
+            # raised. For a write we KEEP the reservation (a retry is refused above)
+            # so we can never double-execute; for a read we release it (safe to retry).
+            if is_write:
+                self.trace("run_failed", {"tool": descriptor.upstream_name, "error": "upstream_error",
+                                          "reserved": True})
+            else:
+                self.idempotency.abandon(idem_key)
+                self.trace("run_failed", {"tool": descriptor.upstream_name, "error": "upstream_error"})
+            return self._deny(ctx, ReasonCode.DENY_UPSTREAM_ERROR, {"tool": descriptor.name},
+                              outcome="upstream_error", upstream_error=True)
 
         # ⑩ redact PII in the result (ablation: may be disabled)
         if self.redact:
@@ -201,7 +219,8 @@ class Interceptor:
             quarantined_fields=tuple(quarantined_fields), redaction_count=len(detections))
 
     # -- helpers --
-    def _deny(self, ctx, reason_code, params, *, outcome, security_event=False, detail="") -> InterceptOutcome:
+    def _deny(self, ctx, reason_code, params, *, outcome, security_event=False,
+              upstream_error=False, detail="") -> InterceptOutcome:
         decision = PolicyDecision(
             disposition=Disposition.DENY, reason_code=reason_code,
             human_reason=render_reason(reason_code, **params),
@@ -209,7 +228,8 @@ class Interceptor:
         self.trace("policy_decision", {"disposition": "DENY", "reason_code": reason_code.value,
                                        "human_reason": decision.human_reason})
         entry = self._audit(ctx, decision, outcome=outcome)
-        return InterceptOutcome(Disposition.DENY, decision, entry, security_event=security_event)
+        return InterceptOutcome(Disposition.DENY, decision, entry,
+                                security_event=security_event, upstream_error=upstream_error)
 
     def _audit(self, ctx: DecisionContext, decision: PolicyDecision, *, outcome: str) -> AuditEntry:
         return self.ledger.record(
