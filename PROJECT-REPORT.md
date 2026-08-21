@@ -15,8 +15,8 @@ exposed and corrected several assumptions the docs-only build had baked in.
 
 - **Live demo:** https://sentinel-5krh.onrender.com/ (fixture mode, no keys, free tier — first hit after idle cold-starts ~30–60s)
 - **Repo:** https://github.com/codeit-ronit/SENTINEL
-- **Headline red-team:** attack success **100% (guardrails off) → 0% (on)**, false-positive **0%**, **0 L3/L4** under guardrails-on.
-- **Multi-model:** strong **100%** / weak **81.2%** task success — **0 unauthorized executions on both** (enforcement is a property of the proxy, not the model).
+- **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **12 unauthorised money movements + 1 exfiltration**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
+- **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 81.2%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). This is *not* a real Groq-vs-Gemini comparison; that needs a recording pass (see §8).
 - **Guardrail overhead:** ~**0.05 ms** policy-eval per call, no accuracy loss.
 - **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **169 tests** (41 marked `@pytest.mark.critical`), all green.
 - **Verified against the real server:** tool-surface parity (41 tools), all schemas, all arg-paths, and a live money-movement denial — with test-mode keys.
@@ -63,10 +63,14 @@ Repo layout mirrors the architecture: `sentinel/{contracts,common,policy,proxy,r
 
 ## 3. The results (measured, offline, reproducible with no key)
 
-**Red-team A/B** (`make redteam`):
-- Attack success **off: 100%** (12 unauthorized money movements + 1 PII exfiltration)
-- Attack success **on: 0%** — but **12 of 13 attacks still altered behaviour (L1)**, and it did not matter: **0 exfiltration (L3), 0 unauthorized money movement (L4)**.
-- **False-positive rate: 0%** (benign-but-suspicious work never blocked).
+**Red-team A/B** (`make redteam`). Read the "off" column as a **worst-case,
+fully-compromised agent** — a deterministic stand-in written to follow every
+injection (standard security methodology: test against a maximal adversary, not
+an average one). The number that is *measured and model-independent* is the "on"
+column: the proxy denies whatever the agent attempts.
+- Guardrails **off** (no control plane): **12 unauthorized money movements + 1 exfiltration executed**.
+- Guardrails **on**: **0 executed** (12/13 attempts still *made* by the compromised agent — all blocked at the boundary; L1 behaviour-alteration is a property of the stand-in, not a measurement of real-model susceptibility).
+- **False-positive rate: 0%** — but on a small benign set (n=2, a known weakness; see §8).
 
 **Ablation** (the honest, intuition-contradicting finding):
 
@@ -79,7 +83,12 @@ Repo layout mirrors the architecture: `sentinel/{contracts,common,policy,proxy,r
 
 → **Policy prevents money movement; redaction prevents exfiltration; the nonce quarantine's marginal effect was negligible in this harness** — less than intuition suggests. Reported because it contradicts the design assumption.
 
-**Multi-model** (`make eval`): strong 100% / weak 81.2% (weak: 13 malformed tool calls, misses hard + adversarial cases); **both 0 unauthorized / 0 PII / 0 policy errors.** Guardrail overhead ~0.05 ms/call, no accuracy loss.
+**Agent-capability differentiation** (`make eval`): two *deterministic stand-in
+agents* — strong 100% / weak 81.2% (weak: 13 malformed tool calls, misses hard +
+adversarial cases); **both 0 unauthorized / 0 PII / 0 policy errors.** This shows
+the harness differentiates capability while enforcement stays invariant — it is
+**not** a Groq-vs-Gemini result (that needs a recording pass, §8). Guardrail
+overhead ~0.05 ms/call, no accuracy loss.
 
 ---
 
@@ -155,7 +164,16 @@ Highlights, each with its trade-off named:
 
 - The audit ledger is **tamper-evident, not tamper-proof** — anyone who can rewrite the DB can recompute the chain. Real resistance needs an external anchor (RFC 6962-style) or WORM.
 - **Prompt injection is not solved** — L1 is non-zero even guardrails-on; the design makes being fooled *harmless*, not impossible.
-- The offline "models" are **deterministic stand-ins**; real Groq/Gemini adapters activate with a key (`SENTINEL_CASSETTE=record`). Live model numbers need a recording pass.
+- The offline "models" are **deterministic stand-ins** used as a *worst-case
+  compromised agent* (the "off" red-team numbers and the strong/weak split are
+  properties of these stand-ins, not measurements of real models). Real Groq/Gemini
+  adapters activate with a key (`SENTINEL_CASSETTE=record`). **The one recommended
+  next step is a recording pass** — it converts "my harness works" into "real
+  models were fooled and not one rupee moved," and yields genuine multi-model,
+  malformed-rate, latency, and cost numbers. Needs free Groq + Gemini keys (no card).
+- **Small red-team sample:** 13 attacks + 2 benign. The 0% false-positive rate
+  rests on n=2 — the weakest number in the project. Expanding the benign corpus to
+  ~12–15 and payloads toward ~30 is the highest-value data improvement.
 - Redaction of **genuine live PII** is proven on synthetic fixtures; the live test account is empty, so it's shape/enforcement-validated live, not populated-data-validated.
 - Not built (deliberate): multi-tenancy/auth, encryption-at-rest for the token map, protection against a malicious operator, a policy DSL, formal verification, production-grade inference.
 

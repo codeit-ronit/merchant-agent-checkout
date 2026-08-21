@@ -726,3 +726,36 @@ are used only in a local shell env, never written to a file or committed
 ### Revisit if
 The upstream adds/renames tools — re-run `make check-schemas-live` and the
 reconciliation surfaces it as UNCLASSIFIED (denied) / STALE (warned).
+
+---
+
+## ADR-021a — Framing correction: worst-case adversary, not "a real model gets fooled"
+Date: 2026-08-21    Phase: post-8    Status: Accepted (supersedes the framing of ADR-020a/021)
+
+### Context
+A reviewer correctly flagged that the headline "attack success 100% (off)", the
+"12/13 L1" figure, and "the multi-model finding (strong 100 / weak 81)" were
+being presented as empirical results about real-model susceptibility. They are
+not: the agent under test is a deterministic stand-in *written* to follow
+injections, and the two "models" are two stand-in brains I wrote. Only the "on = 0"
+result and the class-floor/redaction properties are model-independent measurements.
+
+### Decision
+Reframe (README, PROJECT-REPORT, handbook) to the honest and *stronger* claim:
+the stand-in is a **worst-case, fully-compromised agent** (standard security
+methodology — test the maximal adversary). "Off" reports what such an agent
+executes with no control plane (12 money movements + 1 exfiltration); "on"
+reports what the proxy allows through (zero). Enforcement does not depend on the
+model resisting. The strong/weak split is relabelled "agent-capability
+differentiation" (the harness differentiates quality; enforcement is invariant) —
+explicitly NOT a Groq-vs-Gemini finding.
+
+### Trade-off accepted
+We give up the punchier-sounding "a real model was fooled 100% of the time" —
+which we could not actually support — in exchange for a claim that is true,
+harder to attack, and better methodology. Closing the gap for real requires a
+recording pass with real provider keys (ADR-002b), which is wired but unrun.
+
+### Revisit if
+A recording pass is done — then we can add the genuine real-model susceptibility
+and multi-model numbers alongside the worst-case bound.

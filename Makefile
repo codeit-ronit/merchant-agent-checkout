@@ -2,10 +2,11 @@
 # Every command runs in FIXTURE mode by default and needs no credentials.
 # Test-mode keys only, ever. Never live keys.
 
-PY := .venv/bin/python
+# Use the venv python locally; fall back to system python in CI (no .venv there).
+PY := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || command -v python3 || command -v python)
 # `python -m pytest` (not bare pytest) so the repo root is on sys.path and the
 # top-level evals/ and redteam/ packages import cleanly.
-PYTEST := .venv/bin/python -m pytest
+PYTEST := $(PY) -m pytest
 
 .DEFAULT_GOAL := help
 

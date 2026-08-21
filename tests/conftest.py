@@ -31,6 +31,23 @@ SYNTHETIC_PII = {
 }
 
 
+@pytest.fixture(autouse=True)
+def _isolate_cassettes(tmp_path, monkeypatch):
+    """Make every test self-contained: the eval/red-team runners use deterministic
+    offline brains, so they run in AUTO mode against a fresh temp cassette dir —
+    independent of the ambient SENTINEL_CASSETTE (CI sets `replay` globally, which
+    would otherwise miss the intentionally-uncommitted red-team cassettes). The
+    committed-cassette REPLAY path is exercised separately by `make eval`."""
+    monkeypatch.setenv("SENTINEL_CASSETTE", "auto")
+    for mod in ("evals.runner", "redteam.runner"):
+        try:
+            import importlib
+            m = importlib.import_module(mod)
+            monkeypatch.setattr(m, "CASSETTE_DIR", tmp_path / mod.split(".")[0], raising=False)
+        except Exception:
+            pass
+
+
 @pytest.fixture
 def ids():
     return deterministic_factory(seed=1)

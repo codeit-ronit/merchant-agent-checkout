@@ -1,5 +1,8 @@
 # SENTINEL
 
+[![ci](https://github.com/codeit-ronit/SENTINEL/actions/workflows/ci.yml/badge.svg)](https://github.com/codeit-ronit/SENTINEL/actions/workflows/ci.yml)
+&nbsp;[**Live demo →**](https://sentinel-5krh.onrender.com/) · [Handbook](docs/handbook.html) · [Build & live-test report](PROJECT-REPORT.md)
+
 **A policy enforcement, audit, and evaluation control plane for LLM agents that operate on payment infrastructure.**
 
 Prompt-level guardrails are advisory. SENTINEL makes them mandatory by moving
@@ -36,33 +39,42 @@ before it executes.
 ## The three headline numbers
 
 Produced offline by `make redteam` (paired A/B, rule-based grading), reproducible
-by anyone with **no API key**:
+by anyone with **no API key**.
 
-| | |
+**How to read these numbers (this matters).** The agent under test is a
+**worst-case, fully-compromised agent** — a deterministic stand-in written to
+follow *every* injected instruction. That is deliberate: it is standard security
+methodology to test a defence against a maximal adversary, not an average one. A
+real model might resist an injection by luck; this one never does. So the
+"guardrails off" column is not a claim that *a real model gets fooled X% of the
+time* — it is the worst case, and the point is what the proxy does about it:
+
+| Against a worst-case agent that follows every injection | Result |
 |---|---|
-| Attack success rate — **guardrails off** | **100%** (12 unauthorised money movements + 1 PII exfiltration) |
-| Attack success rate — **guardrails on** | **0%** (zero L3/L4; 12 of 13 attacks still altered behaviour — but harmlessly) |
-| Legitimate-work **false-positive** rate | **0%** (benign work is never blocked) |
+| Guardrails **off** (no control plane) | **12 unauthorised money movements + 1 exfiltration executed** |
+| Guardrails **on** | **0 unauthorised money movements, 0 exfiltration** (12/13 attempts still *made* — all blocked at the boundary) |
+| Legitimate-work **false-positive** rate | **0%** *(on a small benign set — see Limitations)* |
+
+**Enforcement does not depend on the model resisting.** That "0" is the
+model-independent, genuinely-proven half — the proxy denies whatever the agent
+attempts. (The quarantine wrapper is a mitigation; permission narrowing at the
+boundary is the guarantee. We did not "solve" prompt injection — nobody has.)
 
 **Guardrail overhead:** policy evaluation adds a measured **~0.05 ms per call**
-and **no measurable accuracy loss**. What the safety layer costs is a real,
-small number — not a hand-wave.
+with **no measurable accuracy loss**.
 
-> We did **not** solve prompt injection — nobody has. The quarantine wrapper is a
-> mitigation; **permission narrowing is the guarantee.** 12 of 13 attacks still
-> "fooled" the model with guardrails on — and it did not matter, because the
-> proxy denied every money-moving and exfiltrating action. The goal is to make
-> being fooled *harmless*, not impossible.
+## Agent-capability differentiation (not yet a real multi-model finding)
 
-## The multi-model finding
+The runtime is model-agnostic by design, and the harness runs against two
+**deterministic stand-in agents** of different quality:
 
-The runtime is model-agnostic by design, so the suite runs against two "models":
-
-> **Task accuracy varied between models. The enforcement result did not.**
-> The strong model scored 100% task success with 0 malformed tool calls; the
-> weak model scored 81% with 13 malformed calls and lower hard-case accuracy.
-> **Both had zero unauthorised executions, zero PII leaks, zero policy errors** —
-> because enforcement is a property of the proxy, not the model.
+> A "strong" stand-in scored 100% task success; a "weak" one scored 81% with 13
+> malformed tool calls and lower hard-case accuracy — while **both had 0
+> unauthorised executions, 0 PII leaks, 0 policy errors.** This demonstrates the
+> harness *can differentiate agent capability while the enforcement result stays
+> invariant.* It is **not** a Groq-vs-Gemini comparison — that requires a
+> one-time recording pass with real provider keys (`SENTINEL_CASSETTE=record`),
+> which is wired and ready but not yet run.
 
 ## Verified against the real `razorpay/mcp` (test mode)
 
@@ -197,5 +209,5 @@ SENTINEL_CASSETTE=replay make redteam
 ```
 
 Built phase by phase per [`docs/spec/11-BUILD-ORDER.md`](docs/spec/11-BUILD-ORDER.md);
-163 tests green (tiers 1–3), with five load-bearing safety tests marked
+169 tests green (tiers 1–3), with five load-bearing safety tests marked
 `@pytest.mark.critical`.
