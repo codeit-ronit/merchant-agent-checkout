@@ -40,6 +40,29 @@ def test_approve_then_consume_once():
     assert s.get(appr.id).status == ApprovalStatus.CONSUMED
 
 
+@pytest.mark.critical
+def test_concurrent_consume_authorises_exactly_once():
+    """Two racing resumes of the same approval must not both authorise a payment."""
+    import threading
+    s = _store()
+    appr = s.create(context=_ctx(), decision=_decision(), summary="x", now_ms=0)
+    s.resolve(appr.id, approve=True, resolver_id="op", now_ms=10)
+    results: list = []
+    barrier = threading.Barrier(8)
+
+    def attempt():
+        barrier.wait()
+        results.append(s.consume(appr.id, "hash_A", now_ms=20))
+
+    ts = [threading.Thread(target=attempt) for _ in range(8)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    assert sum(1 for r in results if r) == 1          # exactly one True across 8 racers
+    assert s.get(appr.id).status == ApprovalStatus.CONSUMED
+
+
 def test_argument_binding_one_byte_difference():
     s = _store()
     appr = s.create(context=_ctx("hash_A"), decision=_decision(), summary="x", now_ms=0)

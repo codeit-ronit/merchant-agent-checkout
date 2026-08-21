@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Protocol
 
@@ -62,6 +63,9 @@ class ApprovalStore:
         self._repo = repo or InMemoryApprovalRepository()
         self._ids = id_factory or IdFactory()
         self.default_ttl_ms = default_ttl_ms
+        # resolve/consume are read-modify-write; the lock makes each atomic so two
+        # racing resumes cannot both consume the same single-use approval.
+        self._lock = threading.Lock()
 
     def create(self, *, context: DecisionContext, decision: PolicyDecision, summary: str,
                now_ms: int, ttl_ms: int | None = None, processed_untrusted: bool = False) -> ApprovalRequest:
@@ -80,30 +84,33 @@ class ApprovalStore:
 
     def resolve(self, approval_id: str, *, approve: bool, resolver_id: str, now_ms: int,
                 note: str | None = None) -> ApprovalRequest:
-        appr = self._repo.get(approval_id)
-        if appr is None:
-            raise KeyError(approval_id)
-        if appr.status != ApprovalStatus.PENDING:
-            return appr                                   # terminal states are final
-        if appr.is_expired(now_ms):
-            expired = appr.model_copy(update={"status": ApprovalStatus.EXPIRED})
-            self._repo.put(expired)
-            return expired
-        status = ApprovalStatus.APPROVED if approve else ApprovalStatus.REJECTED
-        resolved = appr.model_copy(update={"status": status, "resolver_id": resolver_id,
-                                           "resolved_at_ms": now_ms, "note": note})
-        self._repo.put(resolved)
-        return resolved
+        with self._lock:
+            appr = self._repo.get(approval_id)
+            if appr is None:
+                raise KeyError(approval_id)
+            if appr.status != ApprovalStatus.PENDING:
+                return appr                                   # terminal states are final
+            if appr.is_expired(now_ms):
+                expired = appr.model_copy(update={"status": ApprovalStatus.EXPIRED})
+                self._repo.put(expired)
+                return expired
+            status = ApprovalStatus.APPROVED if approve else ApprovalStatus.REJECTED
+            resolved = appr.model_copy(update={"status": status, "resolver_id": resolver_id,
+                                               "resolved_at_ms": now_ms, "note": note})
+            self._repo.put(resolved)
+            return resolved
 
     def consume(self, approval_id: str, argument_hash: str, now_ms: int) -> bool:
         """Single-use: mark an APPROVED, unexpired, argument-matching approval
         CONSUMED. Returns True if it authorised this exact call; False otherwise.
-        A consumed or mismatched approval never authorises a second call."""
-        appr = self._repo.get(approval_id)
-        if appr is None or not appr.authorises(argument_hash, now_ms):
-            return False
-        self._repo.put(appr.model_copy(update={"status": ApprovalStatus.CONSUMED}))
-        return True
+        The check-and-mark is atomic under a lock, so two racing resumes cannot
+        both consume the same approval — exactly one gets True."""
+        with self._lock:
+            appr = self._repo.get(approval_id)
+            if appr is None or not appr.authorises(argument_hash, now_ms):
+                return False
+            self._repo.put(appr.model_copy(update={"status": ApprovalStatus.CONSUMED}))
+            return True
 
     def pending(self) -> list[ApprovalRequest]:
         return self._repo.pending()

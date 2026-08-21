@@ -96,13 +96,13 @@ class ProviderManager:
         last_err: Optional[Exception] = None
         for i, provider in enumerate(self.providers):
             limits = self.provider_limits.get(provider.name, {})
-            if self.governor and limits and self.governor.would_exceed(provider.name, model, limits):
+            # atomic check-and-record: two concurrent calls cannot both take the
+            # last slot (the old would_exceed()+record() had a check-then-act race).
+            if self.governor and limits and not self.governor.try_acquire(provider.name, model, limits):
                 last_err = ProviderError(f"{provider.name}: local rate-limit ceiling reached")
                 continue
             try:
                 resp = provider.complete(messages=messages, tools=tools, model=model)
-                if self.governor and limits:
-                    self.governor.record(provider.name, model)
                 if i > 0:
                     self.failover_count += 1
                 return resp

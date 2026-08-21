@@ -108,6 +108,28 @@ def test_startup_probe_refuses_on_unavailable_model():
     assert "some-model" in str(exc.value)
 
 
+@pytest.mark.critical
+def test_governor_try_acquire_never_exceeds_under_concurrency(tmp_path):
+    """N+M threads race for N slots; exactly N acquire, never more (no overshoot)."""
+    import threading
+    from sentinel.providers.governor import RateLimitGovernor
+    gov = RateLimitGovernor(tmp_path / "gov.json", clock_ms=lambda: 1_000_000)
+    limits = {"rpm": 10, "rpd": 1000}
+    granted: list = []
+    barrier = threading.Barrier(25)
+
+    def acquire():
+        barrier.wait()
+        granted.append(gov.try_acquire("groq", "strong", limits))
+
+    ts = [threading.Thread(target=acquire) for _ in range(25)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    assert sum(1 for g in granted if g) == 10          # exactly the rpm ceiling, no overshoot
+
+
 def test_failover_to_secondary_on_rate_limit(tmp_path):
     class Primary:
         name = "primary"

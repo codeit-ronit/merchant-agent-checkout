@@ -10,6 +10,7 @@ scripted/replay path nothing is counted (no network is touched).
 from __future__ import annotations
 
 import json
+import threading
 from pathlib import Path
 
 
@@ -18,6 +19,7 @@ class RateLimitGovernor:
         self.store_path = Path(store_path)
         self._clock_ms = clock_ms
         self._state: dict = self._load()
+        self._lock = threading.Lock()
 
     def _load(self) -> dict:
         if self.store_path.exists():
@@ -49,11 +51,24 @@ class RateLimitGovernor:
         return False
 
     def record(self, provider: str, model: str) -> None:
+        with self._lock:
+            self._record_locked(provider, model)
+
+    def _record_locked(self, provider: str, model: str) -> None:
         now = self._clock_ms()
         b = self._bucket(provider, model)
         b["minute"].append(now)
         b["day"].append(now)
         self._save()
+
+    def try_acquire(self, provider: str, model: str, limits: dict) -> bool:
+        """Atomic check-and-record: returns True and records the call iff it would
+        not exceed the limit. Prevents two threads both taking the last slot."""
+        with self._lock:
+            if self.would_exceed(provider, model, limits):
+                return False
+            self._record_locked(provider, model)
+            return True
 
     def remaining(self, provider: str, model: str, limits: dict) -> dict:
         now = self._clock_ms()
