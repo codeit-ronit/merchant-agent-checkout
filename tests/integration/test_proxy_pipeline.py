@@ -85,7 +85,8 @@ def test_idempotent_replay_does_not_re_execute():
 def test_unissued_token_is_denied_and_flagged():
     _, idx, interc = build()
     out = interc.handle_call(idx["initiate_payment"],
-                             {"amount": 1000, "currency": "INR", "customer_id": "cust_A", "token": "CARD_deadbeef"},
+                             {"amount": 1000, "order_id": "order_1", "currency": "INR",
+                              "customer_id": "cust_A", "token": "CARD_deadbeef"},
                              ENV, Signals(), "s", "c")
     assert out.disposition == Disposition.DENY
     assert out.decision.reason_code == ReasonCode.DENY_SUSPECTED_EXFILTRATION

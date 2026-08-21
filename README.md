@@ -64,6 +64,22 @@ The runtime is model-agnostic by design, so the suite runs against two "models":
 > **Both had zero unauthorised executions, zero PII leaks, zero policy errors** —
 > because enforcement is a property of the proxy, not the model.
 
+## Verified against the real `razorpay/mcp` (test mode)
+
+Not just a mock — SENTINEL is checked against the genuine published server:
+
+- **Tool-surface parity is real.** The reference manifest was **captured live** by
+  running `razorpay/mcp:latest` over MCP stdio and calling `tools/list` (41 tools);
+  the fixture loads that capture verbatim, so parity is genuine, not circular.
+  (This corrected several docs-derived mistakes — see `DECISIONS.md` ADR-003a.)
+- **Enforcement holds against the live server.** With test-mode keys, a
+  `create_refund` is **DENIED before it is ever forwarded** to Razorpay, and a
+  real `fetch_all_payments` returns the real `{entity,count,items}` shape through
+  the proxy with redaction + audit intact.
+- Reproduce it: `export RAZORPAY_KEY_ID=rzp_test_… RAZORPAY_KEY_SECRET=… && make check-schemas-live`
+  (needs Docker). Test-mode keys only; nothing money-moving executes; keys are
+  never written to a file.
+
 ## Quickstart (no credentials required)
 
 Everything runs offline in fixture mode with cassette replay — no API key, no
@@ -161,6 +177,9 @@ firewall, not a fraud model, and not affiliated with Razorpay.
 - The offline "models" are **deterministic stand-ins** — real Groq/Gemini adapters
   and the cassette layer are built and activate when a key is present (`SENTINEL_CASSETTE=record`);
   the enforcement result is provable offline regardless.
+- The **agent's `tools/call` responses on real data** are validated only for
+  shape/enforcement (the test account is empty); redaction of genuine PII is
+  proven on synthetic fixtures, not yet on populated live data.
 
 ## Documentation
 

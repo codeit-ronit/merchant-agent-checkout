@@ -58,8 +58,14 @@ verify-audit: ## Walk and verify the audit hash chain, report first break if any
 	$(PY) -m sentinel.audit.verify
 
 .PHONY: check-schemas
-check-schemas: ## Fixture-vs-live-upstream tool schema parity (uses committed reference manifest offline)
+check-schemas: ## Fixture-vs-reference tool schema parity (offline; reference was live-captured)
 	$(PY) -m sentinel.fixtures.schema_parity
+
+.PHONY: check-schemas-live
+check-schemas-live: ## Verify against the REAL razorpay/mcp (needs Docker + rzp_test_ keys in env)
+	# export RAZORPAY_KEY_ID=rzp_test_... RAZORPAY_KEY_SECRET=... first.
+	# Runs the published image over MCP stdio: tool-surface parity + a live money-movement DENY.
+	$(PY) -m scripts.live_check
 
 .PHONY: purity
 purity: ## Assert the policy engine performs no I/O (import-graph check)

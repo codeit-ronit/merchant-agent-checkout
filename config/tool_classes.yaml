@@ -58,13 +58,13 @@ tools:
     risk_class: REVERSIBLE_WRITE
     entity_arg_paths: [payment_id]
 
-  # ---------------- Payment links ----------------
-  create_payment_link:      {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
-  create_payment_link_upi:  {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
-  send_payment_link:        {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
-  update_payment_link:      {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
-  fetch_payment_link:       {risk_class: READ, entity_arg_paths: [payment_link_id]}
-  fetch_all_payment_links:  {risk_class: READ, is_paginated: true}
+  # ---------------- Payment links (real names from the live tools/list) ----------------
+  create_payment_link:       {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  payment_link_upi_create:   {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  payment_link_notify:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
+  update_payment_link:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
+  fetch_payment_link:        {risk_class: READ, entity_arg_paths: [payment_link_id]}
+  fetch_all_payment_links:   {risk_class: READ, is_paginated: true}
 
   # ---------------- Orders ----------------
   create_order:         {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
@@ -109,18 +109,16 @@ tools:
     moves_money: true
     amount_arg_path: amount
 
-  # ---------------- Payouts (read-only upstream) ----------------
-  fetch_all_payouts:  {risk_class: READ, is_paginated: true, entity_arg_paths: [account_number]}
-  fetch_payout_by_id: {risk_class: READ, entity_arg_paths: [payout_id]}
+  # ---------------- Payouts (read-only upstream; real name fetch_payout_with_id) ----------------
+  fetch_all_payouts:   {risk_class: READ, is_paginated: true, entity_arg_paths: [account_number]}
+  fetch_payout_with_id: {risk_class: READ, entity_arg_paths: [payout_id]}
 
   # ---------------- Tokens ----------------
   fetch_tokens:  {risk_class: READ, entity_arg_paths: [customer_id], pii_map: {"items[].vpa": VPA}}
-  revoke_token:  {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [customer_id]}
 
-  # ---------------- Registration / local helpers ----------------
-  create_registration_link: {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
-  detect_stack:             {risk_class: READ}
-  integrate_razorpay_checkout: {risk_class: REVERSIBLE_WRITE}   # writes local files
+  # NOTE (verified via live tools/list, 2026-08-21): the published server exposes
+  # NO revoke_token, create_registration_link, detect_stack, or
+  # integrate_razorpay_checkout. They were transcription errors, now removed.
 
   # ---------------- Fixture extensions (not in upstream; parity reports them) ----------------
   fetch_dispute:

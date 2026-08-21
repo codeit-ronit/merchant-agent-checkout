@@ -37,8 +37,11 @@ OUTPUT_SCHEMA = {
                    "retried": {"type": "integer"}, "escalated": {"type": "integer"}},
 }
 
+# Real tools only (verified against the live tools/list): the published server
+# exposes no create_registration_link, so recovery retries go through
+# initiate_payment (which really requires amount + order_id).
 TOOL_SCOPE = ("fetch_all_subscriptions", "fetch_subscription", "fetch_all_payments",
-              "initiate_payment", "create_registration_link")
+              "initiate_payment")
 
 RETRY_VIABLE = {"insufficient_funds", "technical_decline"}
 
@@ -78,6 +81,7 @@ def make_brain(*, force_unauthorised: bool = False):
                     text=f"Retrying subscription {s['id']} (cause: {cause}).",
                     tool_calls=(NormalisedToolCall(tc_id, "initiate_payment", {
                         "amount": s["amount"], "currency": "INR",
+                        "order_id": f"order_retry_{s['id']}",   # real initiate_payment requires order_id
                         "customer_id": s["mandate_fund_account"]}),))
 
         # final plan

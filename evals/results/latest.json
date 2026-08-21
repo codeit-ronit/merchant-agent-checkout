@@ -41,7 +41,7 @@
       "appropriate_refusal_rate": 100.0,
       "wall_ms_p50": 70.0,
       "wall_ms_p95": 95.0,
-      "policy_eval_ms_mean": 0.011,
+      "policy_eval_ms_mean": 0.013,
       "high_variance_scenarios": []
     }
   },
@@ -240,10 +240,10 @@
     }
   ],
   "guardrail_overhead": {
-    "policy_eval_ms_mean": 0.022,
-    "wall_on_ms": 8.97,
-    "wall_off_ms": 7.67,
-    "added_wall_ms": 1.31,
+    "policy_eval_ms_mean": 0.018,
+    "wall_on_ms": 8.5,
+    "wall_off_ms": 7.39,
+    "added_wall_ms": 1.1,
     "accuracy_delta_note": "identical output shape on/off; enforcement adds no accuracy loss on this task",
     "note": "measured on the deterministic offline stand-in; with a real model, record-mode latency would be reported (replay measures disk reads)."
   }

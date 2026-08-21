@@ -678,3 +678,51 @@ protection against a malicious operator (SENTINEL constrains the agent, not the
 human); a policy DSL (a new attack surface); formal verification (we test, not
 prove); production-grade inference (free tiers are rate-limited by design); a
 real PDF extractor (ADR-019); real-model eval recordings (ADR-002b — needs a key).
+
+---
+
+## ADR-003a — Verified against the REAL razorpay/mcp (supersedes ADR-003's gap)
+Date: 2026-08-21    Phase: post-8    Status: Accepted
+
+### Context
+ADR-003 recorded an honest gap: the tool inventory was transcribed from the
+README/docs, never captured from a running server, so the schema-parity check was
+circular (fixture vs my transcription). A reviewer rightly pushed on it.
+
+### What I did
+Pulled the published `razorpay/mcp:latest` image, ran it over MCP stdio, and
+captured the genuine `tools/list` (a dummy `rzp_test_` key suffices — the list
+needs no real auth). Then, with real test-mode keys, ran a real read and a
+money-movement denial through the full proxy against the live server.
+
+### What I found (I expected a match; I was wrong)
+The real server exposes **41 tools, not the 45 I transcribed**, and my docs-derived
+names were off:
+- wrong names: `fetch_payout_by_id`→`fetch_payout_with_id`,
+  `create_payment_link_upi`→`payment_link_upi_create`,
+  `send_payment_link`→`payment_link_notify`
+- invented (do not exist): `create_registration_link`, `revoke_token`,
+  `detect_stack`, `integrate_razorpay_checkout`
+- real schemas differ: `initiate_payment` requires `order_id` (not currency/
+  customer_id); `submit_otp` uses `otp_string` (not `otp`).
+
+### Decision / reconciliation
+The committed reference manifest is now the **live capture**, and the fixture
+loads it verbatim — so parity is genuine, not circular, and cannot drift. Fixed
+`tool_classes.yaml` (renames + removals), the fixture upstream handlers, and the
+Subscription agent (dropped the non-existent `create_registration_link`; retries
+now supply the real `order_id`). Verified end to end against the live server:
+`tools/list` parity is exact; a `create_refund` is DENIED before forwarding; a
+real `fetch_all_payments` returns the real `{entity,count,items}` shape (count 0 —
+empty test account) with redaction wired and the audit chain intact.
+
+### Trade-off accepted
+`make check-schemas-live` needs Docker + `rzp_test_` keys, so it is not in unit
+CI (a `require_test_mode` guard + a unit test cover the key rule; a `rzp_live_`
+key is refused before any connection). The public demo stays on the fixture. Keys
+are used only in a local shell env, never written to a file or committed
+(secret-scan verified).
+
+### Revisit if
+The upstream adds/renames tools — re-run `make check-schemas-live` and the
+reconciliation surfaces it as UNCLASSIFIED (denied) / STALE (warned).

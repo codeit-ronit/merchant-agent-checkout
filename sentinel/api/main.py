@@ -138,6 +138,7 @@ if _dist.is_dir():
 
 def main():
     import os
+
     import uvicorn
     # Hosts (Render/Railway/Fly) inject $PORT; default 8080 for local `make demo`.
     port = int(os.environ.get("PORT", "8080"))

@@ -96,6 +96,7 @@ def test_committed_cassettes_are_pii_clean():
     guardrails-off red-team recordings (which capture the exfiltration
     counterfactual) are intentionally not committed."""
     import glob
+
     from evals.statements import known_pii_values
     committed = glob.glob("cassettes/evals/*.json")
     assert committed, "expected committed eval cassettes"

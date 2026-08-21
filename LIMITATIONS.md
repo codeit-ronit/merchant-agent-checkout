@@ -35,7 +35,11 @@ rule type is a reviewable event with a test.
 ## The fixture server is a faithful double only to the extent the parity check catches drift
 Evals pass against fixtures. If upstream schemas change and the schema-parity
 check misses it, evals could pass against a world that no longer exists. The
-parity check is the mitigation; it is not a proof.
+parity check is the mitigation; it is not a proof. **Update:** the fixture is now
+reconciled to a *live capture* of `razorpay/mcp` and verified against the real
+server (`make check-schemas-live`, ADR-003a) — so parity is genuine today; the
+residual risk is future upstream drift between live re-captures, which the
+reconciliation surfaces as UNCLASSIFIED (denied) / STALE (warned).
 
 ## Deliberately not built (single operator, local deployment)
 - **Multi-tenancy and real authentication.** Single trusted operator.

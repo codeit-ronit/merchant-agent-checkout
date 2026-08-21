@@ -108,7 +108,7 @@ class FixtureUpstream:
 
     # ---- READ: payouts ----
     def _t_fetch_all_payouts(self, a): return self._page(self._ds["payouts"], a)
-    def _t_fetch_payout_by_id(self, a): return self._find(self._ds["payouts"], "id", a["payout_id"])
+    def _t_fetch_payout_with_id(self, a): return self._find(self._ds["payouts"], "id", a["payout_id"])
 
     # ---- READ: tokens ----
     def _t_fetch_tokens(self, a):
@@ -117,10 +117,6 @@ class FixtureUpstream:
         items = [{"id": f"token_{i}", "vpa": p.get("vpa", "")}
                  for i, p in enumerate(self._ds["payments"][:3]) if p.get("vpa")]
         return {"entity": "collection", "count": len(items), "items": items}
-
-    def _t_revoke_token(self, a):
-        self.executed.append({"tool": "revoke_token", **a})
-        return {"id": a.get("token", "token_x"), "status": "revoked"}
 
     # ---- READ: fixture-extension disputes / subscriptions ----
     def _t_fetch_all_disputes(self, a): return self._page(self._ds["disputes"], a)
