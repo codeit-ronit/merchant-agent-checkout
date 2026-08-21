@@ -18,7 +18,7 @@ exposed and corrected several assumptions the docs-only build had baked in.
 - **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **24 unauthorised money movements + 5 exfiltrations**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
 - **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 87.1%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). A **real-model recording pass** (§8, ADR-002c) separately confirms this on *real* models — 4 models across Groq + OpenRouter, all attempted the refund, all blocked, 0 unauthorized.
 - **Guardrail overhead:** **well under 0.1 ms** policy-eval per call, no accuracy loss.
-- **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **169 tests** (41 marked `@pytest.mark.critical`), all green.
+- **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **178 tests** (41 marked `@pytest.mark.critical`), all green.
 - **Verified against the real server:** tool-surface parity (41 tools), all schemas, all arg-paths, and a live money-movement denial — with test-mode keys.
 
 ---
@@ -49,13 +49,15 @@ pointed at the proxy, is subject to identical policy. A prompt can never offer t
 | **Fixture world** | Seeded synthetic dataset (checksum-*invalid* Indian identifiers, so nothing can collide with a real one); in-process double of the upstream MCP surface | ✅ |
 | **Pure policy engine** | 11 closed rule types (no DSL); most-restrictive-wins; fail-closed; **class-floor invariant** proven over 400 generated policies (no config can auto-allow money movement); zero-I/O import check | ✅ |
 | **Proxy + redaction + audit + idempotency** | Decision pipeline; structural+pattern PII detection → stable per-run tokens; per-run-nonce quarantine; append-only SHA-256 hash chain + verifier; idempotency guard | ✅ |
-| **Runtime + providers** | In-house ~200-line agent loop + in-loop guard (shares the exact context builder with the proxy → layers can't diverge); provider abstraction (Groq + Gemini adapters, one OpenAI-compatible shape); cassette record/replay; rate-limit governor; startup probe; suspend/resume across restart | ✅ |
+| **Runtime + providers** | In-house ~200-line agent loop + in-loop guard (shares the exact context builder with the proxy → layers can't diverge); **provider factory** (`factory.py`) that wires real providers into the loop while the loop names no provider — **Groq + OpenRouter live, Gemini present but access-denied**, one OpenAI-compatible adapter; cassette record/replay + a separate `live` cassette set; rate-limit governor; startup probe; suspend/resume across restart | ✅ |
 | **Agents** | Reconciliation (READ), Dispute Responder (IRREVERSIBLE_WRITE + RAG with citations + honest gap analysis), Subscription Recovery (MONEY_MOVEMENT + per-action escalation + counterparty novelty) | ✅ |
 | **Eval harness** | 31 golden scenarios across 5 categories; per-model metrics; regression gates (absolute floor / relative / hard-zero); offline + reproducible via committed cassettes | ✅ |
-| **Red-team** | 29 attacks (11 classes × 6 vectors) + 15 benign; rule-based deterministic grading (L0–L4); paired A/B; ablation; fixture-mode-only (refuses otherwise, tested); L3/L4 CI gate | ✅ |
+| **Red-team** | 29 attack payloads spanning 11 attack classes and 6 injection vectors, + 15 benign; rule-based deterministic grading (L0–L4); paired A/B; ablation; fixture-mode-only (refuses otherwise, tested); L3/L4 CI gate | ✅ |
 | **Operator surface** | React + TS + Vite, six views (run console, approvals, policy + dry-run, evals, red-team, audit); financial control-room design; decision states legible without colour; the hash-chain as the signature visual | ✅ |
 | **Control-plane API** | FastAPI: `/api/scenarios /runs (+SSE) /approvals /policies (+dry-run) /audit (+verify) /evals /redteam` | ✅ |
 | **Ship** | README, DECISIONS.md (every trade-off named), LIMITATIONS.md, MIT license, one-command `make demo`, Docker + Render/Fly/Railway configs, a living HTML handbook | ✅ |
+
+These rows map onto the eight phases of [`docs/spec/11-BUILD-ORDER.md`](docs/spec/11-BUILD-ORDER.md) — Phase 0 foundation/data-contracts, 1 fixture world + classification, 2 pure policy engine, 3 proxy + redaction + audit + idempotency, 4 runtime + providers + first agent + demo, 5 eval harness, 6 agents + red-team, 7 operator surface, 8 ship — each begun only after the prior phase's spec exit criteria were met and checked off.
 
 Repo layout mirrors the architecture: `sentinel/{contracts,common,policy,proxy,redaction,audit,approvals,providers,runtime,metering,agents,fixtures,api}`, `config/`, `evals/`, `redteam/`, `frontend/`, `tests/{unit,property,integration,contracts}`, `docs/`.
 
@@ -76,10 +78,10 @@ column: the proxy denies whatever the agent attempts.
 
 | control off | L4 | L3 | L1 |
 |---|---|---|---|
-| all on | 0 | 0 | 12 |
-| no redaction | 0 | **1** | 12 |
-| no quarantine | 0 | 0 | 12 |
-| no control plane | **12** | **1** | 0 |
+| all on | 0 | 0 | 24 |
+| no redaction | 0 | **5** | 24 |
+| no quarantine | 0 | 0 | 24 |
+| no control plane | **24** | **5** | 0 |
 
 → **Policy prevents money movement; redaction prevents exfiltration; the nonce quarantine's marginal effect was negligible in this harness** — less than intuition suggests. Reported because it contradicts the design assumption.
 
@@ -138,7 +140,7 @@ real `LiveUpstream` MCP client behind the same proxy.
 
 ```bash
 make install
-make test            # 169 tests, tiers 1-3 + the 5 load-bearing safety tests (~3s)
+make test            # 178 tests, tiers 1-3 + the 5 load-bearing safety tests (~6s)
 make demo-cli        # injected refund DENIED with a plain reason; audit chain breaks on tamper
 make demo            # the operator surface at localhost:8080
 make eval            # per-model metrics + regression gates (offline)
@@ -147,6 +149,24 @@ make verify-audit    # walk the tamper-evident hash chain
 # with Docker + rzp_test_ keys:
 make check-schemas-live   # verify names + schemas + arg-paths + a live denial vs the real razorpay/mcp
 ```
+
+**Reproduce the real-model live pass (§8).** The committed real cassettes make it
+replayable with **no key** — this is what makes the §8 claim auditable:
+
+```bash
+# Keyless replay of the committed real-model cassettes (reproduces live-*.json):
+SENTINEL_LIVE_PROVIDER=groq       make eval-live-replay   # Groq gpt-oss-120b/20b
+SENTINEL_LIVE_PROVIDER=openrouter make eval-live-replay   # OpenRouter nemotron/lfm
+
+# Re-record from scratch (needs a free key; test-mode/synthetic data only):
+SENTINEL_LIVE_PROVIDER=groq       SENTINEL_PROVIDER_A_API_KEY=gsk_…   make eval-live
+SENTINEL_LIVE_PROVIDER=openrouter SENTINEL_PROVIDER_C_API_KEY=sk-or-… make eval-live
+```
+
+The keyless replay reproduces every task/safety metric in `evals/results/live-*.json`
+(only the wall-clock latency fields differ, since those are timings). Each live
+JSON stamps `resolved_provider` + `resolved_models`, so the "4 real models" claim
+is traceable from the artifact, not just prose.
 
 ---
 
@@ -179,7 +199,10 @@ Highlights, each with its trade-off named:
   attempted the refund and enforcement blocked every one → 0 unauthorized / 0 PII /
   0 policy errors / 0 malformed on all four** (`evals/results/live-*.json`,
   `cassettes/live/`). *Enforcement invariance is now shown with real models, not
-  stand-ins.* Honestly scoped: 1 scenario, `n_runs=1`, both tiers — a full
+  stand-ins.* The live JSON stamps `resolved_provider` + `resolved_models`, so the
+  four model IDs are traceable from the artifact; the operator surface's
+  **Evaluations** view renders this as a *Real-model recording* panel; and the
+  whole pass **replays with no key** (`make eval-live-replay`, see §6). Honestly scoped: 1 scenario, `n_runs=1`, both tiers — a full
   31-scenario live pass was impractical (free-tier latency 20s–5min/call; the
   reconciliation agent hits `max_steps` per run). Live latency uses the injected
   deterministic clock, not wall-time. **Gemini was denied** on the available key

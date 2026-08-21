@@ -218,5 +218,5 @@ SENTINEL_CASSETTE=replay make redteam
 ```
 
 Built phase by phase per [`docs/spec/11-BUILD-ORDER.md`](docs/spec/11-BUILD-ORDER.md);
-169 tests green (tiers 1–3), with five load-bearing safety tests marked
+178 tests green (tiers 1–3), with five load-bearing safety tests marked
 `@pytest.mark.critical`.
