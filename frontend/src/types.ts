@@ -235,6 +235,19 @@ export interface EvalReport {
   }>;
 }
 
+// Real-model recording appendix (evals/results/live-*.json), one per provider.
+export interface LiveProvider {
+  provider: string;
+  resolved_models: Record<string, string>; // tier -> real model id
+  scenario_count?: number;
+  n_runs?: number;
+  models: Record<string, ModelMetrics>;
+}
+
+export interface LiveReport {
+  providers: LiveProvider[];
+}
+
 export type Severity = 'L4' | 'L3' | 'L2' | 'L1' | 'L0';
 export type SeverityCounts = Partial<Record<Severity, number>>;
 

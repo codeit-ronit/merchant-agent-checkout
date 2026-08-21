@@ -1,5 +1,5 @@
 import { api } from '../api';
-import type { CategoryScores, EvalReport, ModelMetrics } from '../types';
+import type { CategoryScores, EvalReport, LiveProvider, LiveReport, ModelMetrics } from '../types';
 import { useAsync } from '../useAsync';
 import { ErrorState, LoadingState, PageHeader } from '../components/StateBlocks';
 import { titleCase } from '../format';
@@ -38,17 +38,23 @@ export function EvalDashboard() {
 
 function EvalBody({ report }: { report: EvalReport }) {
   const { strong, weak } = report.models;
+  const bothZero = strong.unauthorized_executions === 0 && weak.unauthorized_executions === 0;
   return (
     <>
       <div className="eval-headline panel">
         <span className="eval-headline-glyph" aria-hidden="true">
-          ✓
+          {bothZero ? '✓' : '✕'}
         </span>
         <p>
-          <strong>Task accuracy varies between models; the enforcement result does not</strong> — 0
-          unauthorized executions on both.
+          <strong>Task accuracy varies between models; the enforcement result does not</strong> —{' '}
+          {bothZero
+            ? '0 unauthorized executions on both.'
+            : `unauthorized executions — strong ${strong.unauthorized_executions}, weak ${weak.unauthorized_executions}.`}
         </p>
       </div>
+
+      <LiveRecordingPanel />
+
 
       <section className="eval-gates">
         <h2 className="subhead">Hard gates — a zero is not a trend, it is a pass</h2>
@@ -97,6 +103,67 @@ function EvalBody({ report }: { report: EvalReport }) {
         ) : null}
       </section>
     </>
+  );
+}
+
+function LiveRecordingPanel() {
+  const { data } = useAsync<LiveReport>(() => api.live(), []);
+  const providers = data?.providers ?? [];
+  if (providers.length === 0) return null; // only shown once a live pass is recorded
+
+  const modelCount = providers.reduce((n, p) => n + Object.keys(p.resolved_models ?? {}).length, 0);
+  return (
+    <section className="panel live-recording">
+      <h2 className="panel-title">Real-model recording — enforcement holds on real models</h2>
+      <p className="panel-lede">
+        The same run against <strong>real</strong> models (not the offline stand-ins), recorded
+        through the provider factory. {modelCount} models across {providers.length}{' '}
+        {providers.length === 1 ? 'provider' : 'providers'} on the money-movement scenario — every
+        one attempted the refund; the proxy blocked every one.
+      </p>
+      <div className="live-provider-grid">
+        {providers.map((p) => (
+          <LiveProviderCard key={p.provider} p={p} />
+        ))}
+      </div>
+      <p className="overhead-note muted">
+        Scoped honestly: {providers[0]?.scenario_count ?? 1} scenario · n_runs=
+        {providers[0]?.n_runs ?? 1} · both tiers. Enforcement invariants are real; latency here uses
+        the harness's deterministic clock, not wall-time. Replay with no key via{' '}
+        <code>make eval-live-replay</code>.
+      </p>
+    </section>
+  );
+}
+
+function LiveProviderCard({ p }: { p: LiveProvider }) {
+  const tiers = Object.keys(p.models ?? {});
+  return (
+    <div className="panel live-provider-card">
+      <h3 className="gate-card-title">{p.provider}</h3>
+      <ul className="gate-list">
+        {tiers.map((t) => {
+          const m = p.models[t];
+          const safe =
+            m.unauthorized_executions === 0 && m.pii_leaks === 0 && m.policy_errors === 0;
+          return (
+            <li key={t} className={`gate-row ${safe ? 'gate-pass' : 'gate-fail'}`}>
+              <span className="gate-glyph" aria-hidden="true">
+                {safe ? '✓' : '✕'}
+              </span>
+              <span className="gate-label">
+                {t} · <span className="mono">{p.resolved_models?.[t] ?? '—'}</span>
+              </span>
+              <span className="gate-status mono">
+                {safe
+                  ? '0 unauthorized'
+                  : `${m.unauthorized_executions} unauth`}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

@@ -87,10 +87,13 @@ function RedteamBody({ report }: { report: RedteamReport }) {
         </p>
         <AblationTable ablation={report.ablation} />
         <p className="ablation-reading">
-          Reading: <strong>policy prevents L4</strong> (removing the control plane brings back 12
-          executed money movements); <strong>redaction prevents L3</strong> (without it, one
-          exfiltration returns); <strong>quarantine's marginal effect was small</strong> here — a
-          finding, not a dismissal.
+          Reading: <strong>policy prevents L4</strong> (removing the control plane brings back{' '}
+          {report.ablation.no_control_plane?.L4 ?? 0} executed money movements);{' '}
+          <strong>redaction prevents L3</strong> (without it,{' '}
+          {report.ablation.no_redaction?.L3 ?? 0} exfiltration
+          {(report.ablation.no_redaction?.L3 ?? 0) === 1 ? '' : 's'} return);{' '}
+          <strong>quarantine's marginal effect was small</strong> here — a finding, not a
+          dismissal.
         </p>
       </section>
 

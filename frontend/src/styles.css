@@ -277,6 +277,9 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
 .bar-fill { height:100%; background:var(--accent); border-radius:5px; }
 .bar-value { font-family:var(--mono); font-size:11px; color:var(--muted); }
 .eval-gates, .gate-grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin:16px 0; }
+.live-recording { margin:16px 0; }
+.live-provider-grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin:12px 0 4px; }
+.live-provider-card { padding:14px; }
 .gate-card { padding:14px; }
 .gate-label { font-size:12px; color:var(--muted); }
 .gate-status { font-family:var(--serif); font-size:20px; font-weight:600; margin-top:4px; }

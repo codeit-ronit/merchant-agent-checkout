@@ -9,6 +9,7 @@ import type {
   DryRunResult,
   EvalReport,
   HealthResult,
+  LiveReport,
   Policy,
   RedteamReport,
   RunResponse,
@@ -94,6 +95,8 @@ export const api = {
   evals: () => request<EvalReport>('/evals'),
 
   redteam: () => request<RedteamReport>('/redteam'),
+
+  live: () => request<LiveReport>('/live'),
 };
 
 // Build the SSE stream URL for a run. The Run console tracks the last sequence
