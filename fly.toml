@@ -1,0 +1,28 @@
+# Fly.io config — `fly launch --no-deploy` then `fly deploy`. Fixture mode; the
+# app listens on internal_port 8080 (its default when $PORT is unset).
+app = "sentinel-demo"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  SENTINEL_MODE = "fixture"
+  SENTINEL_CASSETTE = "replay"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

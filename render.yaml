@@ -1,0 +1,16 @@
+# Render Blueprint — deploy SENTINEL as a free Docker web service.
+# In the Render dashboard: New > Blueprint > point at this repo. No env vars or
+# credentials needed (fixture mode). Render injects $PORT; the app reads it.
+services:
+  - type: web
+    name: sentinel
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: SENTINEL_MODE
+        value: fixture
+      - key: SENTINEL_CASSETTE
+        value: replay

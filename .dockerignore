@@ -1,0 +1,24 @@
+# Keep the image small and credential-free.
+.git
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+.hypothesis
+.ruff_cache
+.mypy_cache
+frontend/node_modules
+frontend/dist
+sentinel_state
+*.db
+*.db-*
+.env
+.env.*
+tests
+docs/spec
+cassettes/redteam
+cassettes/api
+cassettes/demo
+.github

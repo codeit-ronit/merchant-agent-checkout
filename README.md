@@ -92,6 +92,21 @@ make demo           # the operator surface at http://localhost:8080
     after altering entry #2: ⛓ CHAIN BROKEN at entry #2 — refusing to certify
 ```
 
+## Deploy a public demo (fixture mode, no credentials)
+
+The operator surface + API ship as one **multi-stage Docker image** (verified: it
+builds and serves the SPA, the API, and the red-team numbers). Host it free on
+Render / Fly / Railway or any Docker host — full steps in
+[`DEPLOY.md`](DEPLOY.md):
+
+```bash
+docker build -t sentinel . && docker run -p 8080:8080 sentinel   # -> http://localhost:8080
+# Render: New > Blueprint (reads render.yaml).  Fly: fly launch --no-deploy && fly deploy.
+```
+
+Do **not** set any real key on the public demo — it is meant to run guardrail-free
+of real data (there is none in the repo).
+
 ## Architecture — enforcement in a process the model does not control
 
 ```

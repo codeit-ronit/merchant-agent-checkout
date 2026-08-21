@@ -137,9 +137,12 @@ if _dist.is_dir():
 
 
 def main():
+    import os
     import uvicorn
-    print("SENTINEL control plane on http://localhost:8080  (fixture mode, no credentials)")
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
+    # Hosts (Render/Railway/Fly) inject $PORT; default 8080 for local `make demo`.
+    port = int(os.environ.get("PORT", "8080"))
+    print(f"SENTINEL control plane on http://0.0.0.0:{port}  (fixture mode, no credentials)")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 
 if __name__ == "__main__":
