@@ -1,0 +1,20 @@
+{
+  "key": "6fe383c87d69bd0c51b7b68c2117ac92b5e882474d498e27e4fae145715637b2",
+  "request": {
+    "model": "reconciliation-strong",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"buckets\": {\"MATCHED\": 10, \"AMOUNT_MISMATCH\": 1, \"MISSING_IN_STATEMENT\": 3, \"MISSING_IN_SETTLEMENTS\": 1, \"DUPLICATE_SUSPECTED\": 1, \"UNEXPLAINED\": 1}, \"matched_count\": 10, \"matches\": [{\"line_no\": 1, \"settlement_id\": \"setl_ITKKTNMJXCGQ\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 2610992, \"settlement_amount\": 2610992}, {\"line_no\": 2, \"settlement_id\": \"setl_HNLXEDEWETBF\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 3814600, \"settlement_amount\": 3814600}, {\"line_no\": 3, \"settlement_id\": \"setl_IUOIPOPPBPXI\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 1207710, \"settlement_amount\": 1207710}, {\"line_no\": 4, \"settlement_id\": \"setl_BQFNPYABZENY\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 2779714, \"settlement_amount\": 2779714}, {\"line_no\": 5, \"settlement_id\": \"setl_CTYAYXJCWYVB\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 1843444, \"settlement_amount\": 1843444}, {\"line_no\": 6, \"settlement_id\": \"setl_BZDHDFNZXHQE\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 1435601, \"settlement_amount\": 1435601}, {\"line_no\": 7, \"settlement_id\": \"setl_CEGACCMAYDGF\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 711991, \"settlement_amount\": 711991}, {\"line_no\": 8, \"settlement_id\": \"setl_XORDEPHQRQFJ\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 845953, \"settlement_amount\": 845953}, {\"line_no\": 9, \"settlement_id\": \"setl_YTUWZQUNSYZS\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 757296, \"settlement_amount\": 757296}, {\"line_no\": 10, \"settlement_id\": \"setl_XJJDYGYQVXAX\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"AMOUNT_MISMATCH\", \"statement_amount\": 1648421, \"settlement_amount\": 1649921}, {\"line_no\": 11, \"settlement_id\": null, \"pass\": \"none\", \"confidence\": 0.0, \"class\": \"MISSING_IN_SETTLEMENTS\", \"statement_amount\": 4500000}, {\"line_no\": 12, \"settlement_id\": \"setl_PMTCMWRVIAMW\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"MATCHED\", \"statement_amount\": 1362567, \"settlement_amount\": 1362567}, {\"line_no\": 13, \"settlement_id\": \"setl_PMTCMWRVIAMW\", \"pass\": \"exact_utr\", \"confidence\": 1.0, \"class\": \"DUPLICATE_SUSPECTED\", \"statement_amount\": 1362567, \"settlement_amount\": 1362567}, {\"line_no\": 14, \"settlement_id\": null, \"pass\": \"none\", \"confidence\": 0.0, \"class\": \"UNEXPLAINED\", \"statement_amount\": 128700}, {\"line_no\": null, \"settlement_id\": \"setl_YQIOBXTRSLCI\", \"pass\": \"none\", \"confidence\": 0.0, \"class\": \"MISSING_IN_STATEMENT\"}, {\"line_no\": null, \"settlement_id\": \"setl_CPMNZFEYLAGZ\", \"pass\": \"none\", \"confidence\": 0.0, \"class\": \"MISSING_IN_STATEMENT\"}, {\"line_no\": null, \"settlement_id\": \"setl_PZFYSJYPULTO\", \"pass\": \"none\", \"confidence\": 0.0, \"class\": \"MISSING_IN_STATEMENT\"}], \"summary\": \"Reconciled 14 statement lines against 14 settlements: 10 matched cleanly, 1 amount mismatches, 3 settlements not yet in the statement, 1 unexplained credits, 1 possible duplicates, 1 could not be matched.\", \"flagged_injection\": false}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 1454,
+      "output_tokens": 791,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-strong",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

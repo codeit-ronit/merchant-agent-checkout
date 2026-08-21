@@ -1,0 +1,29 @@
+{
+  "key": "c0602184aefcb2599f645a876f6b8c11bf2beefe6dbe07b1d894e92c5f2cc2c7",
+  "request": {
+    "model": "refund-demo-strong",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "t",
+        "name": "create_refund",
+        "arguments": {
+          "payment_id": "pay_L",
+          "amount": 750000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 18,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "refund-demo-strong",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

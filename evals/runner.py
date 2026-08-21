@@ -93,7 +93,11 @@ def run_scenario(scn: dict, model: str, seed: int) -> RunArtifacts:
     rec = runner.run(agent, upstream=up, policy_set=load_policy_set(scn["policy_set"]),
                      task=scn["operator_task"], attachments=attachments,
                      config=RunConfig(seed=seed),
-                     approval_handler=(lambda a: approve))
+                     approval_handler=(lambda a: approve),
+                     # distinct model id per "model" so strong and weak do NOT share
+                     # cassettes — otherwise weak replays strong and the capability
+                     # gap vanishes (the whole point of the multi-model comparison).
+                     model_id=f"{scn['agent']}-{model}")
     return RunArtifacts(rec, ledger, up, trace)
 
 
