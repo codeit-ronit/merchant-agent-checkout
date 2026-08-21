@@ -82,6 +82,22 @@ def test_idempotent_replay_does_not_re_execute():
 
 
 @pytest.mark.critical
+def test_raw_pii_in_a_tool_argument_is_not_persisted_to_audit():
+    """Defense in depth: a raw PII value that reaches a tool-call argument (e.g.
+    the model copied it out of an un-tokenized field, or fabricated it) must be
+    scrubbed before it lands in the hash-chained audit ledger."""
+    _, idx, interc = build()
+    # create_payment_link is a reversible write allowed on a clean run
+    interc.handle_call(idx["create_payment_link"],
+                       {"amount": 1000, "currency": "INR",
+                        "description": "contact raj.real@leak.invalid / 9876512345"},
+                       ENV, Signals(), "s", "c")
+    dumped = str([e.model_dump() if hasattr(e, "model_dump") else e for e in interc.ledger.entries()])
+    assert "raj.real@leak.invalid" not in dumped     # email scrubbed from the audit
+    assert "9876512345" not in dumped                # phone scrubbed from the audit
+
+
+@pytest.mark.critical
 def test_unissued_token_is_denied_and_flagged():
     _, idx, interc = build()
     out = interc.handle_call(idx["initiate_payment"],

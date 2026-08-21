@@ -45,6 +45,20 @@ def test_structural_redaction_replaces_pii_fields():
     assert len(dets) == 2
 
 
+def test_numeric_pii_is_tokenized_not_bypassed():
+    """PII delivered as a JSON number (account/phone as an int) must be tokenized,
+    not left to flow to the model and every downstream surface."""
+    result = {"items": [{"contact": 9999900001, "account_number": 12345678901234, "amount": 500}]}
+    pii_map = (PiiField(field_path="items[].contact", pii_type="PHONE"),
+               PiiField(field_path="items[].account_number", pii_type="BANK_ACCOUNT"))
+    s = RedactionSession("run_1", salt=b"salt-a-16-bytes!")
+    red, dets = redact_result(result, pii_map, s)
+    assert "9999900001" not in str(red)
+    assert "12345678901234" not in str(red)
+    assert red["items"][0]["amount"] == 500          # non-PII number untouched
+    assert len(dets) == 2
+
+
 def test_pattern_safety_net_catches_pii_in_free_text():
     result = {"note": "call me at 9876500001 or email x@y.invalid"}
     s = RedactionSession("run_1", salt=b"salt-a-16-bytes!")

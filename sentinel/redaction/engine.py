@@ -107,17 +107,27 @@ def redact_result(result: dict, pii_map, session: RedactionSession) -> tuple[dic
     structural = structural_detect(redacted, pii_map)
     structural_values = {d.value: d.pii_type for d in structural}
 
+    def _num_pii(v: Any) -> bool:
+        # a numeric leaf whose value was declared PII structurally (amounts are
+        # never in a pii_map, so they are not caught here)
+        return (isinstance(v, (int, float)) and not isinstance(v, bool)
+                and str(v) in structural_values)
+
     def walk(node: Any):
         if isinstance(node, dict):
             for k, v in node.items():
                 if isinstance(v, str):
                     node[k] = _redact_string(v, structural_values, session)
+                elif _num_pii(v):
+                    node[k] = session.tokenize(str(v), structural_values[str(v)])
                 else:
                     walk(v)
         elif isinstance(node, list):
             for i, v in enumerate(node):
                 if isinstance(v, str):
                     node[i] = _redact_string(v, structural_values, session)
+                elif _num_pii(v):
+                    node[i] = session.tokenize(str(v), structural_values[str(v)])
                 else:
                     walk(v)
 

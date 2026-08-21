@@ -30,7 +30,12 @@ from sentinel.policy import evaluate
 from sentinel.policy.rules import PolicySet
 from sentinel.proxy.context import build_context
 from sentinel.proxy.idempotency import IdempotencyGuard
-from sentinel.redaction.engine import RedactionSession, redact_result, rehydrate_arguments
+from sentinel.redaction.engine import (
+    RedactionSession,
+    _redact_string,
+    redact_result,
+    rehydrate_arguments,
+)
 from sentinel.redaction.quarantine import QuarantineWrapper, UnissuedTokenError
 
 
@@ -65,6 +70,21 @@ def _get_path(obj: dict, path: str) -> Any:
         else:
             return None
     return cur
+
+
+def _redact_arg_strings(arguments: dict, session: RedactionSession) -> dict:
+    """Pattern-scrub PII out of argument STRING values (deep copy). Tokens and
+    non-PII strings pass through unchanged, so a call with no raw PII (the normal
+    case) is untouched and its argument hash is unchanged."""
+    def w(node: Any) -> Any:
+        if isinstance(node, dict):
+            return {k: w(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [w(v) for v in node]
+        if isinstance(node, str):
+            return _redact_string(node, {}, session)
+        return node
+    return w(arguments)
 
 
 def _validate_schema(arguments: dict, schema: dict) -> Optional[str]:
@@ -115,7 +135,12 @@ class Interceptor:
     def handle_call(self, descriptor: ToolDescriptor, arguments: dict, env: InjectedEnv,
                     signals: Signals, step_id: str, call_id: str) -> InterceptOutcome:
         rm = self.run_meta
-        redacted_args = arguments                       # model only ever saw tokens
+        # Normally the model only ever saw tokens, so arguments carry no raw PII.
+        # But defense in depth: pattern-scrub argument STRINGS before they reach the
+        # decision context or the audit ledger, so a raw value that slipped through
+        # (fabricated, or copied from an un-tokenized field) is never persisted.
+        # Rehydration/schema/forwarding below still use the original `arguments`.
+        redacted_args = _redact_arg_strings(arguments, self.session) if self.redact else arguments
         ctx = build_context(
             descriptor=descriptor, arguments=redacted_args, env=env, run_meta=rm,
             policy_version=self.policy_set.version, step_id=step_id, call_id=call_id,

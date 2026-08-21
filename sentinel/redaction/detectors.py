@@ -75,8 +75,14 @@ def structural_detect(result: dict, pii_map) -> list[Detection]:
     found: list[Detection] = []
     for pf in pii_map:
         for _trail, value in _resolve_paths(result, pf.field_path):
+            if isinstance(value, bool) or value is None:
+                continue
             if isinstance(value, str) and value:
                 found.append(Detection(pf.field_path, value, pf.pii_type, "structural"))
+            elif isinstance(value, (int, float)):
+                # PII delivered as a JSON number (e.g. an account/phone as an int)
+                # must be tokenized too — otherwise it bypasses redaction entirely.
+                found.append(Detection(pf.field_path, str(value), pf.pii_type, "structural"))
     return found
 
 
