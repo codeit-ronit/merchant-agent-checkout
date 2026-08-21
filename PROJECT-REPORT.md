@@ -18,7 +18,7 @@ exposed and corrected several assumptions the docs-only build had baked in.
 - **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **24 unauthorised money movements + 5 exfiltrations**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
 - **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 87.1%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). A **real-model recording pass** (§8, ADR-002c) separately confirms this on *real* models — 4 models across Groq + OpenRouter, all attempted the refund, all blocked, 0 unauthorized.
 - **Guardrail overhead:** **well under 0.1 ms** policy-eval per call, no accuracy loss.
-- **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **178 tests** (41 marked `@pytest.mark.critical`), all green.
+- **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **191 tests** (41 marked `@pytest.mark.critical`), all green.
 - **Verified against the real server:** tool-surface parity (41 tools), all schemas, all arg-paths, and a live money-movement denial — with test-mode keys.
 
 ---
@@ -140,7 +140,7 @@ real `LiveUpstream` MCP client behind the same proxy.
 
 ```bash
 make install
-make test            # 178 tests, tiers 1-3 + the 5 load-bearing safety tests (~6s)
+make test            # 191 tests, tiers 1-3 + the 5 load-bearing safety tests (~6s)
 make demo-cli        # injected refund DENIED with a plain reason; audit chain breaks on tamper
 make demo            # the operator surface at localhost:8080
 make eval            # per-model metrics + regression gates (offline)
@@ -184,6 +184,15 @@ Highlights, each with its trade-off named:
 
 ## 8. Honest limitations (full list in `LIMITATIONS.md`)
 
+- **Robustness hardening (ADR-023).** A second-axis test audit (beyond "adversary →
+  money → blocked") found and fixed four verified fail-open holes — an upstream
+  error returned ALLOW not DENY (and could double-execute on an ambiguous retry); an
+  unreadable amount slipped the hard cap; numeric PII bypassed redaction and raw PII
+  in tool arguments reached the audit; and a non-loop client could forge an approval
+  at the proxy boundary — plus two concurrency races (double-consume, governor
+  overshoot). All are now closed with failing-first tests. Still open and documented:
+  pagination-truncation enforcement, EntityLocks wiring for same-entity writes,
+  cross-process audit gaplessness, and a production suspend/resume path.
 - The audit ledger is **tamper-evident, not tamper-proof** — anyone who can rewrite the DB can recompute the chain. Real resistance needs an external anchor (RFC 6962-style) or WORM.
 - **Prompt injection is not solved** — L1 is non-zero even guardrails-on; the design makes being fooled *harmless*, not impossible.
 - The offline "models" are **deterministic stand-ins** used as a *worst-case

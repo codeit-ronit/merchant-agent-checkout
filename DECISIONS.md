@@ -876,3 +876,60 @@ A working Gemini key (standard `AIza…` AI Studio key) is supplied — then re-
 gemini in `failover_order` and record a third provider; and/or wire a real clock
 into the live path to capture true latency, and expand the live scenario set as
 free-tier budgets allow.
+
+---
+
+## ADR-023 — Robustness sprint: fail-closed I/O, policy fail-open holes, redaction depth, approval integrity, concurrency
+
+**Date:** 2026-08-22. **Trigger:** a second-axis test-surface audit (we had mostly
+tested "adversary → money → blocked"). Seven lenses — fail-closed-under-failure,
+concurrency, redaction depth, policy properties, approval lifecycle,
+framework-independence, false-positives — surfaced real fail-open holes, not just
+missing tests. Four were verified directly against the code and fixed here,
+tests-first.
+
+### Fixed (each with a test that fails without the fix)
+1. **Fail closed on upstream error.** The interceptor's upstream-exception branch
+   returned `Disposition.ALLOW`; now returns DENY with a new `DENY_UPSTREAM_ERROR`
+   reason code (rule 2). Idempotency now **reserves the key before forwarding**
+   (`begin()/complete()`), so an ambiguous timeout can never be retried into a
+   double execution — and the same atomic `begin()` closes the concurrent-duplicate
+   race (two identical writes → exactly one executes).
+2. **Policy fail-open on missing inputs.** An unreadable money amount
+   (`amount_minor is None`) now DENYs at the hard cap instead of falling through to
+   an approvable escalation; an unrecognised `argument_constraint` op now fails
+   closed *before* the absent-argument short-circuit.
+3. **Redaction depth.** Numeric-typed PII (an account/phone delivered as a JSON
+   int) is now tokenized instead of bypassing redaction; tool-call argument
+   strings are pattern-scrubbed before they reach the decision context or the audit
+   ledger (defense in depth over "the model only ever saw tokens").
+4. **Approval integrity.** `SentinelProxyServer` — the untrusted boundary — no
+   longer trusts a caller-asserted `valid_approval_present`, so a non-loop client
+   can't forge an approval to move money (it escalates instead). The agent loop now
+   honors `ApprovalStore.consume()`'s single-use return. Both `resolve/consume` and
+   the rate-limit governor are now lock-atomic (no double-consume, no slot
+   overshoot).
+
+### Trade-offs accepted
+- On an ambiguous write failure the idempotency key stays **reserved**, so that
+  exact call can't be retried within the run without human intervention. For money
+  movement, refusing a retry is safer than risking a double payment (rule: "when
+  genuinely uncertain, choose the more restrictive behaviour").
+- Argument scrubbing is a no-op on normal (token-only) calls, so the argument hash
+  — and therefore approval binding — is unchanged in the common case; it only bites
+  when a raw PII value was present, which has no legitimate approval anyway.
+
+### Deliberately deferred (documented, not silently dropped)
+- **Pagination enforcement** — `is_paginated` is parsed but a silent page-1 read is
+  not yet flagged as an incomplete read.
+- **EntityLocks wiring** — defined but not engaged, so two *different* writes on the
+  same entity aren't serialised (exact duplicates already are, via `begin()`).
+- **SQLite cross-process audit gaplessness** — the gapless guarantee relies on a
+  single in-process writer; two processes sharing one DB is not hardened.
+- **Production resume path** — `RunSuspended` has no `AgentRunner.resume()`, so
+  "re-validated on resume" is proven at the store level, not end-to-end.
+
+### Result
+189→191 tests (11 new across the four fixes + concurrency). Offline eval
+(100%/87.1%) and red-team (100%→0%, 0% FP) are unchanged — these are error/
+concurrency/security paths the behavioural corpus does not exercise.
