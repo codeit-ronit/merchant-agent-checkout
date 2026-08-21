@@ -70,8 +70,8 @@ def test_no_pii_on_any_output_surface():
     # a dispute carries an untrusted customer message + payment PII
     disp_id = build_dataset()["disputes"][0]["id"]
     results.append(interc.handle_call(idx["fetch_dispute"], {"dispute_id": disp_id}, env, Signals(), "sd", "cd"))
-    # tokens by customer (VPA)
-    results.append(interc.handle_call(idx["fetch_tokens"], {"customer_id": "cust_A"}, env, Signals(), "st", "ct"))
+    # saved tokens by contact (real arg name is `contact`) — returns VPAs
+    results.append(interc.handle_call(idx["fetch_tokens"], {"contact": "9999900000"}, env, Signals(), "st", "ct"))
 
     # --- collect EVERY output surface ---
     surfaces: list[str] = []

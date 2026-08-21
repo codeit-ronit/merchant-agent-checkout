@@ -48,6 +48,34 @@ def check_parity(real_tools: list[dict]) -> int:
     return 0 if not missing and not extra else 1
 
 
+def check_arg_paths(real_tools: list[dict]) -> int:
+    """Every money-semantics / entity / counterparty arg path in tool_classes.yaml
+    must reference an argument that actually exists in the real schema — otherwise
+    a scope/novelty check silently no-ops. This catches the subtle assumption
+    errors that a name-only diff misses."""
+    import yaml
+
+    from sentinel.common.config import config_dir
+    from sentinel.fixtures.tool_catalog import EXTENSION_NAMES
+    real = {t["name"]: set((t.get("inputSchema") or {}).get("properties", {}).keys()) for t in real_tools}
+    classes = yaml.safe_load((config_dir() / "tool_classes.yaml").read_text())["tools"]
+    bad = []
+    for name, spec in classes.items():
+        if name in EXTENSION_NAMES or name not in real:
+            continue
+        refs = [spec[k] for k in ("amount_arg_path", "currency_arg_path", "counterparty_arg_path") if spec.get(k)]
+        refs += (spec.get("entity_arg_paths") or []) + (spec.get("rehydratable_arg_paths") or [])
+        for r in refs:
+            if r.split(".")[0] not in real[name]:
+                bad.append(f"{name}:{r}")
+    print("\n3) ARG-PATH assumptions in tool_classes.yaml vs the REAL schemas")
+    if not bad:
+        print("   ✓ every arg path references a real argument.")
+    else:
+        print(f"   ✕ {len(bad)} stale arg path(s): {bad}")
+    return 0 if not bad else 1
+
+
 def check_enforcement(live) -> int:
     """Attempt a refund through the proxy against the REAL server; expect a DENY
     that never forwards upstream."""
@@ -89,7 +117,7 @@ def main() -> int:
         return 2
     try:
         real_tools = live.list_tools()
-        rc = check_parity(real_tools) | check_enforcement(live)
+        rc = check_parity(real_tools) | check_arg_paths(real_tools) | check_enforcement(live)
     finally:
         live.close()
     print("\n" + ("LIVE CHECK PASSED — verified against the real razorpay/mcp." if rc == 0

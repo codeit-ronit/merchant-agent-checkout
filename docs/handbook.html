@@ -236,7 +236,7 @@
     <div class="mast-meta">
       <span><b>Domain</b> · LLM agents on payment infrastructure</span>
       <span><b>Runs</b> · offline, fixture mode, no API key</span>
-      <span><b>Updated</b> · all 8 phases complete · 164 tests green · operator surface builds &amp; serves</span>
+      <span><b>Updated</b> · all 8 phases complete · verified live vs razorpay/mcp · deployed · 169 tests green</span>
     </div>
   </div>
 </header>
@@ -464,7 +464,7 @@
       <h2>What the research found</h2>
       <p>Free-tier catalogues and the upstream tool inventory change monthly, so all of this was fetched from live sources on 2026-08-21 and dated in <code>DECISIONS.md</code>.</p>
       <div class="grid c2">
-        <div class="card"><h3 style="margin-top:0">Razorpay MCP surface (~45 tools)</h3><p style="font-size:14px;margin-bottom:8px">Money-movement set: <code>capture_payment</code>, <code>initiate_payment</code>, <code>submit_otp</code>, <code>create_refund</code>, <code>create_instant_settlement</code>. Notably <b>no create-payout tool</b> and <b>no dispute tools</b> exist upstream.</p><p style="font-size:14px;margin:0">Amounts are integer paise. Pagination is offset-based (<code>count</code>/<code>skip</code>, default 10, max 100). The server does not enforce test-mode — so our proxy must.</p></div>
+        <div class="card"><h3 style="margin-top:0">Razorpay MCP surface — verified live (41 tools)</h3><p style="font-size:14px;margin-bottom:8px">Money-movement set: <code>capture_payment</code>, <code>initiate_payment</code>, <code>submit_otp</code>, <code>create_refund</code>, <code>create_instant_settlement</code>. Notably <b>no create-payout tool</b> and <b>no dispute tools</b> exist upstream.</p><p style="font-size:14px;margin:0 0 8px">Amounts are integer paise; pagination is offset-based (<code>count</code>/<code>skip</code>). The server does not enforce test-mode — so our proxy does.</p><p style="font-size:13px;margin:0;color:var(--allow)"><b>✓ Captured live</b> from <code>razorpay/mcp</code> over MCP stdio and reconciled — the fixture mirrors the real 41 tools exactly, and a money-movement call is DENIED against the real server before forwarding (ADR-003a).</p></div>
         <div class="card"><h3 style="margin-top:0">Indian PII formats + safe generation</h3><p style="font-size:14px;margin:0">Checksummed types (Aadhaar/Verhoeff, GSTIN/Luhn-36, card/Luhn-10) get a deliberately wrong check digit; checksum-free types (IFSC, VPA, UTR, mobile, account) use structural reservation (<code>ZZZZ</code> bank code, <code>@invalid</code> handle, impossible Julian day). No synthetic value can collide with a real one.</p></div>
         <div class="card"><h3 style="margin-top:0">Canonical form + hash</h3><p style="font-size:14px;margin:0">RFC 8785 (JCS) — with its number-handling landmine avoided by forbidding floats and carrying large ints as strings. SHA-256 for the chain (RFC 6962 family). Tamper-evidence reduces to collision resistance.</p></div>
         <div class="card"><h3 style="margin-top:0">Injection taxonomy</h3><p style="font-size:14px;margin:0">OWASP LLM01 (direct/indirect/multimodal); Spotlighting/datamarking measured but incomplete under adaptive attack; the CaMeL framing — separate control from data, least privilege. Benchmarks cited: AgentDojo (has a Banking domain), InjecAgent.</p></div>

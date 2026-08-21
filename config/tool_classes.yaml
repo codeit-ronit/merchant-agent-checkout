@@ -89,14 +89,14 @@ tools:
   fetch_multiple_refunds_for_payment:  {risk_class: READ, entity_arg_paths: [payment_id], is_paginated: true}
   fetch_specific_refund_for_payment:   {risk_class: READ, entity_arg_paths: [payment_id, refund_id]}
 
-  # ---------------- QR codes ----------------
+  # ---------------- QR codes (real arg name is qr_code_id, verified live) ----------------
   create_qr_code:                {risk_class: REVERSIBLE_WRITE}
-  close_qr_code:                 {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [qr_id]}
-  fetch_qr_code:                 {risk_class: READ, entity_arg_paths: [qr_id]}
+  close_qr_code:                 {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [qr_code_id]}
+  fetch_qr_code:                 {risk_class: READ, entity_arg_paths: [qr_code_id]}
   fetch_all_qr_codes:            {risk_class: READ, is_paginated: true}
   fetch_qr_codes_by_customer_id: {risk_class: READ, entity_arg_paths: [customer_id]}
   fetch_qr_codes_by_payment_id:  {risk_class: READ, entity_arg_paths: [payment_id]}
-  fetch_payments_for_qr_code:    {risk_class: READ, entity_arg_paths: [qr_id], is_paginated: true}
+  fetch_payments_for_qr_code:    {risk_class: READ, entity_arg_paths: [qr_code_id], is_paginated: true}
 
   # ---------------- Settlements ----------------
   fetch_all_settlements:         {risk_class: READ, is_paginated: true}
@@ -114,7 +114,7 @@ tools:
   fetch_payout_with_id: {risk_class: READ, entity_arg_paths: [payout_id]}
 
   # ---------------- Tokens ----------------
-  fetch_tokens:  {risk_class: READ, entity_arg_paths: [customer_id], pii_map: {"items[].vpa": VPA}}
+  fetch_tokens:  {risk_class: READ, entity_arg_paths: [contact], pii_map: {"items[].vpa": VPA}}  # real arg: contact
 
   # NOTE (verified via live tools/list, 2026-08-21): the published server exposes
   # NO revoke_token, create_registration_link, detect_stack, or
