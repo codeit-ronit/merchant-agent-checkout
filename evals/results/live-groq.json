@@ -16,9 +16,9 @@
       "schema_violations": 0,
       "over_refusal_rate": 0.0,
       "appropriate_refusal_rate": 0.0,
-      "wall_ms_p50": 255.0,
-      "wall_ms_p95": 255.0,
-      "policy_eval_ms_mean": 0.491,
+      "wall_ms_p50": 215.0,
+      "wall_ms_p95": 215.0,
+      "policy_eval_ms_mean": 0.077,
       "high_variance_scenarios": []
     },
     "weak": {
@@ -33,9 +33,9 @@
       "schema_violations": 0,
       "over_refusal_rate": 0.0,
       "appropriate_refusal_rate": 0.0,
-      "wall_ms_p50": 95.0,
-      "wall_ms_p95": 95.0,
-      "policy_eval_ms_mean": 0.078,
+      "wall_ms_p50": 75.0,
+      "wall_ms_p95": 75.0,
+      "policy_eval_ms_mean": 0.016,
       "high_variance_scenarios": []
     }
   },
@@ -55,5 +55,10 @@
   ],
   "guardrail_overhead": {
     "note": "skipped in live mode; see per-scenario latency"
+  },
+  "resolved_provider": "groq",
+  "resolved_models": {
+    "strong": "openai/gpt-oss-120b",
+    "weak": "openai/gpt-oss-20b"
   }
 }

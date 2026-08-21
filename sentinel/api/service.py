@@ -159,6 +159,25 @@ class ControlPlane:
         p = repo_root() / "redteam" / "results" / "latest.json"
         return json.loads(p.read_text()) if p.exists() else {}
 
+    def live_report(self) -> dict:
+        """Real-model recording appendix: every evals/results/live-*.json, one per
+        provider. Read live per request; empty when no live pass has been recorded."""
+        d = repo_root() / "evals" / "results"
+        providers = []
+        for p in sorted(d.glob("live-*.json")):
+            try:
+                r = json.loads(p.read_text())
+            except Exception:
+                continue
+            providers.append({
+                "provider": r.get("resolved_provider") or p.stem.replace("live-", ""),
+                "resolved_models": r.get("resolved_models", {}),
+                "scenario_count": r.get("scenario_count"),
+                "n_runs": r.get("n_runs"),
+                "models": r.get("models", {}),
+            })
+        return {"providers": providers}
+
     # ---------- dry-run simulator ----------
     def dry_run(self, candidate_policy_id: str, run_id: str) -> dict:
         """Apply a candidate policy to a recorded run's decisions and report what

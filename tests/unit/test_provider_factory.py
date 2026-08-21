@@ -85,14 +85,50 @@ def test_build_manager_live_uses_real_providers_and_separate_dir(monkeypatch):
     assert mgr.governor is not None and mgr.provider_limits["groq"]["rpd"] == 1000
 
 
-def test_build_manager_live_without_keys_falls_back_to_scripted(monkeypatch):
+def test_force_provider_restricts_chain(monkeypatch):
+    monkeypatch.setenv("TEST_A_KEY", "k1")
+    monkeypatch.setenv("TEST_B_KEY", "k2")
+    providers, limits, notes = factory.build_live_providers(
+        "strong", FAKE_CFG, force_provider="gemini")
+    assert [p.name for p in providers] == ["gemini"]              # only the forced one
+    assert providers[0].model_map["strong"] == "gem-flash"
+
+
+def test_replay_builds_provider_keyless(monkeypatch):
+    # replay needs the provider only for its name (no network), so no key required
+    monkeypatch.delenv("TEST_A_KEY", raising=False)
+    monkeypatch.delenv("TEST_B_KEY", raising=False)
+    providers, limits, notes = factory.build_live_providers(
+        "strong", FAKE_CFG, require_key=False, force_provider="groq")
+    assert [p.name for p in providers] == ["groq"]                # built despite no key
+    assert providers[0].model_map == {"strong": "g-120", "weak": "g-20"}
+
+
+def test_build_manager_replay_live_is_keyless(monkeypatch):
+    # the property that makes the committed live cassettes replayable with no key
+    monkeypatch.setenv("SENTINEL_LIVE", "1")
+    monkeypatch.setenv("SENTINEL_LIVE_PROVIDER", "groq")
+    monkeypatch.delenv("TEST_A_KEY", raising=False)
+    monkeypatch.setattr(factory, "load_yaml", lambda name: FAKE_CFG)
+    mgr, call_model = factory.build_manager(
+        brain=BRAIN, model_id="reconciliation-strong", model_tier="strong",
+        cassette_dir="cassettes/evals", cassette_mode="replay", policy_version="1",
+        fixture_version="1", system_prompt="s", clock_ms=lambda: 0)
+    assert mgr.providers[0].name == "groq"                        # real provider, no key
+    assert mgr.cassettes.dir.name == "live"
+
+
+def test_build_manager_live_record_without_keys_falls_back_to_scripted(monkeypatch):
+    # in RECORD mode a key is required; absent one, fail safe to the scripted brain
+    # (replay is the exception — it builds keyless, tested above).
+    monkeypatch.delenv("SENTINEL_LIVE_PROVIDER", raising=False)
     monkeypatch.setenv("SENTINEL_LIVE", "1")
     monkeypatch.delenv("TEST_A_KEY", raising=False)
     monkeypatch.delenv("TEST_B_KEY", raising=False)
     monkeypatch.setattr(factory, "load_yaml", lambda name: FAKE_CFG)
     mgr, call_model = factory.build_manager(
         brain=BRAIN, model_id="reconciliation-strong", model_tier="strong",
-        cassette_dir="cassettes/evals", cassette_mode="replay", policy_version="1",
+        cassette_dir="cassettes/evals", cassette_mode="record", policy_version="1",
         fixture_version="1", system_prompt="s", clock_ms=lambda: 0)
     assert isinstance(mgr.providers[0], ScriptedProvider)           # fail-safe
     assert mgr.cassettes.dir.name == "evals"

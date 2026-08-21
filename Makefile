@@ -54,6 +54,15 @@ redteam: ## Run the paired A/B red-team suite in fixture mode (offline, no key)
 	# red-team cassettes are not committed (they record the guardrails-off leak).
 	SENTINEL_MODE=fixture SENTINEL_CASSETTE=auto $(PY) -m redteam.runner
 
+.PHONY: eval-live-replay
+eval-live-replay: ## Replay the COMMITTED real-model live cassettes with NO key (auditable). Usage: SENTINEL_LIVE_PROVIDER=groq|openrouter make eval-live-replay
+	SENTINEL_MODE=fixture SENTINEL_LIVE=1 SENTINEL_LIVE_CATEGORIES=policy_triggering SENTINEL_LIVE_LIMIT=1 SENTINEL_CASSETTE=replay $(PY) -m evals.runner
+
+.PHONY: eval-live
+eval-live: ## Record a real-model live pass (needs a provider key). Usage: SENTINEL_LIVE_PROVIDER=groq SENTINEL_PROVIDER_A_API_KEY=... make eval-live
+	# Groq -> SENTINEL_PROVIDER_A_API_KEY; OpenRouter -> SENTINEL_PROVIDER_C_API_KEY. Test-mode/synthetic data only.
+	SENTINEL_MODE=fixture SENTINEL_LIVE=1 SENTINEL_LIVE_CATEGORIES=policy_triggering SENTINEL_LIVE_LIMIT=1 SENTINEL_CASSETTE=record $(PY) -m evals.runner
+
 .PHONY: verify-audit
 verify-audit: ## Walk and verify the audit hash chain, report first break if any
 	$(PY) -m sentinel.audit.verify

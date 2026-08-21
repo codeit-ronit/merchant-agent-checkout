@@ -53,17 +53,24 @@ def _tier_of(model_id: Optional[str], model_tier: Optional[str]) -> str:
     return "strong"
 
 
-def build_live_providers(tier: str, config: Optional[dict] = None):
+def build_live_providers(tier: str, config: Optional[dict] = None,
+                         require_key: bool = True, force_provider: Optional[str] = None):
     """Build real providers in failover order for one capability tier.
 
-    Only providers whose ``api_key_env`` is set in the environment are included,
-    each carrying a tier->real-model-id map. Returns
+    Each provider carries a tier->real-model-id map. Returns
     ``(providers, provider_limits, notes)`` where ``notes`` is a human-readable
     audit of what was included/skipped (never silently drops a provider).
+
+    ``force_provider`` restricts the chain to a single named provider (used to
+    record/replay one provider's cassettes deterministically). ``require_key``
+    should be False in replay mode: no network call happens, so a provider is
+    built keyless purely so the cassette key's provider name matches what was
+    recorded — this is what makes the live pass replayable with NO API key.
     """
     cfg = config if config is not None else load_yaml("providers.yaml")
     providers_cfg = cfg.get("providers", {})
-    order = cfg.get("failover_order") or list(providers_cfg.keys())
+    order = [force_provider] if force_provider else (
+        cfg.get("failover_order") or list(providers_cfg.keys()))
     providers: list[Provider] = []
     limits: dict[str, dict] = {}
     notes: list[str] = []
@@ -73,7 +80,7 @@ def build_live_providers(tier: str, config: Optional[dict] = None):
             notes.append(f"{name}: not in providers.yaml — skipped")
             continue
         env_name = pconf["api_key_env"]
-        if not os.environ.get(env_name):
+        if require_key and not os.environ.get(env_name):
             notes.append(f"{name}: no key in {env_name} — skipped")
             continue
         models = pconf.get("models", {})
@@ -106,7 +113,11 @@ def build_manager(*, brain, model_id: Optional[str], model_tier: Optional[str],
     """
     if live_enabled():
         tier = _tier_of(model_id, model_tier)
-        providers, limits, _notes = build_live_providers(tier)
+        # replay needs the provider objects only for their name (no network), so
+        # it does not require a key -> the recorded live cassettes replay keyless.
+        providers, limits, _notes = build_live_providers(
+            tier, require_key=(cassette_mode != "replay"),
+            force_provider=(os.environ.get("SENTINEL_LIVE_PROVIDER") or None))
         if providers:
             live_dir = str(Path(cassette_dir).parent / "live")
             governor = RateLimitGovernor(Path(state_dir) / "governor.json", clock_ms)

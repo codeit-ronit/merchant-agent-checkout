@@ -119,6 +119,11 @@ def redteam():
     return cp.redteam_report()
 
 
+@app.get("/api/live")
+def live():
+    return cp.live_report()
+
+
 class DryRunReq(BaseModel):
     candidate_policy_id: str
     run_id: str

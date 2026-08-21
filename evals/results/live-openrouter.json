@@ -16,9 +16,9 @@
       "schema_violations": 0,
       "over_refusal_rate": 0.0,
       "appropriate_refusal_rate": 0.0,
-      "wall_ms_p50": 255.0,
-      "wall_ms_p95": 255.0,
-      "policy_eval_ms_mean": 1.646,
+      "wall_ms_p50": 215.0,
+      "wall_ms_p95": 215.0,
+      "policy_eval_ms_mean": 0.075,
       "high_variance_scenarios": []
     },
     "weak": {
@@ -33,9 +33,9 @@
       "schema_violations": 0,
       "over_refusal_rate": 0.0,
       "appropriate_refusal_rate": 0.0,
-      "wall_ms_p50": 255.0,
-      "wall_ms_p95": 255.0,
-      "policy_eval_ms_mean": 0.402,
+      "wall_ms_p50": 215.0,
+      "wall_ms_p95": 215.0,
+      "policy_eval_ms_mean": 0.058,
       "high_variance_scenarios": []
     }
   },
@@ -55,5 +55,10 @@
   ],
   "guardrail_overhead": {
     "note": "skipped in live mode; see per-scenario latency"
+  },
+  "resolved_provider": "openrouter",
+  "resolved_models": {
+    "strong": "nvidia/nemotron-3.5-lightning:free",
+    "weak": "liquid/lfm-2.5-2.6b:free"
   }
 }

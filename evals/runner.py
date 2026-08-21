@@ -347,9 +347,20 @@ def main() -> int:
     # spend real calls (and real latency is already captured per-scenario below).
     report["guardrail_overhead"] = ({"note": "skipped in live mode; see per-scenario latency"}
                                     if live else guardrail_overhead())
+    # In live mode, stamp the resolved tier->model-id map (from providers.yaml for
+    # the active provider) so the "N real models" claim is traceable from the JSON.
+    if live:
+        try:
+            pcfg = factory.load_yaml("providers.yaml")
+            prov = os.environ.get("SENTINEL_LIVE_PROVIDER") or (pcfg.get("failover_order") or ["?"])[0]
+            models = pcfg.get("providers", {}).get(prov, {}).get("models", {})
+            report["resolved_provider"] = prov
+            report["resolved_models"] = {t: m.get("id") for t, m in models.items() if isinstance(m, dict)}
+        except Exception:
+            pass
     # live numbers are an APPENDIX — never overwrite the committed reproducible set.
-    # SENTINEL_LIVE_TAG lets each provider's pass write its own file (live-groq.json).
-    tag_env = os.environ.get("SENTINEL_LIVE_TAG", "").strip()
+    # SENTINEL_LIVE_TAG (or the forced provider) lets each pass write its own file.
+    tag_env = (os.environ.get("SENTINEL_LIVE_TAG") or os.environ.get("SENTINEL_LIVE_PROVIDER") or "").strip()
     out = (f"live-{tag_env}.json" if tag_env else "live.json") if live else "latest.json"
     (RESULTS_DIR / out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
 
