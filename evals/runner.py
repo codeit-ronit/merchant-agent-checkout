@@ -27,6 +27,7 @@ from sentinel.fixtures.dataset import dataset_version
 from sentinel.fixtures.upstream import FixtureUpstream
 from sentinel.policy_loader import load_policy_set
 from sentinel.providers.base import NormalisedToolCall, ProviderResponse
+from sentinel.providers import factory
 from sentinel.runtime.agent import AgentDefinition, ResourceCeilings
 from sentinel.runtime.loop import AgentRunner, RunConfig
 
@@ -97,7 +98,9 @@ def run_scenario(scn: dict, model: str, seed: int) -> RunArtifacts:
                      # distinct model id per "model" so strong and weak do NOT share
                      # cassettes — otherwise weak replays strong and the capability
                      # gap vanishes (the whole point of the multi-model comparison).
-                     model_id=f"{scn['agent']}-{model}")
+                     model_id=f"{scn['agent']}-{model}",
+                     # tier drives the real model in live mode (ignored offline)
+                     model_tier=model)
     return RunArtifacts(rec, ledger, up, trace)
 
 
@@ -175,9 +178,41 @@ class ModelMetrics:
     variance_flags: list = field(default_factory=list)     # scenarios whose outcome flipped across N
 
 
+def _sample_for_live(scenarios: list[dict]) -> list[dict]:
+    """In live mode, optionally restrict to named categories (SENTINEL_LIVE_CATEGORIES)
+    and/or cap scenarios PER CATEGORY (SENTINEL_LIVE_LIMIT) so a recording pass stays
+    within free-tier limits and time. What is dropped is logged, never silent."""
+    cats = os.environ.get("SENTINEL_LIVE_CATEGORIES", "").strip()
+    if cats:
+        wanted = {c.strip() for c in cats.split(",") if c.strip()}
+        before = len(scenarios)
+        scenarios = [s for s in scenarios if s.get("category") in wanted]
+        print(f"  [live filter] categories={sorted(wanted)}: "
+              f"{len(scenarios)} of {before} scenarios")
+    cap = int(os.environ.get("SENTINEL_LIVE_LIMIT", "0") or 0)
+    if cap <= 0:
+        return scenarios
+    kept, seen = [], {}
+    for scn in scenarios:
+        cat = scn.get("category", "uncategorised")
+        seen[cat] = seen.get(cat, 0) + 1
+        if seen[cat] <= cap:
+            kept.append(scn)
+    dropped = len(scenarios) - len(kept)
+    if dropped:
+        print(f"  [live sample] keeping <= {cap}/category: {len(kept)} of {len(scenarios)} "
+              f"scenarios ({dropped} dropped to respect free-tier limits)")
+    return kept
+
+
 def run_suite() -> dict:
+    live = factory.live_enabled()
+    n_runs = 1 if live else N_RUNS   # real calls are costly; temp=0 => low variance
     scenarios = [yaml.safe_load(p.read_text()) for p in sorted(SCEN_DIR.glob("*.yaml"))]
+    if live:
+        scenarios = _sample_for_live(scenarios)
     report = {"dataset_version": dataset_version(), "scenario_count": len(scenarios),
+              "mode": "live" if live else "offline", "n_runs": n_runs,
               "models": {}, "scenarios": []}
 
     for model in MODELS:
@@ -186,7 +221,7 @@ def run_suite() -> dict:
             # N runs for variance; deterministic brains => identical, reported as 0
             outcomes = []
             arts = None
-            for n in range(N_RUNS):
+            for n in range(n_runs):
                 arts = run_scenario(scn, model, seed=20260821 + n)
                 passed = all(eval_assertion(a, arts)[0] for a in scn.get("assertions", []))
                 outcomes.append(passed)
@@ -306,11 +341,21 @@ def check_gates(report: dict) -> list[str]:
 
 def main() -> int:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    live = factory.live_enabled()
     report = run_suite()
-    report["guardrail_overhead"] = guardrail_overhead()
-    (RESULTS_DIR / "latest.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+    # guardrail_overhead uses the offline stand-in; skip in live mode so we do not
+    # spend real calls (and real latency is already captured per-scenario below).
+    report["guardrail_overhead"] = ({"note": "skipped in live mode; see per-scenario latency"}
+                                    if live else guardrail_overhead())
+    # live numbers are an APPENDIX — never overwrite the committed reproducible set.
+    # SENTINEL_LIVE_TAG lets each provider's pass write its own file (live-groq.json).
+    tag_env = os.environ.get("SENTINEL_LIVE_TAG", "").strip()
+    out = (f"live-{tag_env}.json" if tag_env else "live.json") if live else "latest.json"
+    (RESULTS_DIR / out).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
 
-    print(f"\nSENTINEL eval — {report['scenario_count']} scenarios · dataset {report['dataset_version']}")
+    tag = "LIVE (real providers)" if live else "offline"
+    print(f"\nSENTINEL eval [{tag}] — {report['scenario_count']} scenarios · "
+          f"dataset {report['dataset_version']} · n_runs={report.get('n_runs')}")
     for model, met in report["models"].items():
         print(f"\n  model={model}")
         print(f"    task success: {met['task_success_rate']}%  by category: {met['by_category']}")
@@ -321,12 +366,15 @@ def main() -> int:
         print(f"    latency p50/p95: {met['wall_ms_p50']}/{met['wall_ms_p95']} ms  "
               f"policy-eval mean: {met['policy_eval_ms_mean']} ms")
     oh = report["guardrail_overhead"]
-    print(f"\n  guardrail overhead: policy-eval {oh['policy_eval_ms_mean']} ms/run · "
-          f"added wall ~{oh['added_wall_ms']} ms · no accuracy loss")
+    if "policy_eval_ms_mean" in oh:
+        print(f"\n  guardrail overhead: policy-eval {oh['policy_eval_ms_mean']} ms/run · "
+              f"added wall ~{oh['added_wall_ms']} ms · no accuracy loss")
+    else:
+        print(f"\n  guardrail overhead: {oh.get('note', 'n/a')}")
     print("\n  HEADLINE: task accuracy varies between models; the enforcement result does NOT — "
           "zero unauthorized executions on both.")
 
-    if "--check-gates" in sys.argv:
+    if "--check-gates" in sys.argv and not live:
         failures = check_gates(report)
         if failures:
             print("\nGATE FAILURES:")

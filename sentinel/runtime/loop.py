@@ -27,9 +27,7 @@ from sentinel.metering.meter import MeterAccumulator
 from sentinel.policy import evaluate
 from sentinel.policy.rules import PolicySet
 from sentinel.providers.base import ProviderResponse
-from sentinel.providers.cassette import CassetteStore
-from sentinel.providers.manager import ManagerConfig, ProviderManager
-from sentinel.providers.scripted import ScriptedProvider
+from sentinel.providers.factory import build_manager
 from sentinel.proxy.classifier import descriptor_index, reconcile
 from sentinel.proxy.context import build_context
 from sentinel.proxy.idempotency import IdempotencyGuard
@@ -98,6 +96,7 @@ class AgentRunner:
             attachments: Optional[dict] = None, config: Optional[RunConfig] = None,
             approval_handler: Optional[ApprovalHandler] = None,
             enforcement: str = "on", model_id: Optional[str] = None,
+            model_tier: Optional[str] = None,
             redaction: bool = True, quarantine_enabled: bool = True) -> RunRecord:
         cfg = config or RunConfig()
         guardrails_on = enforcement == "on"
@@ -130,13 +129,17 @@ class AgentRunner:
             interceptor = NullInterceptor(upstream=upstream, ledger=self._ledger, run_meta=run_meta,
                                           trace=lambda t, p: emitter.emit(t, p))
 
-        # provider manager (offline: the agent's deterministic brain, cassette-wrapped)
-        provider = ScriptedProvider(agent.brain, model=model_id or (agent.id + "-brain"))
-        manager = ProviderManager(
-            [provider], CassetteStore(self._cassette_dir),
-            ManagerConfig(mode=self._cassette_mode, policy_version=policy_set.version,
-                          fixture_version=self._fixture_version, system_prompt=agent.system_prompt))
-        manager.probe(provider.model)
+        # provider manager. Offline (default): the agent's deterministic brain,
+        # cassette-wrapped. Live (SENTINEL_LIVE + a key): real Groq/Gemini in
+        # failover order. The factory owns that choice so this loop names no
+        # provider (CLAUDE.md rule 5a); it only gets a manager + the model to call.
+        manager, call_model = build_manager(
+            brain=agent.brain, model_id=model_id or (agent.id + "-brain"),
+            model_tier=model_tier, cassette_dir=self._cassette_dir,
+            cassette_mode=self._cassette_mode, policy_version=policy_set.version,
+            fixture_version=self._fixture_version, system_prompt=agent.system_prompt,
+            clock_ms=self._clock_ms)
+        manager.probe(call_model)
 
         # initial messages; the attachment is UNTRUSTED and quarantined by us
         untrusted_present = False
@@ -189,7 +192,7 @@ class AgentRunner:
                 break
 
             emitter.emit("step_started", {"step": step})
-            resp: ProviderResponse = manager.complete(messages=messages, tools=manifest, model=provider.model)
+            resp: ProviderResponse = manager.complete(messages=messages, tools=manifest, model=call_model)
             meter.add_call(resp)
 
             if resp.malformed_tool_call:

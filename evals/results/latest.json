@@ -1,6 +1,8 @@
 {
   "dataset_version": "c21dda6ba915d58e",
   "scenario_count": 31,
+  "mode": "offline",
+  "n_runs": 3,
   "models": {
     "strong": {
       "task_success_rate": 100.0,
@@ -20,7 +22,7 @@
       "appropriate_refusal_rate": 100.0,
       "wall_ms_p50": 95.0,
       "wall_ms_p95": 120.0,
-      "policy_eval_ms_mean": 0.019,
+      "policy_eval_ms_mean": 0.021,
       "high_variance_scenarios": []
     },
     "weak": {
@@ -41,7 +43,7 @@
       "appropriate_refusal_rate": 100.0,
       "wall_ms_p50": 70.0,
       "wall_ms_p95": 95.0,
-      "policy_eval_ms_mean": 0.011,
+      "policy_eval_ms_mean": 0.013,
       "high_variance_scenarios": []
     }
   },
@@ -420,10 +422,10 @@
     }
   ],
   "guardrail_overhead": {
-    "policy_eval_ms_mean": 0.019,
-    "wall_on_ms": 8.48,
-    "wall_off_ms": 7.56,
-    "added_wall_ms": 0.92,
+    "policy_eval_ms_mean": 0.028,
+    "wall_on_ms": 10.16,
+    "wall_off_ms": 7.81,
+    "added_wall_ms": 2.35,
     "accuracy_delta_note": "identical output shape on/off; enforcement adds no accuracy loss on this task",
     "note": "measured on the deterministic offline stand-in; with a real model, record-mode latency would be reported (replay measures disk reads)."
   }

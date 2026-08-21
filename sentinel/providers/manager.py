@@ -31,6 +31,11 @@ class ManagerConfig:
 
 
 class ProviderManager:
+    # process-wide record of (provider, model) pairs already probed, so a bulk
+    # live run probes each model once, not once per scenario (each probe is a
+    # real network call that counts against the free-tier daily limit).
+    _probed: set = set()
+
     def __init__(self, providers: list[Provider], cassettes: CassetteStore,
                  config: ManagerConfig, governor=None, provider_limits: dict | None = None):
         assert providers, "at least one provider required"
@@ -50,8 +55,12 @@ class ProviderManager:
         if self.config.mode == "replay":
             return
         primary = self.providers[0]
+        keyp = (getattr(primary, "name", "?"), model)
+        if keyp in ProviderManager._probed:
+            return
         try:
             primary.complete(messages=[{"role": "user", "content": "ping"}], tools=[], model=model)
+            ProviderManager._probed.add(keyp)
         except ProviderError as exc:
             raise RuntimeError(
                 f"startup probe failed for model '{model}' on provider "
