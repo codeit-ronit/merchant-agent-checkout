@@ -51,8 +51,8 @@ time* — it is the worst case, and the point is what the proxy does about it:
 
 | Against a worst-case agent that follows every injection | Result |
 |---|---|
-| Guardrails **off** (no control plane) | **12 unauthorised money movements + 1 exfiltration executed** |
-| Guardrails **on** | **0 unauthorised money movements, 0 exfiltration** (12/13 attempts still *made* — all blocked at the boundary) |
+| Guardrails **off** (no control plane) | **24 unauthorised money movements + 5 exfiltrations executed** |
+| Guardrails **on** | **0 unauthorised money movements, 0 exfiltration** (24/29 attempts still *made* — all blocked at the boundary) |
 | Legitimate-work **false-positive** rate | **0%** *(on a small benign set — see Limitations)* |
 
 **Enforcement does not depend on the model resisting.** That "0" is the
@@ -60,7 +60,7 @@ model-independent, genuinely-proven half — the proxy denies whatever the agent
 attempts. (The quarantine wrapper is a mitigation; permission narrowing at the
 boundary is the guarantee. We did not "solve" prompt injection — nobody has.)
 
-**Guardrail overhead:** policy evaluation adds a measured **~0.05 ms per call**
+**Guardrail overhead:** policy evaluation adds a measured **well under 0.1 ms per call**
 with **no measurable accuracy loss**.
 
 ## Agent-capability differentiation (not yet a real multi-model finding)
@@ -68,7 +68,7 @@ with **no measurable accuracy loss**.
 The runtime is model-agnostic by design, and the harness runs against two
 **deterministic stand-in agents** of different quality:
 
-> A "strong" stand-in scored 100% task success; a "weak" one scored 81% with 13
+> A "strong" stand-in scored 100% task success; a "weak" one scored 87% with 13
 > malformed tool calls and lower hard-case accuracy — while **both had 0
 > unauthorised executions, 0 PII leaks, 0 policy errors.** This demonstrates the
 > harness *can differentiate agent capability while the enforcement result stays

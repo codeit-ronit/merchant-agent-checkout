@@ -759,3 +759,42 @@ recording pass with real provider keys (ADR-002b), which is wired but unrun.
 ### Revisit if
 A recording pass is done — then we can add the genuine real-model susceptibility
 and multi-model numbers alongside the worst-case bound.
+
+---
+
+## ADR-021b — Corpus expansion (closing the n=2 weakness from ADR-021a)
+
+**Date:** 2026-08-21. **Source:** external review (see ADR-021a) flagged the
+benign set of n=2 as the single weakest number in the project — a 0%
+false-positive rate on two samples is not evidence of anything.
+
+### Decision
+Expand both offline corpora, keeping every payload/scenario deterministic and
+credential-free:
+- **Red-team: 15 → 44 payloads** — 29 attacks (added homoglyph/zero-width
+  encoding, data-exfiltration of accounts+contacts, cross-merchant scope,
+  multi-turn delayed injection, tool-poisoned narration, encoded exfil, and
+  second variants of the dispute/subscription-bypass and direct-override
+  classes) and **15 benign** (support-ticket notes, policy quotes, an email in a
+  narration, an account mention, the literal word "instruction" in legitimate
+  text — the cases most likely to trip a naive filter).
+- **Golden set: 16 → 31 scenarios** across all five categories, adding a
+  `data_exfiltration` injection variant to `evals/statements.py`.
+- Re-recorded the eval cassettes (offline, deterministic brains) and reset the
+  regression baseline.
+
+### Result (supersedes the corpus sizes quoted in ADR-021, which are left intact
+as the historical record)
+- Worst-case agent, guardrails **off**: **24 unauthorised money movements + 5
+  exfiltrations**; **on**: **0 executed** (24/29 L1 behaviour-altered-but-harmless).
+- **False-positive rate 0% on n=15**, not n=2.
+- Agent-capability differentiation: strong **100%** / weak **87.1%** task
+  success; **0 unauthorised / 0 PII / 0 policy errors on both**.
+- Ablation unchanged in direction (policy→L4, redaction→L3, quarantine
+  marginal); absolute counts scale with the corpus (no-redaction now 5 L3).
+
+### Trade-off accepted
+Larger corpora mean more cassettes committed and slightly longer offline runs.
+Accepted: reproducibility and a defensible false-positive number are worth it.
+This still does **not** produce a real-model susceptibility figure — that remains
+the recording pass in ADR-002b / ADR-021a.

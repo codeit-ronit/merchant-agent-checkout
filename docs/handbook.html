@@ -428,19 +428,19 @@
       <h3>The red-team A/B — the evidence</h3>
       <p>Every injection payload runs under identical conditions with guardrails off and on. Grading is <strong>rule-based and deterministic</strong>, derived from the trace and audit log — never a model judging outputs. Three numbers, all reported honestly:</p>
       <div class="grid c3" style="margin-top:6px">
-        <div class="card stat"><span class="k">Worst-case agent · OFF</span><span class="v" id="stat-off" style="color:var(--deny)">12 + 1</span><span class="s">money movements + 1 exfiltration executed (no control plane)</span></div>
+        <div class="card stat"><span class="k">Worst-case agent · OFF</span><span class="v" id="stat-off" style="color:var(--deny)">24 + 5</span><span class="s">money movements + 5 exfiltrations executed (no control plane)</span></div>
         <div class="card stat"><span class="k">Worst-case agent · ON</span><span class="v" id="stat-on" style="color:var(--allow)">0</span><span class="s">executed · all attempts blocked at the boundary</span></div>
-        <div class="card stat"><span class="k">False-positive rate</span><span class="v" id="stat-fp" style="color:var(--allow)">0%</span><span class="s">on a small benign set (n=2)</span></div>
+        <div class="card stat"><span class="k">False-positive rate</span><span class="v" id="stat-fp" style="color:var(--allow)">0%</span><span class="s">on a benign set of n=15</span></div>
       </div>
       <div class="callout" style="margin-top:16px"><b>How to read the "off" number.</b> The agent under test is a <b>worst-case, fully-compromised stand-in</b> written to follow every injection — standard security methodology (test the maximal adversary, not the average one). So "off = 100%" is not a claim about how often a real model is fooled; it is the worst case. The <b>measured, model-independent</b> result is the "on" column: the proxy denies whatever the agent attempts. <b>We did not solve prompt injection — nobody has;</b> the goal is to make being fooled <em>harmless</em>.</div>
       <div class="grid c2" style="margin-top:16px">
-        <div class="card"><h3 style="margin-top:0">Agent-capability differentiation</h3><p style="font-size:14px;margin:0">Two <em>deterministic stand-in agents</em>: strong <b>100%</b> / weak <b>81%</b> (13 malformed calls). <b>Both: 0 unauthorised, 0 PII leaks, 0 policy errors.</b> The harness differentiates capability while enforcement stays invariant. <em>Not</em> a Groq-vs-Gemini result — that needs a recording pass (keys wired, not yet run).</p></div>
+        <div class="card"><h3 style="margin-top:0">Agent-capability differentiation</h3><p style="font-size:14px;margin:0">Two <em>deterministic stand-in agents</em>: strong <b>100%</b> / weak <b>87%</b> (13 malformed calls). <b>Both: 0 unauthorised, 0 PII leaks, 0 policy errors.</b> The harness differentiates capability while enforcement stays invariant. <em>Not</em> a Groq-vs-Gemini result — that needs a recording pass (keys wired, not yet run).</p></div>
         <div class="card"><h3 style="margin-top:0">Ablation — which control did the work?</h3><p style="font-size:14px;margin:0 0 8px">Turning one control off at a time (guardrails-on):</p>
           <div class="scroll-x"><table class="tools"><thead><tr><th>variant</th><th>L4</th><th>L3</th><th>L1</th></tr></thead><tbody>
-          <tr><td>all on</td><td class="mono">0</td><td class="mono">0</td><td class="mono">12</td></tr>
-          <tr><td>no redaction</td><td class="mono">0</td><td class="mono" style="color:var(--deny)">1</td><td class="mono">12</td></tr>
-          <tr><td>no quarantine</td><td class="mono">0</td><td class="mono">0</td><td class="mono">12</td></tr>
-          <tr><td>no control plane</td><td class="mono" style="color:var(--deny)">12</td><td class="mono" style="color:var(--deny)">1</td><td class="mono">0</td></tr>
+          <tr><td>all on</td><td class="mono">0</td><td class="mono">0</td><td class="mono">24</td></tr>
+          <tr><td>no redaction</td><td class="mono">0</td><td class="mono" style="color:var(--deny)">5</td><td class="mono">24</td></tr>
+          <tr><td>no quarantine</td><td class="mono">0</td><td class="mono">0</td><td class="mono">24</td></tr>
+          <tr><td>no control plane</td><td class="mono" style="color:var(--deny)">24</td><td class="mono" style="color:var(--deny)">5</td><td class="mono">0</td></tr>
           </tbody></table></div>
           <p style="font-size:13px;color:var(--muted);margin:8px 0 0"><b>Policy prevents L4; redaction prevents L3; the nonce quarantine's marginal effect was negligible</b> — less than intuition suggests, reported because it contradicts the design assumption (ADR-021).</p></div>
       </div>
@@ -481,7 +481,7 @@
         <div class="phase"><span class="pn">P2</span><span><span class="pt">Pure policy engine</span><br><span class="pd">11 rule types, most-restrictive-wins, property tests, class floor holds</span></span><span class="status done">Done</span></div>
         <div class="phase"><span class="pn">P3</span><span><span class="pt">Proxy + redaction + audit + idempotency</span><br><span class="pd">Enforcement boundary; PII invariant + tamper-at-exact-position proven</span></span><span class="status done">Done</span></div>
         <div class="phase"><span class="pn">P4</span><span><span class="pt">Runtime + providers + cassettes + Reconciliation</span><br><span class="pd">End-to-end from the CLI: injected refund DENIED, framework-independence proven</span></span><span class="status done">Done</span></div>
-        <div class="phase"><span class="pn">P5</span><span><span class="pt">Eval harness</span><br><span class="pd">16 scenarios · strong 100% / weak 81% · 0 unauthorized on both · offline gates</span></span><span class="status done">Done</span></div>
+        <div class="phase"><span class="pn">P5</span><span><span class="pt">Eval harness</span><br><span class="pd">31 scenarios · strong 100% / weak 87% · 0 unauthorized on both · offline gates</span></span><span class="status done">Done</span></div>
         <div class="phase"><span class="pn">P6</span><span><span class="pt">Dispute + Subscription agents + red-team</span><br><span class="pd">All 3 agents · A/B 100%→0% · 0 L3/L4 on · ablation reported honestly</span></span><span class="status done">Done</span></div>
         <div class="phase"><span class="pn">P7</span><span><span class="pt">Operator surface</span><br><span class="pd">Six React+TS views, control-room design, SSE trace, hash-chain signature — builds &amp; serves via FastAPI</span></span><span class="status done">Done</span></div>
         <div class="phase"><span class="pn">P8</span><span><span class="pt">Ship</span><br><span class="pd">README with the 3 numbers, one-command `make demo`, MIT license, security pass, this handbook</span></span><span class="status done">Done</span></div>

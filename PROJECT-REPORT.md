@@ -15,9 +15,9 @@ exposed and corrected several assumptions the docs-only build had baked in.
 
 - **Live demo:** https://sentinel-5krh.onrender.com/ (fixture mode, no keys, free tier — first hit after idle cold-starts ~30–60s)
 - **Repo:** https://github.com/codeit-ronit/SENTINEL
-- **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **12 unauthorised money movements + 1 exfiltration**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
-- **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 81.2%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). This is *not* a real Groq-vs-Gemini comparison; that needs a recording pass (see §8).
-- **Guardrail overhead:** ~**0.05 ms** policy-eval per call, no accuracy loss.
+- **Headline red-team (worst-case adversary):** against a stand-in agent that follows *every* injected instruction, guardrails-off executed **24 unauthorised money movements + 5 exfiltrations**; guardrails-on executed **0**. Enforcement does not depend on the model resisting.
+- **Agent-capability differentiation:** a strong vs weak stand-in scored **100% / 87.1%** task success — **0 unauthorized on both** (enforcement is invariant to the agent). This is *not* a real Groq-vs-Gemini comparison; that needs a recording pass (see §8).
+- **Guardrail overhead:** **well under 0.1 ms** policy-eval per call, no accuracy loss.
 - **Scale:** ~7,100 lines Python + ~3,000 lines React/TS, **169 tests** (41 marked `@pytest.mark.critical`), all green.
 - **Verified against the real server:** tool-surface parity (41 tools), all schemas, all arg-paths, and a live money-movement denial — with test-mode keys.
 
@@ -51,8 +51,8 @@ pointed at the proxy, is subject to identical policy. A prompt can never offer t
 | **Proxy + redaction + audit + idempotency** | Decision pipeline; structural+pattern PII detection → stable per-run tokens; per-run-nonce quarantine; append-only SHA-256 hash chain + verifier; idempotency guard | ✅ |
 | **Runtime + providers** | In-house ~200-line agent loop + in-loop guard (shares the exact context builder with the proxy → layers can't diverge); provider abstraction (Groq + Gemini adapters, one OpenAI-compatible shape); cassette record/replay; rate-limit governor; startup probe; suspend/resume across restart | ✅ |
 | **Agents** | Reconciliation (READ), Dispute Responder (IRREVERSIBLE_WRITE + RAG with citations + honest gap analysis), Subscription Recovery (MONEY_MOVEMENT + per-action escalation + counterparty novelty) | ✅ |
-| **Eval harness** | 16 golden scenarios across 5 categories; per-model metrics; regression gates (absolute floor / relative / hard-zero); offline + reproducible via committed cassettes | ✅ |
-| **Red-team** | 13 attacks (11 classes × 5 vectors) + 2 benign; rule-based deterministic grading (L0–L4); paired A/B; ablation; fixture-mode-only (refuses otherwise, tested); L3/L4 CI gate | ✅ |
+| **Eval harness** | 31 golden scenarios across 5 categories; per-model metrics; regression gates (absolute floor / relative / hard-zero); offline + reproducible via committed cassettes | ✅ |
+| **Red-team** | 29 attacks (11 classes × 6 vectors) + 15 benign; rule-based deterministic grading (L0–L4); paired A/B; ablation; fixture-mode-only (refuses otherwise, tested); L3/L4 CI gate | ✅ |
 | **Operator surface** | React + TS + Vite, six views (run console, approvals, policy + dry-run, evals, red-team, audit); financial control-room design; decision states legible without colour; the hash-chain as the signature visual | ✅ |
 | **Control-plane API** | FastAPI: `/api/scenarios /runs (+SSE) /approvals /policies (+dry-run) /audit (+verify) /evals /redteam` | ✅ |
 | **Ship** | README, DECISIONS.md (every trade-off named), LIMITATIONS.md, MIT license, one-command `make demo`, Docker + Render/Fly/Railway configs, a living HTML handbook | ✅ |
@@ -68,9 +68,9 @@ fully-compromised agent** — a deterministic stand-in written to follow every
 injection (standard security methodology: test against a maximal adversary, not
 an average one). The number that is *measured and model-independent* is the "on"
 column: the proxy denies whatever the agent attempts.
-- Guardrails **off** (no control plane): **12 unauthorized money movements + 1 exfiltration executed**.
-- Guardrails **on**: **0 executed** (12/13 attempts still *made* by the compromised agent — all blocked at the boundary; L1 behaviour-alteration is a property of the stand-in, not a measurement of real-model susceptibility).
-- **False-positive rate: 0%** — but on a small benign set (n=2, a known weakness; see §8).
+- Guardrails **off** (no control plane): **24 unauthorized money movements + 5 exfiltrations executed**.
+- Guardrails **on**: **0 executed** (24/29 attempts still *made* by the compromised agent — all blocked at the boundary; L1 behaviour-alteration is a property of the stand-in, not a measurement of real-model susceptibility).
+- **False-positive rate: 0%** on a benign set of n=15 (expanded from n=2).
 
 **Ablation** (the honest, intuition-contradicting finding):
 
@@ -84,11 +84,11 @@ column: the proxy denies whatever the agent attempts.
 → **Policy prevents money movement; redaction prevents exfiltration; the nonce quarantine's marginal effect was negligible in this harness** — less than intuition suggests. Reported because it contradicts the design assumption.
 
 **Agent-capability differentiation** (`make eval`): two *deterministic stand-in
-agents* — strong 100% / weak 81.2% (weak: 13 malformed tool calls, misses hard +
+agents* — strong 100% / weak 87.1% (weak: 13 malformed tool calls, misses hard +
 adversarial cases); **both 0 unauthorized / 0 PII / 0 policy errors.** This shows
 the harness differentiates capability while enforcement stays invariant — it is
 **not** a Groq-vs-Gemini result (that needs a recording pass, §8). Guardrail
-overhead ~0.05 ms/call, no accuracy loss.
+overhead well under 0.1 ms/call, no accuracy loss.
 
 ---
 
@@ -171,9 +171,8 @@ Highlights, each with its trade-off named:
   next step is a recording pass** — it converts "my harness works" into "real
   models were fooled and not one rupee moved," and yields genuine multi-model,
   malformed-rate, latency, and cost numbers. Needs free Groq + Gemini keys (no card).
-- **Small red-team sample:** 13 attacks + 2 benign. The 0% false-positive rate
-  rests on n=2 — the weakest number in the project. Expanding the benign corpus to
-  ~12–15 and payloads toward ~30 is the highest-value data improvement.
+- **Red-team sample (now expanded):** 29 attacks + 15 benign (was 13 + 2). The 0%
+  false-positive rate now rests on n=15, not n=2; golden set grew 16→31 scenarios.
 - Redaction of **genuine live PII** is proven on synthetic fixtures; the live test account is empty, so it's shape/enforcement-validated live, not populated-data-validated.
 - Not built (deliberate): multi-tenancy/auth, encryption-at-rest for the token map, protection against a malicious operator, a policy DSL, formal verification, production-grade inference.
 
