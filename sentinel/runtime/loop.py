@@ -280,12 +280,22 @@ class AgentRunner:
                         self._approvals.resolve(approval.id, approve=approved,
                                                 resolver_id=cfg.operator_id, now_ms=now)
                     if approved:
+                        # single-use: consume() FIRST and honor its result. If the
+                        # approval was already spent or has expired, it is not valid
+                        # now — fail closed rather than executing on a stale grant.
+                        consumed = True
+                        if self._approvals and approval:
+                            consumed = self._approvals.consume(approval.id, ctx.argument_hash, now)
+                        if not consumed:
+                            approvals_rejected += 1
+                            emitter.emit("approval_resolved", {"approved": True, "consumed": False})
+                            messages.append(_tool_msg(
+                                tc, "Approval could not be consumed (expired or already used); refusing to execute."))
+                            continue    # do NOT execute on a stale/spent approval
                         approvals_granted += 1
                         # re-validate on resume: re-run through the proxy WITH the approval
                         approved_env = env.model_copy(update={
                             "valid_approval_present": True, "approval_argument_hash": ctx.argument_hash})
-                        if self._approvals and approval:
-                            self._approvals.consume(approval.id, ctx.argument_hash, now)
                         re_out = interceptor.handle_call(descriptor, tc.arguments, approved_env,
                                                          signals, step_id, self._ids.call())
                         emitter.emit("approval_resolved", {"approved": True})

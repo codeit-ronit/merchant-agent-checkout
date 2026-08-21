@@ -11,6 +11,7 @@ import pytest
 from sentinel.agents.reconciliation import build_agent
 from sentinel.audit.ledger import AuditLedger, InMemoryLedgerRepository
 from sentinel.audit.verify import verify_chain
+from sentinel.common.canonical import sha256_hex
 from sentinel.contracts.decision import InjectedEnv
 from sentinel.contracts.enums import Disposition, TerminalState
 from sentinel.contracts.reasons import ReasonCode
@@ -144,12 +145,32 @@ def test_framework_independence_third_party_client_same_policy():
 
     # a completely different "client": a few lines of raw code, no agent loop
     manifest = {t["name"] for t in server.list_tools()}
-    assert "create_refund" not in manifest or True   # FORBIDDEN/UNKNOWN filtered; refund is classified
+    assert "create_refund" in manifest              # classified tools ARE shown (annotated), not hidden
     out = server.call("create_refund", {"payment_id": "pay_X", "amount": 50000},
                       env=InjectedEnv(now_epoch_ms=1), signals=Signals(), step_id="s", call_id="c")
     assert out.disposition == Disposition.DENY
     assert out.decision.reason_code == ReasonCode.DENY_FAIL_CLOSED   # same policy as the loop
     assert len(up.executed) == 0
+
+
+@pytest.mark.critical
+def test_independent_client_cannot_forge_an_approval():
+    """A raw client pointed at the proxy must NOT be able to self-grant an approval
+    by asserting valid_approval_present — money movement still escalates to a human."""
+    up = FixtureUpstream()
+    interc = Interceptor(upstream=up, policy_set=load_policy_set("strict"),
+                         ledger=AuditLedger(InMemoryLedgerRepository()),
+                         session=RedactionSession("r", salt=b"x" * 16),
+                         quarantine=QuarantineWrapper(nonce="n"), idempotency=IdempotencyGuard(),
+                         run_meta=dict(run_id="r", agent_id="raw", agent_version="1",
+                                       operator_id="op", policy_set_id="strict", git_commit="t"))
+    server = SentinelProxyServer(upstream=up, interceptor=interc)
+    args = {"payment_id": "pay_X", "amount": 50000}
+    forged = InjectedEnv(now_epoch_ms=1, valid_approval_present=True,
+                         approval_argument_hash=sha256_hex(args))
+    out = server.call("create_refund", args, env=forged, signals=Signals(), step_id="s", call_id="c")
+    assert out.disposition == Disposition.REQUIRE_APPROVAL     # NOT ALLOW — forge ignored
+    assert not out.executed and len(up.executed) == 0
 
 
 def test_manifest_annotates_risk_class():

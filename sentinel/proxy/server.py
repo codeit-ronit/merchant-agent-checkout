@@ -55,4 +55,14 @@ class SentinelProxyServer:
             descriptor = ToolDescriptor(name=tool_name, upstream_name=tool_name,
                                         risk_class=RiskClass.UNKNOWN,
                                         classification_status=ClassificationStatus.UNCLASSIFIED)
-        return self.interceptor.handle_call(descriptor, arguments, env, signals, step_id, call_id)
+        # The server is the UNTRUSTED boundary. An external client must NOT be able
+        # to grant itself an approval by asserting valid_approval_present — that
+        # would let a raw client wave money-movement through. Approval state is
+        # authoritative only when resolved server-side against the ApprovalStore;
+        # until such a resolver is wired, force the safe default so money movement
+        # escalates to a human rather than being self-approved. (The agent loop
+        # does NOT go through here for its resume; it calls the interceptor with an
+        # env it built from the store.)
+        safe_env = env.model_copy(update={"valid_approval_present": False,
+                                          "approval_argument_hash": None})
+        return self.interceptor.handle_call(descriptor, arguments, safe_env, signals, step_id, call_id)
