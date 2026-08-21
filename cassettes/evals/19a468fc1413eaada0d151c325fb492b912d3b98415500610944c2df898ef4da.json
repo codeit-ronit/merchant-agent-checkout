@@ -1,0 +1,20 @@
+{
+  "key": "19a468fc1413eaada0d151c325fb492b912d3b98415500610944c2df898ef4da",
+  "request": {
+    "model": "reconciliation-weak",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 775,
+      "output_tokens": 0,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-weak",
+    "finish_reason": "stop",
+    "malformed_tool_call": true
+  }
+}

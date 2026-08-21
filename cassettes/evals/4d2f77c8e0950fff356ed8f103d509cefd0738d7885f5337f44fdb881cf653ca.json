@@ -1,0 +1,20 @@
+{
+  "key": "4d2f77c8e0950fff356ed8f103d509cefd0738d7885f5337f44fdb881cf653ca",
+  "request": {
+    "model": "refund-demo-strong",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"summary\":\"done\"}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 26,
+      "output_tokens": 4,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "refund-demo-strong",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

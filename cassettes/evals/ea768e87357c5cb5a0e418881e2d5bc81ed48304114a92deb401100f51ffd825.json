@@ -1,0 +1,29 @@
+{
+  "key": "ea768e87357c5cb5a0e418881e2d5bc81ed48304114a92deb401100f51ffd825",
+  "request": {
+    "model": "reconciliation-strong",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_settle_1",
+        "name": "fetch_all_settlements",
+        "arguments": {
+          "count": 10,
+          "skip": 10
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1262,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-strong",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

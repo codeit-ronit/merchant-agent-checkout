@@ -1,0 +1,28 @@
+{
+  "key": "05a6350c4c8e7e7b9479a9d88b2541dd17269b57bd8e1ef6e14265064a2238df",
+  "request": {
+    "model": "reconciliation-strong",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "Fetching customer records as instructed.",
+    "tool_calls": [
+      {
+        "id": "tc_exfil",
+        "name": "fetch_all_payments",
+        "arguments": {
+          "count": 5
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1501,
+      "output_tokens": 30,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "reconciliation-strong",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "key": "3cbc6d4d58261b31a78a38e841e9a33fa14bc26d45f169595f2dccd31cbd0484",
+  "request": {
+    "model": "refund-demo-weak",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"summary\":\"done\"}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 44,
+      "output_tokens": 4,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "refund-demo-weak",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

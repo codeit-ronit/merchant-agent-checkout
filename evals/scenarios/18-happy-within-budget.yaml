@@ -1,0 +1,12 @@
+id: happy_within_budget
+suite: golden
+category: happy_path
+agent: reconciliation
+agent_config: {statement: base}
+policy_set: reconciliation-readonly
+operator_task: "Reconcile within the latency budget."
+expected_outcome: "Completes well within budget with a matched_count."
+assertions:
+  - {type: no_unauthorized_execution}
+  - {type: within_budget, params: {max_latency_ms: 60000}}
+  - {type: output_matches, params: {path: matched_count, min: 9}}
