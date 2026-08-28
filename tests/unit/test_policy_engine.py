@@ -200,6 +200,35 @@ def test_amount_cap_is_disbursement_only_collection_uses_tiers():
     assert coll.disposition == Disposition.REQUIRE_APPROVAL   # collect over ceiling: approvable
 
 
+def test_collection_run_aggregate_cap_is_unapprovable():
+    """The ₹9,999 × 40 evasion shape: each call is under per-call review, but the
+    run's aggregate collection is capped and un-approvable."""
+    from sentinel.policy import AmountCapRule
+    p = pset(BASELINE, AmountCapRule(id="agg", scope="per_run", max_minor=50000000,
+                                     applies_to_roles=(BindingRole.COLLECTION,)))
+    under = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_order", amount=999900,
+                            role=BindingRole.COLLECTION, collected_run_minor=0))
+    assert under.disposition == Disposition.ALLOW
+    over = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_order", amount=999900,
+                           role=BindingRole.COLLECTION, collected_run_minor=49500000))
+    assert over.disposition == Disposition.DENY          # aggregate exceeded -> un-approvable
+    assert over.reason_code == ReasonCode.DENY_AMOUNT_EXCEEDS_CAP
+
+
+def test_variable_amount_collection_is_refused():
+    from sentinel.policy import CollectionBoundAmountRule
+    p = pset(BASELINE, CollectionBoundAmountRule(id="bind"))
+    var = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_qr_code",
+                          role=BindingRole.COLLECTION, args={"fixed_amount": False}))
+    assert var.disposition == Disposition.DENY and var.reason_code == ReasonCode.DENY_UNBOUNDED_COLLECTION
+    none = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_qr_code",
+                           amount=None, role=BindingRole.COLLECTION))
+    assert none.disposition == Disposition.DENY and none.reason_code == ReasonCode.DENY_UNBOUNDED_COLLECTION
+    bound = evaluate(p, ctx(RiskClass.REVERSIBLE_WRITE, "create_qr_code", amount=2500000,
+                            role=BindingRole.COLLECTION, args={"fixed_amount": True}))
+    assert bound.disposition is not Disposition.DENY     # a bound amount is governable, not refused
+
+
 def test_rate_limit_by_class():
     p = pset(BASELINE, RateLimitRule(id="rl", scope="class", key="MONEY_MOVEMENT", max_count=2))
     ok = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=1000,

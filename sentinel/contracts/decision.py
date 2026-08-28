@@ -52,7 +52,8 @@ class InjectedEnv(Contract):
     now_epoch_ms: int
     now_local_hour: int = 0            # operator-timezone hour, for time_window rules
     now_weekday: int = 0               # 0=Mon .. 6=Sun
-    spend_run_minor: int = 0           # accumulated spend this run
+    spend_run_minor: int = 0           # accumulated DISBURSEMENT spend this run
+    collected_run_minor: int = 0       # accumulated COLLECTION amount bound this run
     spend_day_minor: int = 0           # accumulated spend today
     spend_window_minor: int = 0        # accumulated spend this policy window
     tool_call_count_run: int = 0

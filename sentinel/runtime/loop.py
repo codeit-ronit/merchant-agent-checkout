@@ -21,7 +21,7 @@ from sentinel.audit.ledger import AuditLedger, InMemoryLedgerRepository
 from sentinel.common.ids import IdFactory
 from sentinel.contracts.approvals import ApprovalRequest
 from sentinel.contracts.decision import InjectedEnv
-from sentinel.contracts.enums import Disposition, RunMode, TerminalState
+from sentinel.contracts.enums import BindingRole, Disposition, RunMode, TerminalState
 from sentinel.contracts.runs import RunRecord
 from sentinel.metering.meter import MeterAccumulator
 from sentinel.policy import evaluate
@@ -160,6 +160,7 @@ class AgentRunner:
 
         # accumulators
         spend_run = 0
+        collected_run = 0
         per_tool: dict[str, int] = {}
         per_class: dict[str, int] = {}
         tool_calls = 0
@@ -175,7 +176,8 @@ class AgentRunner:
             now = self._clock_ms()
             return InjectedEnv(
                 now_epoch_ms=now, now_local_hour=(now // 3_600_000) % 24, now_weekday=(now // 86_400_000) % 7,
-                spend_run_minor=spend_run, per_tool_count_run=dict(per_tool),
+                spend_run_minor=spend_run, collected_run_minor=collected_run,
+                per_tool_count_run=dict(per_tool),
                 per_class_count_window=dict(per_class), tool_call_count_run=tool_calls,
                 elapsed_run_ms=now - started, known_counterparties=cfg.known_counterparties,
                 operator_scope_entities=cfg.operator_scope_entities)
@@ -301,6 +303,9 @@ class AgentRunner:
                         emitter.emit("approval_resolved", {"approved": True})
                         if re_out.executed and descriptor.moves_money and ctx.money.amount_minor:
                             spend_run += ctx.money.amount_minor
+                        if (re_out.executed and descriptor.binding_role == BindingRole.COLLECTION
+                                and ctx.money.amount_minor):
+                            collected_run += ctx.money.amount_minor
                         messages.append(_tool_msg(tc, _result_text(re_out)))
                     else:
                         approvals_rejected += 1
@@ -311,6 +316,9 @@ class AgentRunner:
                         untrusted_present = True   # ingested untrusted content: narrow for the rest
                     if outcome.executed and descriptor.moves_money and ctx.money.amount_minor:
                         spend_run += ctx.money.amount_minor
+                    if (outcome.executed and descriptor.binding_role == BindingRole.COLLECTION
+                            and ctx.money.amount_minor):
+                        collected_run += ctx.money.amount_minor
                     messages.append(_tool_msg(tc, _result_text(outcome)))
 
                 if tool_calls >= agent.ceilings.max_tool_calls:

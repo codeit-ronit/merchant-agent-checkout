@@ -107,14 +107,24 @@ class AmountCapRule(Rule):
     scope: str = "per_call"                 # per_call | per_run | per_window
     max_minor: int
     currency: str = "INR"
-    applies_to_classes: tuple[RiskClass, ...] = ()   # empty => all money-moving
+    applies_to_classes: tuple[RiskClass, ...] = ()   # scope by risk class
+    applies_to_roles: tuple[BindingRole, ...] = ()   # or by binding role (ADR-024)
 
     def _applies(self, ctx: DecisionContext) -> bool:
-        if not ctx.money.moves_money and ctx.money.amount_minor is None:
+        if (not ctx.money.moves_money and ctx.money.amount_minor is None
+                and ctx.money.binding_role == BindingRole.NONE):
             return False
-        if self.applies_to_classes and ctx.risk_class not in self.applies_to_classes:
-            return False
-        return True
+        if self.applies_to_classes or self.applies_to_roles:
+            return (ctx.risk_class in self.applies_to_classes
+                    or ctx.money.binding_role in self.applies_to_roles)
+        return True                                   # empty scope => all money-moving
+
+    def _prior(self, ctx: DecisionContext) -> int:
+        # per_run accumulates against the right pool: collections against the
+        # collection total, everything else against disbursement spend.
+        if ctx.money.binding_role == BindingRole.COLLECTION:
+            return ctx.env.collected_run_minor
+        return ctx.env.spend_run_minor
 
     def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
         if not self._applies(ctx):
@@ -130,7 +140,7 @@ class AmountCapRule(Rule):
             })
         amount = ctx.money.amount_minor
         if self.scope == "per_run":
-            total = ctx.env.spend_run_minor + amount
+            total = self._prior(ctx) + amount
         elif self.scope == "per_window":
             total = ctx.env.spend_window_minor + amount
         else:
@@ -380,9 +390,32 @@ class CollectionTierRule(Rule):
         return None
 
 
+class CollectionBoundAmountRule(Rule):
+    """A COLLECTION must bind a concrete amount, or it cannot be governed. Refuses
+    (DENY) a variable-amount collection — an explicit ``fixed_amount: false`` (e.g.
+    a variable QR code, where the payer chooses any amount and no tier can bind it)
+    or a collection that carries no readable amount at all. Un-approvable: an
+    ungovernable collection is not made safe by a reviewer clicking approve."""
+
+    kind: str = "collection_bound_amount"
+
+    def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
+        if ctx.money.binding_role != BindingRole.COLLECTION:
+            return None
+        args = ctx.arguments_redacted or {}
+        if args.get("fixed_amount") is False:
+            return Outcome(Disposition.DENY, ReasonCode.DENY_UNBOUNDED_COLLECTION, self.id,
+                           {"tool": ctx.tool_name})
+        if ctx.money.amount_minor is None:
+            return Outcome(Disposition.DENY, ReasonCode.DENY_UNBOUNDED_COLLECTION, self.id,
+                           {"tool": ctx.tool_name})
+        return None
+
+
 RULE_TYPES: dict[str, type[Rule]] = {
     "tool_class": ToolClassRule,
     "collection_tier": CollectionTierRule,
+    "collection_bound_amount": CollectionBoundAmountRule,
     "tool_allow": ToolAllowRule,
     "tool_deny": ToolDenyRule,
     "amount_cap": AmountCapRule,

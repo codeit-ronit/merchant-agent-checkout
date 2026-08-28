@@ -14,6 +14,7 @@ from sentinel.policy.rules import (
     AmountCapRule,
     ApprovalRequiredRule,
     ArgumentConstraintRule,
+    CollectionBoundAmountRule,
     CollectionTierRule,
     CounterpartyNoveltyRule,
     EntityScopeRule,
@@ -32,5 +33,5 @@ __all__ = [
     "ToolClassRule", "ToolAllowRule", "ToolDenyRule", "AmountCapRule",
     "RateLimitRule", "EntityScopeRule", "ArgumentConstraintRule",
     "TimeWindowRule", "ApprovalRequiredRule", "ProvenanceGuardRule",
-    "CounterpartyNoveltyRule", "CollectionTierRule",
+    "CounterpartyNoveltyRule", "CollectionTierRule", "CollectionBoundAmountRule",
 ]

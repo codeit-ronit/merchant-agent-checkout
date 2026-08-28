@@ -38,6 +38,7 @@ class ReasonCode(str, Enum):
     DENY_FAIL_CLOSED = "DENY_FAIL_CLOSED"
     DENY_TOOL_DENIED = "DENY_TOOL_DENIED"
     DENY_ARGUMENT_CONSTRAINT = "DENY_ARGUMENT_CONSTRAINT"
+    DENY_UNBOUNDED_COLLECTION = "DENY_UNBOUNDED_COLLECTION"
     # --- ESCALATE (REQUIRE_APPROVAL) ---
     ESCALATE_MONEY_MOVEMENT = "ESCALATE_MONEY_MOVEMENT"
     ESCALATE_IRREVERSIBLE = "ESCALATE_IRREVERSIBLE"
@@ -67,6 +68,7 @@ CODE_DISPOSITION: dict[ReasonCode, Disposition] = {
     ReasonCode.DENY_FAIL_CLOSED: Disposition.DENY,
     ReasonCode.DENY_TOOL_DENIED: Disposition.DENY,
     ReasonCode.DENY_ARGUMENT_CONSTRAINT: Disposition.DENY,
+    ReasonCode.DENY_UNBOUNDED_COLLECTION: Disposition.DENY,
     ReasonCode.ESCALATE_MONEY_MOVEMENT: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_IRREVERSIBLE: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_AMOUNT_THRESHOLD: Disposition.REQUIRE_APPROVAL,
@@ -115,6 +117,8 @@ _TEMPLATES: dict[ReasonCode, str] = {
         "Blocked: {tool} is explicitly denied to this agent by rule '{rule}'.",
     ReasonCode.DENY_ARGUMENT_CONSTRAINT:
         "Blocked: an argument to {tool} violated a policy constraint ({detail}).",
+    ReasonCode.DENY_UNBOUNDED_COLLECTION:
+        "Blocked: {tool} does not bind a fixed amount (a variable-amount collection), so its size cannot be governed; refused.",
     ReasonCode.ESCALATE_MONEY_MOVEMENT:
         "Needs approval: {tool} moves money ({amount}) and always requires a human reviewer.",
     ReasonCode.ESCALATE_IRREVERSIBLE:

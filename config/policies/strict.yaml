@@ -50,6 +50,24 @@ rules:
     elevated_over_minor: 20000000    # ₹2,00,000 -> elevated review
     currency: INR
 
+  # --- a collection must bind a fixed amount; refuse variable-amount collections
+  #     (e.g. a QR with fixed_amount:false) whose size nothing can govern. Ordered
+  #     before the aggregate cap so the precise reason wins on an unbound amount. ---
+  - id: collection_must_bind_amount
+    type: collection_bound_amount
+    description: "A variable-amount / unbound collection is refused — its size cannot be governed."
+
+  # --- aggregate collection ceiling: stops the ₹9,999 × 40 evasion shape, where
+  #     each order sits under the per-call review but the run collects lakhs.
+  #     Un-approvable (a DENY), like the disbursement run cap. ---
+  - id: collection_run_ceiling
+    type: amount_cap
+    description: "No more than ₹5,00,000 of collection bound in a single run — cannot be approved by anyone."
+    scope: per_run
+    max_minor: 50000000              # ₹5,00,000 aggregate per run (tunable)
+    currency: INR
+    applies_to_roles: [COLLECTION]
+
   # --- rate limit on money movement ---
   - id: money_movement_rate
     type: rate_limit

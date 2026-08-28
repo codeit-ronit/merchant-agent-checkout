@@ -1000,3 +1000,18 @@ The elevated *approval mechanics* beyond the policy signal: shorter approval TTL
 the reviewer's explicit amount confirmation on resolve, and the distinct
 queue treatment in the operator UI. The engine now EMITS the elevated
 signal + obligations; the loop/store/api/ui consumption is the next step.
+
+### ADR-024 addendum — two prerequisite holes closed (2026-08-24)
+Before stopping, two policy-layer gaps that the tier table alone left open:
+- **Per-run collection aggregate cap (un-approvable).** Forty orders at ₹9,999
+  each individually sit under the per-call review, yet the run collects ~₹4L. Added
+  `collection_run_ceiling` — a per-run `amount_cap` scoped `applies_to_roles:
+  [COLLECTION]` reading a new `InjectedEnv.collected_run_minor` accumulator (the
+  loop tallies executed collections in parallel to disbursement spend). A DENY, so
+  it is un-approvable, like the disbursement run cap. Default ₹5,00,000, tunable.
+- **Variable-amount collection refused.** A QR with `fixed_amount: false` (or any
+  collection binding no readable amount) has no amount at creation, so no tier can
+  bind it — `collection_bound_amount` refuses it outright (DENY_UNBOUNDED_COLLECTION),
+  ordered before the aggregate cap so the precise reason wins.
+Both verified: ₹9,999×~50 trips the aggregate DENY; `fixed_amount:false` QR is
+refused; a fixed QR with an amount still flows through the tiers. 201 tests green.
