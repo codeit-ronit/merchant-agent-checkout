@@ -13,7 +13,7 @@ from typing import Any, Optional
 from pydantic import Field
 
 from sentinel.contracts.base import Contract
-from sentinel.contracts.enums import ClassificationStatus, Provenance, RiskClass
+from sentinel.contracts.enums import BindingRole, ClassificationStatus, Provenance, RiskClass
 
 
 class FieldProvenance(Contract):
@@ -42,6 +42,7 @@ class ToolDescriptor(Contract):
 
     # --- money semantics: where in the ARGUMENTS the money meaning lives ---
     moves_money: bool = False
+    binding_role: BindingRole = BindingRole.NONE   # financial-commitment axis (ADR-024)
     amount_arg_path: Optional[str] = None      # dotted path to the amount (integer minor units)
     currency_arg_path: Optional[str] = None
     entity_arg_paths: tuple[str, ...] = ()     # args that reference an entity (scope)

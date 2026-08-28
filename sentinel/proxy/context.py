@@ -33,6 +33,7 @@ def money_semantics(d: ToolDescriptor, args: dict) -> MoneySemantics:
     cp = _get_path(args, d.counterparty_arg_path) if d.counterparty_arg_path else None
     return MoneySemantics(
         moves_money=d.moves_money,
+        binding_role=d.binding_role,
         amount_minor=amount if isinstance(amount, int) and not isinstance(amount, bool) else None,
         currency=currency if isinstance(currency, str) else ("INR" if d.moves_money else None),
         target_entities=targets,

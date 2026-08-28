@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict
 
 from sentinel.common.money import format_amount
 from sentinel.contracts.decision import DecisionContext
-from sentinel.contracts.enums import Disposition, RiskClass
+from sentinel.contracts.enums import BindingRole, Disposition, RiskClass
 from sentinel.contracts.reasons import ReasonCode
 
 
@@ -345,8 +345,44 @@ class CounterpartyNoveltyRule(Rule):
         return None
 
 
+class CollectionTierRule(Rule):
+    """Amount governance for COLLECTION_BINDING tools (order / payment link / QR),
+    keyed off the binding ROLE, not the risk class (ADR-024). Three tiers:
+
+    * <= review_over_minor            -> no escalation (baseline allow)
+    * review_over_minor..elevated     -> standard review (ESCALATE_AMOUNT_THRESHOLD)
+    * > elevated_over_minor           -> ELEVATED review — the reviewer must confirm
+                                         the amount; the engine attaches
+                                         CONFIRM_AMOUNT + AUDIT_ELEVATED obligations.
+
+    A collection with an unreadable amount is treated as elevated (fail toward the
+    stricter tier). Collections never hard-DENY on size — collecting is the
+    low-risk, refundable direction; the ceiling forces deliberate attention."""
+
+    kind: str = "collection_tier"
+    review_over_minor: int
+    elevated_over_minor: int
+    currency: str = "INR"
+
+    def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
+        if ctx.money.binding_role != BindingRole.COLLECTION:
+            return None
+        amt = ctx.money.amount_minor
+        if amt is None or amt > self.elevated_over_minor:
+            shown = format_amount(amt, self.currency) if amt is not None else "an unreadable amount"
+            return Outcome(Disposition.REQUIRE_APPROVAL, ReasonCode.ESCALATE_ELEVATED_COLLECTION,
+                           self.id, {"tool": ctx.tool_name, "amount": shown,
+                                     "threshold": format_amount(self.elevated_over_minor, self.currency)})
+        if amt > self.review_over_minor:
+            return Outcome(Disposition.REQUIRE_APPROVAL, ReasonCode.ESCALATE_AMOUNT_THRESHOLD,
+                           self.id, {"tool": ctx.tool_name, "amount": format_amount(amt, self.currency),
+                                     "threshold": format_amount(self.review_over_minor, self.currency)})
+        return None
+
+
 RULE_TYPES: dict[str, type[Rule]] = {
     "tool_class": ToolClassRule,
+    "collection_tier": CollectionTierRule,
     "tool_allow": ToolAllowRule,
     "tool_deny": ToolDenyRule,
     "amount_cap": AmountCapRule,

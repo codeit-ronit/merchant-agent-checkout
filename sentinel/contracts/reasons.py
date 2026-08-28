@@ -45,6 +45,7 @@ class ReasonCode(str, Enum):
     ESCALATE_INJECTION_SUSPECTED = "ESCALATE_INJECTION_SUSPECTED"
     ESCALATE_NOVEL_COUNTERPARTY = "ESCALATE_NOVEL_COUNTERPARTY"
     ESCALATE_APPROVAL_REQUIRED_RULE = "ESCALATE_APPROVAL_REQUIRED_RULE"
+    ESCALATE_ELEVATED_COLLECTION = "ESCALATE_ELEVATED_COLLECTION"
 
 
 # Default disposition each code expresses (used for cross-checks and rendering tests).
@@ -72,6 +73,7 @@ CODE_DISPOSITION: dict[ReasonCode, Disposition] = {
     ReasonCode.ESCALATE_INJECTION_SUSPECTED: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_NOVEL_COUNTERPARTY: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_APPROVAL_REQUIRED_RULE: Disposition.REQUIRE_APPROVAL,
+    ReasonCode.ESCALATE_ELEVATED_COLLECTION: Disposition.REQUIRE_APPROVAL,
 }
 
 # Templates. ``{placeholders}`` are filled from render params; a placeholder
@@ -125,6 +127,8 @@ _TEMPLATES: dict[ReasonCode, str] = {
         "Needs approval: {tool} pays out to a destination never seen before in this deployment — a new counterparty always needs a human reviewer.",
     ReasonCode.ESCALATE_APPROVAL_REQUIRED_RULE:
         "Needs approval: rule '{rule}' requires a human reviewer for {tool}.",
+    ReasonCode.ESCALATE_ELEVATED_COLLECTION:
+        "Needs elevated approval: {tool} binds a large collection amount ({amount}, over {threshold}); the reviewer must confirm the amount explicitly.",
 }
 
 

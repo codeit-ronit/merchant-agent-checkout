@@ -933,3 +933,70 @@ tests-first.
 189→191 tests (11 new across the four fixes + concurrency). Offline eval
 (100%/87.1%) and red-team (100%→0%, 0% FP) are unchanged — these are error/
 concurrency/security paths the behavioural corpus does not exercise.
+
+---
+
+## ADR-024 — Binding role: financial commitment as an axis orthogonal to risk class
+
+**Date:** 2026-08-24. **Trigger:** the tool-surface review found that a ₹2,00,000
+*order* (REVERSIBLE_WRITE) sailed past the hard ceiling that DENYs a ₹2,00,000
+*refund* (MONEY_MOVEMENT), because amount governance was scoped by risk class
+(`applies_to_classes: [MONEY_MOVEMENT]`). `create_qr_code` was worse — its
+`payment_amount` wasn't even classified, so no amount rule could see it.
+
+### The distinction
+Risk class answers **"can this hurt me?"** — reversibility, does it disburse.
+Binding role answers **"what does this commit me to?"** — the magnitude of money
+the call binds. They are different questions and were being conflated: a tool can
+be a reversible write and still bind ₹5,00,000. Amount governance belongs on the
+*commitment* axis, not the *risk* axis.
+
+### Decision
+Introduce `BindingRole` (`NONE | COLLECTION | DISBURSEMENT`) as a first-class
+field on the tool classification, orthogonal to `RiskClass`:
+- **COLLECTION** — binds an amount to *collect* (create_order, create_payment_link,
+  payment_link_upi_create, create_qr_code). Low-risk, refundable direction.
+- **DISBURSEMENT** — binds an amount to *send out* (create_refund,
+  create_instant_settlement, capture_payment, initiate_payment). Irreversible-loss
+  direction.
+
+Amount governance keys off the role:
+- **DISBURSEMENT** keeps the un-approvable hard ceiling + run cap (a large send-out
+  is a DENY nobody can approve). Unchanged behaviour (these tools are also
+  MONEY_MOVEMENT, so the existing class-scoped caps still apply — the role makes
+  the intent explicit and is the seam for future direct role-scoping).
+- **COLLECTION** gets a new `collection_tier` rule — three tiers, and it NEVER
+  hard-DENYs on size (collecting is refundable; a hard DENY would block legitimate
+  large invoices):
+
+  | amount | disposition |
+  |---|---|
+  | ≤ ₹10,000 | allow (clean run) |
+  | ₹10k – ₹2,00,000 | escalate, standard review |
+  | > ₹2,00,000 | escalate, **elevated** review |
+
+  Elevated escalations carry obligations `CONFIRM_AMOUNT` (the reviewer must
+  confirm the amount, not click a generic approve) + `AUDIT_ELEVATED`. An
+  unreadable collection amount is treated as elevated (fail toward the stricter
+  tier). The old non-scoped `review_threshold` (which fired on both, redundantly
+  with the money-movement class floor) is replaced by this.
+
+Also fixed as part of this: `create_qr_code` now declares
+`amount_arg_path: payment_amount`; and a **reverse schema→config drift check**
+(`config_coverage`) fails CI if any tool's real schema has a money-shaped field
+with no `amount_arg_path` (or documented waiver) — the check that would have caught
+the QR gap. It complements the existing forward `check_arg_paths`.
+
+### Trade-off accepted
+DISBURSEMENT amount caps are still *implemented* via the MONEY_MOVEMENT risk class
+(they coincide on today's surface), not yet re-scoped to the role — done to
+preserve exact money-movement behaviour and avoid churn. The role is the explicit
+seam to complete that symmetry later. Collection tiers deliberately never DENY on
+size; the ceiling forces deliberate attention (elevated review) without making
+legitimate large collections impossible.
+
+### Still to wire (batch 2)
+The elevated *approval mechanics* beyond the policy signal: shorter approval TTL,
+the reviewer's explicit amount confirmation on resolve, and the distinct
+queue treatment in the operator UI. The engine now EMITS the elevated
+signal + obligations; the loop/store/api/ui consumption is the next step.

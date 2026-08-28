@@ -121,6 +121,12 @@ def _evaluate_inner(policy_set: PolicySet, ctx: DecisionContext) -> PolicyDecisi
         obligations.append(Obligation.FLAG_UNTRUSTED_CONTENT)
     if ctx.risk_class in (RiskClass.MONEY_MOVEMENT, RiskClass.IRREVERSIBLE_WRITE):
         obligations.append(Obligation.AUDIT_ELEVATED)
+    # An elevated collection escalation carries a stricter review contract: the
+    # reviewer must confirm the amount, and it is audited at the elevated level.
+    if reason_code == ReasonCode.ESCALATE_ELEVATED_COLLECTION:
+        obligations.append(Obligation.CONFIRM_AMOUNT)
+        if Obligation.AUDIT_ELEVATED not in obligations:
+            obligations.append(Obligation.AUDIT_ELEVATED)
 
     return _decision(disposition, reason_code, deciding_rule, matched_rules, ctx, policy_set,
                     render_params, obligations)

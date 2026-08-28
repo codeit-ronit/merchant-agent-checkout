@@ -7,7 +7,7 @@ import pytest
 
 from sentinel.contracts import DecisionContext, MoneySemantics, RiskClass
 from sentinel.contracts.decision import InjectedEnv
-from sentinel.contracts.enums import Disposition
+from sentinel.contracts.enums import BindingRole, Disposition, Obligation
 from sentinel.contracts.reasons import ReasonCode
 from sentinel.policy import (
     AmountCapRule,
@@ -29,9 +29,11 @@ pytestmark = pytest.mark.tier1
 
 
 def ctx(risk=RiskClass.READ, tool="fetch_payment", amount=None, currency="INR",
-        args=None, provenance_untrusted=False, counterparty=None, targets=(), **env_kw):
+        args=None, provenance_untrusted=False, counterparty=None, targets=(),
+        role=BindingRole.NONE, **env_kw):
     money = MoneySemantics(
         moves_money=(risk == RiskClass.MONEY_MOVEMENT),
+        binding_role=role,
         amount_minor=amount, currency=(currency if amount is not None else None),
         counterparty_ref=counterparty, target_entities=tuple(targets),
     )
@@ -137,6 +139,65 @@ def test_hard_deny_is_never_rescued_by_a_valid_approval():
     d = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=2000000,
                         valid_approval_present=True, approval_argument_hash="hash_A"))
     assert d.disposition == Disposition.DENY and d.reason_code == ReasonCode.DENY_AMOUNT_EXCEEDS_CAP
+
+
+def _collection_pset():
+    from sentinel.policy import CollectionTierRule
+    return pset(BASELINE, CollectionTierRule(id="tiers", review_over_minor=1000000,
+                                             elevated_over_minor=20000000))
+
+
+def test_collection_tier_below_review_is_allowed():
+    d = evaluate(_collection_pset(), ctx(RiskClass.REVERSIBLE_WRITE, "create_order",
+                                         amount=500000, role=BindingRole.COLLECTION))
+    assert d.disposition == Disposition.ALLOW
+
+
+def test_collection_tier_standard_review():
+    d = evaluate(_collection_pset(), ctx(RiskClass.REVERSIBLE_WRITE, "create_order",
+                                         amount=1500000, role=BindingRole.COLLECTION))
+    assert d.disposition == Disposition.REQUIRE_APPROVAL
+    assert d.reason_code == ReasonCode.ESCALATE_AMOUNT_THRESHOLD
+    assert Obligation.CONFIRM_AMOUNT not in d.obligations   # standard tier: no amount-confirm
+
+
+def test_collection_tier_elevated_review_carries_obligations():
+    d = evaluate(_collection_pset(), ctx(RiskClass.REVERSIBLE_WRITE, "create_payment_link",
+                                         amount=25000000, role=BindingRole.COLLECTION))
+    assert d.disposition == Disposition.REQUIRE_APPROVAL
+    assert d.reason_code == ReasonCode.ESCALATE_ELEVATED_COLLECTION
+    assert Obligation.CONFIRM_AMOUNT in d.obligations       # reviewer must confirm the amount
+    assert Obligation.AUDIT_ELEVATED in d.obligations
+
+
+def test_collection_tier_never_hard_denies_on_size():
+    # a huge collection escalates (elevated), it is NEVER an un-approvable DENY
+    d = evaluate(_collection_pset(), ctx(RiskClass.REVERSIBLE_WRITE, "create_order",
+                                         amount=10**12, role=BindingRole.COLLECTION))
+    assert d.disposition == Disposition.REQUIRE_APPROVAL
+
+
+def test_collection_tier_unreadable_amount_is_treated_as_elevated():
+    d = evaluate(_collection_pset(), ctx(RiskClass.REVERSIBLE_WRITE, "create_qr_code",
+                                         amount=None, role=BindingRole.COLLECTION))
+    assert d.disposition == Disposition.REQUIRE_APPROVAL
+    assert d.reason_code == ReasonCode.ESCALATE_ELEVATED_COLLECTION
+
+
+def test_amount_cap_is_disbursement_only_collection_uses_tiers():
+    """The orthogonality proof: the same ₹2.5L amount is an un-approvable DENY as a
+    DISBURSEMENT (refund) but an approvable elevated escalation as a COLLECTION."""
+    p = pset(BASELINE,
+             AmountCapRule(id="cap", scope="per_call", max_minor=20000000,
+                           applies_to_classes=(RiskClass.MONEY_MOVEMENT,)))
+    from sentinel.policy import CollectionTierRule
+    p2 = pset(BASELINE, CollectionTierRule(id="t", review_over_minor=1000000, elevated_over_minor=20000000))
+    disb = evaluate(p, ctx(RiskClass.MONEY_MOVEMENT, "create_refund", amount=25000000,
+                           role=BindingRole.DISBURSEMENT))
+    coll = evaluate(p2, ctx(RiskClass.REVERSIBLE_WRITE, "create_order", amount=25000000,
+                            role=BindingRole.COLLECTION))
+    assert disb.disposition == Disposition.DENY               # send-out over ceiling: un-approvable
+    assert coll.disposition == Disposition.REQUIRE_APPROVAL   # collect over ceiling: approvable
 
 
 def test_rate_limit_by_class():

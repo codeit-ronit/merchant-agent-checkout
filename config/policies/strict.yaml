@@ -39,11 +39,15 @@ rules:
     currency: INR
     applies_to_classes: [MONEY_MOVEMENT]
 
-  # --- an amount threshold that forces review below the hard ceiling ---
-  - id: review_threshold
-    type: approval_required
-    description: "Any money movement over ₹10,000 needs a finance reviewer."
-    amount_over_minor: 1000000    # ₹10,000
+  # --- collection binding tiers (ADR-024): governs amounts on COLLECTION tools
+  #     (order / payment link / QR) by their binding ROLE, not risk class.
+  #     Money movement already escalates via the class floor, so this is the
+  #     amount governance for the reversible-write collection surface. ---
+  - id: collection_tiers
+    type: collection_tier
+    description: "Collections over ₹10,000 need review; over ₹2,00,000 need elevated review (explicit amount confirmation)."
+    review_over_minor: 1000000       # ₹10,000  -> standard review
+    elevated_over_minor: 20000000    # ₹2,00,000 -> elevated review
     currency: INR
 
   # --- rate limit on money movement ---

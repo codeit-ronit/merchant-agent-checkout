@@ -21,7 +21,7 @@ from typing import Any, Optional
 from pydantic import Field
 
 from sentinel.contracts.base import Contract
-from sentinel.contracts.enums import Disposition, Obligation, Provenance, RiskClass
+from sentinel.contracts.enums import BindingRole, Disposition, Obligation, Provenance, RiskClass
 from sentinel.contracts.reasons import ReasonCode
 
 
@@ -32,6 +32,10 @@ class MoneySemantics(Contract):
     moves_money: bool = False
     amount_minor: Optional[int] = None
     currency: Optional[str] = None
+    # Financial-commitment role — orthogonal to risk_class (ADR-024). Amount
+    # governance keys off this, so a reversible write that binds a large amount is
+    # still governed.
+    binding_role: BindingRole = BindingRole.NONE
     # Entity *reference* ids (pay_/rfnd_/setl_/fa_/cust_...). These are Razorpay
     # object identifiers, NOT PII (the account number behind fa_... is PII and is
     # tokenised elsewhere). Novelty and scope checks operate on these.

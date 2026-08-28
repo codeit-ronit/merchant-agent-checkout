@@ -68,8 +68,9 @@ verify-audit: ## Walk and verify the audit hash chain, report first break if any
 	$(PY) -m sentinel.audit.verify
 
 .PHONY: check-schemas
-check-schemas: ## Fixture-vs-reference tool schema parity (offline; reference was live-captured)
+check-schemas: ## Fixture-vs-reference schema parity + reverse amount-field coverage (offline)
 	$(PY) -m sentinel.fixtures.schema_parity
+	$(PY) -m sentinel.fixtures.config_coverage
 
 .PHONY: check-schemas-live
 check-schemas-live: ## Verify against the REAL razorpay/mcp (needs Docker + rzp_test_ keys in env)

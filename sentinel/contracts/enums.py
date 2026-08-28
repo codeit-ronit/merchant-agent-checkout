@@ -36,6 +36,21 @@ _RISK_SEVERITY = {
 WRITE_CLASSES = {RiskClass.IRREVERSIBLE_WRITE, RiskClass.MONEY_MOVEMENT}
 
 
+class BindingRole(str, Enum):
+    """A tool's *financial commitment* role — ORTHOGONAL to its risk class.
+
+    Risk class answers "can this hurt me?" (reversibility / does it disburse).
+    Binding role answers "what does this commit me to?" (magnitude of money it
+    binds). A tool can be a REVERSIBLE_WRITE and still bind ₹5,00,000: creating a
+    payment link or order commits a customer-facing amount even though the write
+    itself is reversible. Amount governance (ceilings, thresholds, currency) keys
+    off THIS axis, not the risk class (see DECISIONS.md ADR-024)."""
+
+    NONE = "NONE"                 # binds no amount
+    COLLECTION = "COLLECTION"     # binds an amount to COLLECT (order, payment link, QR)
+    DISBURSEMENT = "DISBURSEMENT" # binds an amount to SEND OUT (refund, payout, capture)
+
+
 class Disposition(str, Enum):
     ALLOW = "ALLOW"
     DENY = "DENY"
@@ -75,6 +90,9 @@ class Obligation(str, Enum):
     REDACT_RESULT_FULLY = "REDACT_RESULT_FULLY"
     FLAG_UNTRUSTED_CONTENT = "FLAG_UNTRUSTED_CONTENT"
     BIND_APPROVAL_TO_ARGS = "BIND_APPROVAL_TO_ARGS"
+    # The reviewer must confirm the bound AMOUNT explicitly, not click a generic
+    # approve — carried by an elevated-tier escalation (large collection).
+    CONFIRM_AMOUNT = "CONFIRM_AMOUNT"
 
 
 class TerminalState(str, Enum):

@@ -22,12 +22,14 @@ tools:
   capture_payment:
     risk_class: MONEY_MOVEMENT
     moves_money: true
+    binding_role: DISBURSEMENT
     amount_arg_path: amount
     currency_arg_path: currency
     entity_arg_paths: [payment_id]
   initiate_payment:
     risk_class: MONEY_MOVEMENT
     moves_money: true
+    binding_role: DISBURSEMENT
     amount_arg_path: amount
     currency_arg_path: currency
     entity_arg_paths: [customer_id, order_id]
@@ -59,15 +61,15 @@ tools:
     entity_arg_paths: [payment_id]
 
   # ---------------- Payment links (real names from the live tools/list) ----------------
-  create_payment_link:       {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
-  payment_link_upi_create:   {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  create_payment_link:       {risk_class: REVERSIBLE_WRITE, binding_role: COLLECTION, amount_arg_path: amount, currency_arg_path: currency}
+  payment_link_upi_create:   {risk_class: REVERSIBLE_WRITE, binding_role: COLLECTION, amount_arg_path: amount, currency_arg_path: currency}
   payment_link_notify:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
   update_payment_link:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [payment_link_id]}
   fetch_payment_link:        {risk_class: READ, entity_arg_paths: [payment_link_id]}
   fetch_all_payment_links:   {risk_class: READ, is_paginated: true}
 
   # ---------------- Orders ----------------
-  create_order:         {risk_class: REVERSIBLE_WRITE, amount_arg_path: amount, currency_arg_path: currency}
+  create_order:         {risk_class: REVERSIBLE_WRITE, binding_role: COLLECTION, amount_arg_path: amount, currency_arg_path: currency}
   update_order:         {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [order_id]}
   fetch_order:          {risk_class: READ, entity_arg_paths: [order_id]}
   fetch_all_orders:     {risk_class: READ, is_paginated: true}
@@ -81,6 +83,7 @@ tools:
   create_refund:
     risk_class: MONEY_MOVEMENT
     moves_money: true
+    binding_role: DISBURSEMENT
     amount_arg_path: amount
     entity_arg_paths: [payment_id]
   fetch_refund:                        {risk_class: READ, entity_arg_paths: [refund_id]}
@@ -90,7 +93,7 @@ tools:
   fetch_specific_refund_for_payment:   {risk_class: READ, entity_arg_paths: [payment_id, refund_id]}
 
   # ---------------- QR codes (real arg name is qr_code_id, verified live) ----------------
-  create_qr_code:                {risk_class: REVERSIBLE_WRITE}
+  create_qr_code:                {risk_class: REVERSIBLE_WRITE, binding_role: COLLECTION, amount_arg_path: payment_amount}
   close_qr_code:                 {risk_class: IRREVERSIBLE_WRITE, entity_arg_paths: [qr_code_id]}
   fetch_qr_code:                 {risk_class: READ, entity_arg_paths: [qr_code_id]}
   fetch_all_qr_codes:            {risk_class: READ, is_paginated: true}
@@ -107,6 +110,7 @@ tools:
   create_instant_settlement:
     risk_class: MONEY_MOVEMENT
     moves_money: true
+    binding_role: DISBURSEMENT
     amount_arg_path: amount
 
   # ---------------- Payouts (read-only upstream; real name fetch_payout_with_id) ----------------

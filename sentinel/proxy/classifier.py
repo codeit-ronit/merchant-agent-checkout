@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from sentinel.common.config import load_yaml
-from sentinel.contracts.enums import ClassificationStatus, RiskClass
+from sentinel.contracts.enums import BindingRole, ClassificationStatus, RiskClass
 from sentinel.contracts.tools import FieldProvenance, PiiField, Provenance, ToolDescriptor
 
 
@@ -72,6 +72,7 @@ def _descriptor(name: str, spec: dict[str, Any], upstream_tool: dict[str, Any],
         config_source=source,
         classification_status=status,
         moves_money=bool(spec.get("moves_money", False)),
+        binding_role=BindingRole(spec.get("binding_role", "NONE")),
         amount_arg_path=spec.get("amount_arg_path"),
         currency_arg_path=spec.get("currency_arg_path"),
         entity_arg_paths=tuple(spec.get("entity_arg_paths", []) or []),
