@@ -274,8 +274,20 @@ class AgentRunner:
                                                         "summary": _summarise(ctx)})
                     if approval_handler is None:
                         # no synchronous handler -> suspend; caller persists + resumes
-                        raise RunSuspended(approval, {"run_id": run_id, "messages": messages,
-                                                      "session": session.dump()})
+                        # The run-scoped accumulators MUST travel with the suspend
+                        # state, or a resume restarts every counter at zero — a run
+                        # that suspended at ₹4L collected would resume with no cap.
+                        # (Resume is responsible for restoring these into the env.)
+                        raise RunSuspended(approval, {
+                            "run_id": run_id, "messages": messages, "session": session.dump(),
+                            "accumulators": {
+                                "spend_run_minor": spend_run,
+                                "collected_run_minor": collected_run,
+                                "tool_call_count_run": tool_calls,
+                                "per_tool_count_run": dict(per_tool),
+                                "per_class_count_window": dict(per_class),
+                                "untrusted_present": untrusted_present,
+                            }})
                     approved = approval_handler(approval)
                     now = self._clock_ms()
                     if self._approvals and approval:

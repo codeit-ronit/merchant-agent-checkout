@@ -1015,3 +1015,18 @@ Before stopping, two policy-layer gaps that the tier table alone left open:
   ordered before the aggregate cap so the precise reason wins.
 Both verified: ₹9,999×~50 trips the aggregate DENY; `fixed_amount:false` QR is
 refused; a fixed QR with an amount still flows through the tiers. 201 tests green.
+
+### ADR-024 addendum 2 — collection accumulator integrity (2026-08-24)
+Two failure modes specific to counter-based controls, verified with a test each:
+- **Accumulate on the successful forward, never the attempt.** All four
+  `collected_run` increments in the loop guard on `outcome.executed`, so a denied
+  or human-rejected collection binds nothing. Test: four ₹1.5L orders (₹6L, over
+  the ₹5L aggregate) all REJECTED never trip the aggregate cap.
+- **Survive suspend/resume.** The `RunSuspended` state dump previously carried only
+  `run_id/messages/session`, so a resume restarted every run-scoped counter at zero
+  (this affected `spend_run` too, not just collections) — a run that suspended at
+  ₹4L collected would resume with no cap. The dump now carries an `accumulators`
+  block (`spend_run_minor`, `collected_run_minor`, tool/class counts,
+  `untrusted_present`); restoring them into the env is the resume path's
+  responsibility (deferred). Test: a run that executes ₹5k then suspends carries
+  `collected_run_minor=500000` in the state.
