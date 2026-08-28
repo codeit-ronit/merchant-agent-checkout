@@ -143,3 +143,24 @@ tools:
   fetch_subscription:
     risk_class: READ
     entity_arg_paths: [subscription_id]
+
+  # ---------------- CONDUIT catalog (MODELLED; served by ConduitUpstream, ADR-031) ----------------
+  # Structured fields (ids, integer-minor-unit prices, stock) are TOOL_STRUCTURED —
+  # trusted as data. Merchant-authored free text is UNTRUSTED and quarantined:
+  # the attacker here is the counterparty (the merchant whose shop the agent buys from).
+  # max_price_minor on catalog_search is a read-side filter — it binds nothing.
+  catalog_search:
+    risk_class: READ
+    is_paginated: true
+    provenance_map: {"items[].name": UNTRUSTED, "items[].description": UNTRUSTED, "items[].merchant_note": UNTRUSTED}
+  catalog_get_item:
+    risk_class: READ
+    entity_arg_paths: [item_id]
+    provenance_map: {name: UNTRUSTED, description: UNTRUSTED, merchant_note: UNTRUSTED}
+  catalog_check_availability:
+    risk_class: READ
+    entity_arg_paths: [item_id]
+  catalog_feed:
+    risk_class: READ
+    is_paginated: true
+    provenance_map: {"items[].name": UNTRUSTED, "items[].description": UNTRUSTED, "items[].merchant_note": UNTRUSTED}

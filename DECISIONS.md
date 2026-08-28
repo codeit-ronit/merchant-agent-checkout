@@ -1322,3 +1322,115 @@ foregrounds, costing CI time and requiring the scoping note to prevent
 misquotation — accepted over losing regression coverage of the boundary that
 every commerce call will cross.
 
+### ADR-028 addendum — the fifth instance, named (2026-08-29)
+The mandate-arguments discovery is the fifth instance of the docs-vs-reality
+bug class, in a new shape. The earlier four were drift between documentation
+and the live surface; this one is a **blindspot in our own verification**: the
+name-level search ("no tool matching reserve/mandate/emandate/...") was the
+correct search and returned the correct answer, but the semantics lived inside
+an argument schema we never looked at. **The surface is not the tool list; it
+is the tool list plus every schema in it.** Note the structural limit this
+exposes: `check_arg_paths` validates the argument paths we have *declared* in
+`tool_classes.yaml` — it can never surface capabilities we never declared.
+Name-level absence is not capability absence. Corollary for future
+verification passes: when asserting "the surface has no X," grep the full
+schema JSON, not the tool names.
+
+---
+
+## ADR-030 — Catalog path 3 (derive from order history) is dropped, honestly
+Date: 2026-08-29    Phase: 1    Status: Accepted
+
+### Context
+`03-CATALOG.md` §3.1 names three onboarding paths and its VERIFY FIRST block
+says: determine what `fetch_all_orders` actually returns and whether `notes`
+carries anything item-shaped; if path three yields nothing useful, drop it
+rather than faking it. Verified live today (read-only, real test keys from
+.env): the call works, returns `{count, entity, items[]}`, and this account's
+entire history is **one order with empty notes**. Two structural facts beyond
+the empty result: `notes` serialises as an empty *list* when absent (an object
+only when populated — a Razorpay quirk to handle in any parser), and nothing
+in the order entity itemises what was sold — `amount`, `receipt`, `status`,
+no line items.
+
+### Decision
+Path 3 is dropped for this build. Any demo of it would require seeding the
+order history ourselves, making "zero-effort derivation from history"
+circular — exactly the fake the spec forbids. The README will list two
+onboarding paths (CSV upload, storefront URL); `LIMITATIONS.md` will note that
+history-derived cataloging is real only for merchants whose integrations
+already write item-shaped notes, a population this test account cannot
+represent.
+
+Freebie recorded while here: the order *entity* shape is confirmed read-side
+(`id` "order_…", integer `amount`/`amount_due`, nullable `amount_paid`,
+`notes` echo, `receipt`, `status`) — partially closing ADR-028 UNVERIFIED
+item 1 ahead of Phase 3.
+
+### Trade-off accepted
+The most magical onboarding story ("paste nothing, we already know your
+catalog") is surrendered. Accepted: a judge probing it would find seeded data
+in one question, and the honest two-path story with measured effort is worth
+more than a staged third path.
+
+---
+
+## ADR-031 — Catalog architecture: composite upstream, one boundary, reject-never-ignore
+Date: 2026-08-29    Phase: 1    Status: Accepted
+
+### Context
+Phase 1 needed the catalog exposed to agents over MCP with SENTINEL enforcing —
+without refactoring SENTINEL (CLAUDE.md). Options: (a) register catalog tools
+as SENTINEL fixture extensions inside `sentinel/fixtures/`, entangling commerce
+logic with the control plane; (b) a **composite upstream** in `conduit/mcp/`
+that wraps any inner `Upstream` (fixture or live) and serves the catalog tools
+alongside it.
+
+### Decision
+Option (b). `ConduitUpstream(inner, catalog)` satisfies the same
+`list_tools`/`call_tool` protocol the proxy already speaks, so the interceptor,
+classifier, PII redaction, quarantine, and audit chain apply to catalog calls
+with ZERO SENTINEL changes beyond the allowed extension point: four new READ
+entries in `tool_classes.yaml`, with `provenance_map` marking merchant free
+text (`name`, `description`, `merchant_note`) UNTRUSTED. Verified at the real
+boundary in `tests/unit/test_catalog_mcp_boundary.py`: merchant text comes
+back nonce-quarantined, structured prices stay machine-readable, the call is
+in the audit ledger.
+
+Other decisions bundled here, each tested:
+- **Reject, never ignore.** Catalog tools validate arguments strictly: a
+  price-shaped argument (`price`, `amount`, `total`, `cost` in any key) is
+  rejected with a message naming the rule ("the catalog is the only price
+  source"); unknown arguments are rejected listing the accepted set. Silent
+  ignoring teaches the agent the assertion worked.
+- **Float-free money parsing.** `parse_price_to_minor` works on digit strings
+  (handles ₹/Rs/commas/Indian grouping/"40/-"); `float()` appears nowhere; a
+  float input is refused outright as already-lossy.
+- **Two-step CSV onboarding.** Mapping inference proposes, the merchant
+  confirms — the one human step, counted. Unparseable rows SKIP WITH A NAMED
+  REASON (13-row messy fixture: 9 captured, 4 skipped — prose price,
+  duplicate, nameless, priceless). Coercion is how wrong prices enter catalogs.
+- **Storefront parsing is structure-only.** JSON-LD → microdata → Open Graph,
+  in that order; a page with none fails with a message naming all three and
+  pointing at the CSV path. Prose is never scraped for prices.
+- **Seam update, recorded:** SENTINEL's reconciliation integration test now
+  reconciles against the composite surface (the thing the proxy actually
+  fronts here) — the invariant (no unclassified, no stale) is unchanged.
+- **Effort measured** (`artifacts/onboarding-effort.json`): CSV = 3 human
+  steps, 100% columns auto-mapped on the messy fixture, 69% row capture with
+  every skip explained; URL = 1 human step. Path 3 dropped per ADR-030.
+
+Suite: 203 → 277 tests, all green; schema parity, amount coverage, and policy
+purity unaffected.
+
+### Trade-off accepted
+The composite adds one indirection layer on every tool call, and catalog tools
+appear "stale" to anyone reconciling a bare `FixtureUpstream` — accepted as
+the honest description (they ARE absent from that server) in exchange for the
+control plane staying untouched and the commerce loop staying deletable
+without a SENTINEL diff.
+
+### Revisit if
+Phase 2's cart tools strain the wrapper (e.g. needing transactional state
+across inner/outer calls) — then promote the composite to a first-class
+conduit MCP server rather than growing branches in the wrapper.
