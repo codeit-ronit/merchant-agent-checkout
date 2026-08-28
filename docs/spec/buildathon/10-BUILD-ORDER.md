@@ -1,0 +1,221 @@
+# 10 — Build Order
+
+## Governing principle
+
+**Get a purchase completing end to end as early as possible, then make it good.**
+
+The opposite instinct — build the catalog perfectly, then the cart perfectly, then finally connect them — produces a project where the loop closes at the last minute and every integration problem arrives at once.
+
+Phase 3 ends with a real Razorpay order id from a natural-language instruction. Everything after that makes it correct, safe, measured, and beautiful. **If time runs out after Phase 3, there is still a submission.**
+
+Every phase ends with something demonstrable and an appended `DECISIONS.md` entry.
+
+---
+
+## Phase 0 — Ground truth
+
+**Goal:** know what is actually there before building on it.
+
+1. Complete every **VERIFY FIRST** block in `02-ARCHITECTURE.md` §7.
+2. Confirm the 41-tool manifest is still current — it has drifted three times.
+3. Confirm `create_order`'s live schema: fields, amount representation, whether `notes` can carry a cart reference, what it returns.
+4. Confirm `initiate_payment` → `submit_otp` in test mode, including **how to deliberately trigger a decline.** The failure path is a deliverable.
+5. Confirm native idempotency key support.
+6. Confirm `fetch_tokens` shape.
+7. Retire or quarantine SENTINEL eval scenarios that no longer describe this product.
+8. Write `LINEAGE.md` and `PROTOCOLS.md`.
+9. Pin the repo's test count: the figure that means something is what the runner collects (`pytest --collect-only -q`). Correct any doc quoting a stale count; use that one number everywhere.
+
+**Exit:**
+- [x] Every finding in `DECISIONS.md` with the date (ADR-028, ADR-029)
+- [~] Decline reproducible on demand, method recorded — method recorded (`failure@razorpay` VPA; never cancellation); REPRODUCTION deferred to Phase 3 item 0 by operator decision (ADR-028), so the deferral cannot slide
+- [x] `LINEAGE.md` verified and `PROTOCOLS.md` written
+- [x] SENTINEL suite scoped as separate (ADR-029, `evals/README.md`)
+- [x] Test count pinned from collection (203 at pin time); stale counts corrected
+
+**Do not skip this.** Three prior bugs came from building on assumed API shape.
+
+---
+
+## Phase 1 — Catalog
+
+**Goal:** a merchant becomes legible to software.
+
+1. Catalog data model — integer minor units, availability, constraints, tax declaration
+2. CSV upload path with realistic messy input
+3. Storefront URL path for structured markup
+4. Bulk feed + MCP tools (`READ`)
+5. Free text classified `UNTRUSTED`, quarantined at the proxy
+6. Price versioning to support commit-time diffs
+7. Merchant upsell rules
+8. Seeded synthetic merchant fixtures
+
+**Exit:**
+- [x] Both onboarding paths work; effort measured (`artifacts/onboarding-effort.json`; path 3 dropped per ADR-030)
+- [x] Catalog is the sole price source; test proves agent price rejected (`test_catalog_mcp_boundary.py::TestPriceRejection`)
+- [x] Free text quarantined; verified in the trace (`TestQuarantine` — nonce-wrapped at the real boundary, audit entry present)
+- [x] Prices integer minor units throughout; no float in any money path (model guards + float-free parser, tested)
+- [x] Fixtures seeded and reproducible (`TestSeed::test_seed_is_reproducible`)
+
+---
+
+## Phase 2 — Cart and commit gate
+
+**Goal:** the core. An agent can iterate for free and commit once.
+
+1. Cart service — mutable, off-rail, server-priced
+2. MCP tools (`REVERSIBLE_WRITE`, `BindingRole.NONE`)
+3. Recompute on every mutation; return total + mandate remaining
+4. Commit gate: re-price → diff → availability → mandate → policy → idempotency → one `create_order`.
+   **Parser note (ADR-030 finding):** Razorpay serialises `notes` as an empty
+   *list* when absent and an *object* when populated. Anything reading a cart
+   reference back from `notes` must handle both shapes explicitly — do not
+   discover this at commit time.
+5. Reserve-before-forward
+6. Concurrency at the drawdown ledger
+7. Cart expiry with reservation release
+
+**Exit:**
+- [ ] No cart operation accepts an amount; rejection tested, not silent ignore
+- [ ] Re-price produces an itemised structured diff
+- [ ] Divergence rejects and preserves the cart
+- [ ] Idempotent commit: same request twice → one order
+- [ ] Failed `create_order` releases the reservation
+- [ ] Concurrent commits cannot over-draw; tested with real concurrency
+- [ ] Catalog unreachable → fail closed
+
+---
+
+## Phase 3 — Mandate + buyer agent → **the loop closes**
+
+**Goal:** natural language in, real Razorpay order out. **The milestone that matters most.**
+
+0. **FIRST, before the buyer agent — close the five ADR-028 UNVERIFIED
+   payment-leg items against real test keys:** what `create_order` returns;
+   reproduce the decline (`initiate_payment` + `vpa=failure@razorpay` — never
+   cancellation, which succeeds in test mode); `submit_otp` behaviour;
+   `fetch_tokens` response shape; whether the `single_block_multiple_debit`
+   mandate-order flow works in test mode. The decline reproduction is a
+   deliverable — the bar's "one failure handled gracefully" — not a
+   nice-to-have. This item exists so the deferral from Phase 0 cannot slide.
+1. Mandate service — lock, scope, expiry, revoke, ledger-derived balance.
+   **Design note (ADR-028 finding 7):** `fetch_tokens` is keyed by *contact
+   number*, not customer id — the mandate's instrument binding must map
+   contact → token, and the identity model must own that dependency
+   explicitly rather than discover it mid-build.
+2. Mandate in `DecisionContext`; enforcement as policy, composition order per `05-MANDATE.md` §3.4
+3. Buyer agent — definition, prompt, tool scope, structured output
+4. Payment: `initiate_payment` → `submit_otp`
+5. Receipt
+
+**Exit — the ones that matter:**
+- [ ] **A natural-language constraint produces a real Razorpay test-mode order with a Razorpay-minted id**
+- [ ] Mandate scope, expiry, and revocation all enforced, with tests
+- [ ] Exhaustion is un-approvable DENY
+- [ ] Concurrent draws serialise; over-draw impossible
+- [ ] Agent never computes a total; tested
+- [ ] Agent declines honestly on unsatisfiable constraints
+- [ ] Balance survives suspend/resume because it is ledger-derived
+
+**The project is now demonstrable.** Everything after strengthens it.
+
+---
+
+## Phase 4 — Failure paths
+
+**Goal:** the bar's "one failure handled gracefully," done properly.
+
+1. Decline: order held, payment failed, cart recoverable, idempotent retry
+2. Drawdown behaviour on decline — decided, documented, recorded
+3. Ambiguous timeout: reconcile via `fetch_order_payments`, never blind-retry
+4. Out-of-stock, partial availability, phantom product
+5. Mandate expiry/revocation mid-purchase
+6. Every row of `07-FAILURE-MODES.md` §4
+
+**Exit:**
+- [ ] Decline demonstrated end to end with idempotent retry
+- [ ] Timeout reconciles before retrying, with a test
+- [ ] Every failure row has a passing test
+- [ ] Every failure response carries an actionable next step
+- [ ] Double-charge impossible under retry, timeout, and concurrency — three tests
+
+---
+
+## Phase 5 — Upsell
+
+**Goal:** connect to the revenue headline; prove controls work on a positive money action.
+
+1. Merchant rules drive offers; agent-invented offers rejected
+2. Offer suppressed pre-model when it would exceed the mandate
+3. Acceptance explicit; silent addition structurally impossible
+4. Receipt marks upsell, rule, and acceptance
+5. Per-cart cap
+
+**Exit:** per `06-BUYER-AGENT-AND-UPSELL.md` §B6.
+
+---
+
+## Phase 6 — Evaluation
+
+**Goal:** numbers.
+
+1. Commerce suite, separate from SENTINEL's
+2. 12 scenarios across all six categories first.
+   **Overfitting guard:** the Fresh Basket seed was deliberately shaped so the
+   headline constraint works — which makes it exactly the fixture you can
+   overfit to. The suite MUST include at least one merchant fixture that was
+   NOT authored around a known-good scenario — generated, with the constraint
+   scenarios written *after* the catalog exists. Otherwise task-success
+   measures fixture design, not how well the agent shops.
+3. All metrics per `08-EVAL.md` §4
+4. Gates including amount-accuracy hard zero and over-refusal ceiling
+5. Adversarial suite with benign controls
+6. Expand toward ~40
+
+**Exit:**
+- [ ] Replay reproduces committed numbers with no credentials, on a clean clone
+- [ ] Amount accuracy 100%; hard-zero gate active
+- [ ] Over-refusal measured against a defended ceiling
+- [ ] Adversarial A/B with FP rate at equal prominence
+- [ ] Merchant time-to-sellable measured
+
+---
+
+## Phase 7 — Interface
+
+**Goal:** make the invisible visible.
+
+Design pass before implementation, per `09-UI.md` §6. Split view first — it is the signature and everything else is support.
+
+**Exit:** per `09-UI.md` §9.
+
+---
+
+## Phase 8 — Ship
+
+1. **README** — opens with a purchase, not an architecture diagram
+2. `LIMITATIONS.md` — modelled vs real, scope cuts, known gaps
+3. `PROTOCOLS.md` — which layer each protocol occupies, what we modelled
+4. Live demo, fixture-capable, no credentials to try
+5. **3-minute video** per `11-DEMO-AND-SUBMISSION.md`
+6. Final security pass: no keys in history, secret scan clean, test-mode notice prominent, non-affiliation stated
+
+**Exit:**
+- [ ] Clone to running in one command, verified clean
+- [ ] Live demo reachable without credentials
+- [ ] Video recorded and linked
+- [ ] README reports commerce numbers, not SENTINEL's
+- [ ] Git history contains no credentials
+
+---
+
+## If time compresses
+
+Cut from the bottom. Never from the top.
+
+1. Reduce commerce scenarios from 40 to 20, keeping all six categories
+2. Cut the storefront-URL onboarding path; keep CSV
+3. Cut merchant console views except catalog and mandates
+4. Cut the upsell — but say in the README that the revenue mechanism was scoped out and why
+
+**Never cut:** the cart, the commit gate with its re-price diff, the mandate, the decline path, the audit trail, or the honest limitations. Those are the submission.

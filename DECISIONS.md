@@ -1048,3 +1048,149 @@ attempts, ₹6L against a ₹5L cap, all rejected, cap never tripped — proves 
 counter measures *commitment, not intent*. A control that counted attempts would
 deny legitimate work after a few rejections, which is the failure mode that makes
 operators turn controls off.)
+
+---
+
+## ADR-025 — CONDUIT kickoff: spec pack location and CLAUDE.md reconciliation
+Date: 2026-08-28    Phase: 0 (CONDUIT setup)    Status: Accepted
+
+### Context
+The repo forked from SENTINEL at 223bd1c to become CONDUIT (Razorpay Buildathon
+Track 01). The CONDUIT spec pack arrived in an untracked `new_context/`
+directory, while the pack's own documents (`CLAUDE-ADDENDUM.md` line 13,
+`KICKOFF-PROMPT.md` Setup §1) declare its home as `docs/spec/buildathon/`.
+`KICKOFF-PROMPT.md` Setup §2 says to *append* `CLAUDE-ADDENDUM.md` to the
+existing `CLAUDE.md` — but the existing base document's "What this project is",
+authoritative-spec pointer (`docs/spec/02-ARCHITECTURE.md`), and build-order
+pointer (`docs/spec/11-BUILD-ORDER.md`) all describe SENTINEL as the project
+being built, which is no longer true. A blind append would leave the first
+screen of the operating instructions contradicting the addendum below it.
+
+### Options considered
+1. **Append verbatim per the kickoff instruction.** Zero-judgement, but every
+   session would open on a stale framing ("the central claim: enforcement…
+   every design decision serves that claim") and two spec pointers that now
+   point at the dependency's spec instead of the build's.
+2. **Merge: one reconciled CLAUDE.md.** Rewrite the base to the CONDUIT
+   framing, keep every SENTINEL rule the addendum says still applies (it lists
+   them, and says "everything already there still applies"), fold in the
+   addendum's sections, and repoint spec/build-order references to
+   `docs/spec/buildathon/`. Divergence from the letter of Setup §2, recorded
+   here.
+
+### Decision
+Option 2, plus: moved the pack `new_context/` → `docs/spec/buildathon/`
+(whole-directory move; all cross-references in the pack are same-directory
+relative, so none broke). `CLAUDE-ADDENDUM.md` and `KICKOFF-PROMPT.md` moved
+with it and remain as source documents; the merged root `CLAUDE.md` is the
+operative version. Content audit of the merge: all 8+1 SENTINEL hard rules
+retained (renumbered 1–9), all 8 addendum rules added (10–17), claim
+discipline, verify-first, footguns (both lists, float-money deduplicated),
+the addendum's definition-of-done (a superset: adds "no agent-supplied amount
+accepted anywhere"), and the addendum's sharper when-unsure wording. Command
+list re-verified against the current Makefile. Nothing from either source was
+dropped.
+
+### Rationale
+CLAUDE.md is loaded into every session as ground truth; it is the one file
+where internal contradiction is most expensive. The spec pack's own discipline
+("if a spec conflicts with reality, reality wins and the conflict goes in
+DECISIONS.md") applies to the kickoff's append instruction too.
+
+### Trade-off accepted
+The merged file is no longer a byte-level concatenation of its two sources, so
+verifying "nothing was lost" required an explicit rule-by-rule audit rather
+than being true by construction. That audit is summarised above.
+
+### Revisit if
+The buildathon pack is revised upstream — re-diff the addendum against the
+merged CLAUDE.md rather than re-appending.
+
+---
+
+## ADR-026 — Mandate drawdown confirms at order creation; reverses on decline as a visible ledger entry
+Date: 2026-08-28    Phase: 0 (pre-build clarification)    Status: Accepted
+
+### Context
+The spec pack disagreed with itself on drawdown timing. `02-ARCHITECTURE.md` §5
+step 9 said "mandate drawdown recorded on success only" (reading as *payment*
+success), while `04-CART-AND-COMMIT.md` §4.1 and `05-MANDATE.md` §3.3 confirm the
+drawdown when `create_order` succeeds — before payment — and `07-FAILURE-MODES.md`
+§2 recommends reversing it on a decline. Flagged at kickoff; resolved by the
+operator.
+
+### Decision
+Confirm at order creation. **The mandate authorises binding an amount, not money
+moving** — `create_order` is the moment the amount becomes binding, which is why
+the commit gate sits there and not at payment. If the drawdown waited for payment
+success, a mandate could bind five orders totalling ₹10,000 against a ₹2,000
+balance, with the over-draw discovered only as payments landed. The mandate would
+be measuring the wrong thing.
+
+On a decline the drawdown **reverses** — explicitly a *user-fairness judgement,
+not a correctness one*: no money moved, and holding the user's locked balance
+against a failed payment is hostile. A stricter system could defensibly hold the
+reservation for a retry window; this is a product choice and is named as one.
+
+Two implications now stated in the spec (07 §2) that neither doc previously said:
+1. **The ledger records both.** Confirm and reversal are separate entries, not a
+   deletion. History shows what happened; that is also what keeps the balance
+   reconstructible.
+2. **A reversed drawdown must not silently free budget for a different
+   purchase.** If ₹800 reverses on a decline and the agent immediately spends it
+   elsewhere, the user's original intent quietly evaporated. Default: the
+   reversal is **visible to the user** (simpler, honest) rather than scoped to a
+   retry window of the same cart. Phase 4 confirms this deliberately rather than
+   falling into whichever the code does first.
+
+Spec corrected to match: `02` §5 step 9 rewritten; `07` §2 rewritten, including
+the step-number slip (confirm is step 10 of the `04` §4.1 sequence, not step 9).
+
+### Trade-off accepted
+A declined payment leaves a confirmed-then-reversed pair in the ledger — noisier
+than a single entry, and a user sees their balance dip and return. Accepted:
+history-that-shows-what-happened is the point of a ledger, and the dip *is* the
+honest account of what occurred.
+
+### Revisit if
+Phase 4 finds a rail behaviour (e.g. auto-retry semantics on the test rail) that
+makes a short retry-window hold materially better for users than instant reversal.
+
+---
+
+## ADR-027 — cart_commit classification: RiskClass.REVERSIBLE_WRITE, BindingRole.COLLECTION
+Date: 2026-08-28    Phase: 0 (pre-build clarification)    Status: Accepted
+
+### Context
+The spec classified the cart mutation tools (`REVERSIBLE_WRITE`,
+`BindingRole.NONE`) but never classified `cart_commit` — a meaningful omission,
+because it is the one call that binds an amount. Flagged at kickoff; resolved by
+the operator.
+
+### Decision
+`RiskClass.REVERSIBLE_WRITE`, `BindingRole.COLLECTION`.
+
+**Reversible** because an unpaid order can be abandoned with no financial
+consequence — it is an intent to collect, exactly what `create_order` is and
+exactly what it becomes. **Collection-binding** because it commits an amount,
+which is precisely the distinction the binding-role model exists to capture
+(ADR on the QR bypass). It therefore inherits the full collection governance:
+per-call tiers, per-run aggregate, currency constraint, and now mandate
+composition. A call can be reversible and still bind ₹5 lakh — that is the
+model earning its keep.
+
+**Watch item for Phase 2, now an acceptance criterion in `04` §6:**
+`cart_commit` and the `create_order` it issues must not double-count against the
+run aggregate. One binding event, one accumulation. The natural implementation
+counts both; a test must prove it does not.
+
+### Trade-off accepted
+"Reversible" here means *no financial consequence*, not *no trace* — an
+abandoned commit still leaves an order object upstream at Razorpay. Named so
+nobody later reads the class as "leaves nothing behind."
+
+### Revisit if
+Phase 0 verification shows `create_order` in test mode has side effects beyond
+an abandonable order (e.g. reserved inventory or customer notification), which
+would strain the "no financial consequence" reading.
+
