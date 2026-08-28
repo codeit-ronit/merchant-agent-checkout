@@ -1,0 +1,14 @@
+Item Name,MRP (Rs.),Description,Category ,Veg/NonVeg,GST %,Qty,Remarks
+Paneer Tikka ,₹200.00,Chargrilled cottage cheese with mint chutney,Mains,veg,5,25,bestseller
+Dal Makhani,180,"Slow-cooked black lentils, butter finish",Mains,veg,5,yes,
+Chicken Curry,"₹1,240.00 total serves 6? ask chef",Home-style curry,Mains,non-veg,5,yes,
+Butter Chicken,320,Tomato-butter gravy,Mains,non-veg,5,18,
+Garlic Naan,40/-,Tandoor flatbread with garlic butter,Breads,veg,5,yes,
+Tandoori Roti,25,Whole wheat tandoor bread,Breads,veg,5,yes,
+Veg Biryani,"₹1,90",Fragrant rice with seasonal vegetables,Rice,veg,5,12,
+Steamed Rice,90,,Rice,veg,5,yes,
+Gulab Jamun (2 pc),80,Warm milk dumplings in syrup,Desserts,veg,12,yes,pairs with mains
+Masala Chaas,50,Spiced buttermilk,Beverages,veg,12,0,out of season
+Paneer Tikka ,210,duplicate row from a re-export,Mains,veg,5,yes,
+,150,row with no name,Mains,veg,5,yes,
+Kheer,,row with no price,Desserts,veg,12,yes,
