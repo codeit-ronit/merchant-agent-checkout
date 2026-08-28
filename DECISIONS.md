@@ -1030,3 +1030,21 @@ Two failure modes specific to counter-based controls, verified with a test each:
   `untrusted_present`); restoring them into the env is the resume path's
   responsibility (deferred). Test: a run that executes ₹5k then suspends carries
   `collected_run_minor=500000` in the state.
+
+### ADR-024 addendum 3 — resume MUST fail closed on a missing accumulators block (2026-08-24)
+**Requirement for whoever builds the deferred resume path (do not miss this):**
+when resume deserializes a suspended state, it MUST refuse to resume if the
+`accumulators` block is absent — a state that predates addendum-2, or any state
+where the block is missing — rather than defaulting the counters to zero. **Zero is
+the dangerous default:** an absent block looks identical to a fresh run and
+silently removes BOTH the per-run disbursement cap and the collection aggregate
+cap, exactly on a long-running session that has already committed money. This is a
+one-line guard (`if "accumulators" not in state: refuse`), and it is the whole
+point of serializing the block — carrying the counters is useless if a missing
+block falls back to zero. Fail closed: no accumulators, no resume.
+
+(Noted for confidence, not action: the rejected-escalation test — four ₹1.5L
+attempts, ₹6L against a ₹5L cap, all rejected, cap never tripped — proves the
+counter measures *commitment, not intent*. A control that counted attempts would
+deny legitimate work after a few rejections, which is the failure mode that makes
+operators turn controls off.)
