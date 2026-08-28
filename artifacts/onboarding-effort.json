@@ -1,0 +1,25 @@
+{
+  "csv": {
+    "human_steps": [
+      "upload file",
+      "confirm column mapping",
+      "review skipped rows"
+    ],
+    "processing_ms": 0.3,
+    "auto_mapped_fraction": 1.0,
+    "rows_seen": 13,
+    "items_sellable": 9,
+    "rows_skipped_with_reason": 4,
+    "capture_rate": 0.692
+  },
+  "storefront_url": {
+    "human_steps": [
+      "paste storefront URL"
+    ],
+    "processing_ms": 0.2,
+    "markup_source": "json-ld",
+    "items_sellable": 4,
+    "skipped_with_reason": 1
+  },
+  "note": "processing is machine time on committed fixtures; the human cost is the step count. Path 3 (order history) dropped per ADR-030."
+}
