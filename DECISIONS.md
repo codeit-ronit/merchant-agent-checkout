@@ -1194,3 +1194,131 @@ Phase 0 verification shows `create_order` in test mode has side effects beyond
 an abandonable order (e.g. reserved inventory or customer notification), which
 would strain the "no financial consequence" reading.
 
+---
+
+## ADR-028 — Phase 0 ground truth: what is actually true of the live surface
+Date: 2026-08-29    Phase: 0    Status: Accepted (findings of record)
+
+### Context
+CONDUIT Phase 0 requires empirical verification of everything the commerce loop
+will build on. This repository has been bitten three times by config that
+disagreed with a live server. Method for each finding is stated inline;
+anything that could not be verified without real credentials is listed at the
+end as explicitly UNVERIFIED, not assumed.
+
+### Findings
+
+**1. The 41-tool manifest is still current (verified live, 2026-08-29).**
+`make check-schemas-live` against the published `razorpay/mcp:latest` image
+over MCP stdio: exact match — 41 tools, zero drift, zero missing; every
+amount/currency/counterparty/entity arg path in `tool_classes.yaml` references
+a real argument; a `create_refund` probe was denied (`DENY_FAIL_CLOSED`)
+without ever forwarding. A dummy `rzp_test_` key sufficed because `tools/list`
+needs no real auth and the deny short-circuits at our boundary.
+
+**2. Docs-vs-live drift, again.** The razorpay-mcp-server GitHub README lists
+**46 tools**; the live image serves **41**. Fourth documented instance of this
+bug class in the repo's history. The captured image manifest remains the only
+truth; README counts are never load-bearing.
+
+**3. `create_order` live schema — one genuine surprise.** Required:
+`amount`, `currency`. `notes` is an object (max 15 pairs, 256 chars each) —
+a cart reference fits comfortably. `amount` is JSON-schema type **number**,
+not integer — the rail would accept a float; our integer-minor-units
+discipline must therefore validate at our boundary, not rely on upstream.
+The surprise: the schema natively accepts **mandate-order parameters** —
+`customer_id`, `method: "upi"`, and a `token` object (`max_amount`,
+`frequency`, `type: "single_block_multiple_debit"`). Spec `05-MANDATE.md` §1's
+"no mandate in the MCP surface" holds for tool *names* but not for
+*arguments*: the rail's UPI block-and-debit surface is present on
+`create_order`. Consequence recorded in `PROTOCOLS.md`; the mandate claim
+stays **Modelled** unless Phase 3 verifies the flow live in test mode.
+
+**4. Deliberate decline — method identified, documented, NOT yet reproduced.**
+Official docs: test VPAs `success@razorpay` / `failure@razorpay` simulate
+success/failure. `initiate_payment` exposes a `vpa` argument (UPI collect,
+server-to-server) — so the decline path composes without a browser:
+`initiate_payment(order_id, amount, vpa="failure@razorpay")`. Caveat from the
+same docs: **cancelling** a UPI payment in test mode produces a *successful*
+payment — the failure demo must use the failure VPA, never cancellation.
+Reproduction requires real `rzp_test_` keys (see UNVERIFIED).
+
+**5. `initiate_payment` / `submit_otp` / `resend_otp` wrap the S2S
+create-payment-JSON and OTP APIs** (per the razorpay-go documents the MCP
+README links). OTP belongs to the card/token native-OTP flow;
+UPI collect completes out-of-band. `initiate_payment` requires
+`amount` + `order_id`; supports `vpa`, `upi_intent`, saved-method `token`,
+`save`, `customer_id`, `contact`, `email`.
+
+**6. Native idempotency: NOT available for our flow — ours is the only
+mechanism.** Razorpay documents idempotency headers only for payouts
+(`X-Payout-Idempotency`) and refunds (`X-Refund-Idempotency`); nothing for
+orders or payments. Independently decisive: the MCP tool schemas expose no
+header pass-through at all. SENTINEL's reserve-before-forward idempotency
+guard is therefore authoritative, and there is no parallel mechanism to
+propagate. (Kickoff item 4 answered: no.)
+
+**7. `fetch_tokens` takes a `contact` (phone number), not a customer id.**
+The mandate's instrument binding must key off contact → token. Response shape
+UNVERIFIED (needs a real call).
+
+**8. `fetch_all_orders` paginates (`count` max 100, `skip`), supports
+`expand: [payments, ...]` and a `receipt` filter.** Whether `notes` carries
+anything item-shaped is account-specific. Honesty note for `03-CATALOG.md`
+path 3: on a fresh test account the order history is whatever we seeded, so a
+"zero-effort catalog derived from history" demo would be circular. Either
+demonstrate path 3 on realistic seeded history *labelled as seeded*, or drop
+the path; decide in Phase 1.
+
+**9. Test count pinned: 203** (`pytest --collect-only -q`, 2026-08-29 —
+189 test functions expand to 203 collected items via parametrization).
+`LINEAGE.md` and `README.md` already quote 203; consistent. Historical ADR
+in-text counts (178/191/201) are point-in-time and stay as written.
+
+### UNVERIFIED — blocked on real `rzp_test_` credentials
+1. What `create_order` actually returns in test mode (id shape, `notes` echo).
+2. Reproducing the decline via `initiate_payment` + `vpa=failure@razorpay`.
+3. `submit_otp` behaviour with test credentials (what OTP value succeeds).
+4. `fetch_tokens` response shape for a saved instrument.
+5. Whether the `single_block_multiple_debit` mandate-order flow works in
+   test mode.
+
+None of these block Phase 1 (catalog is modelled and off-rail). Items 1–3
+block Phase 3's exit and the decline deliverable; they are the first task the
+moment keys are available.
+
+### Trade-off accepted
+Proceeding to Phase 1 with five UNVERIFIED items is a deliberate sequencing
+choice: all five sit on the payment leg, which Phases 1–2 do not touch. The
+cost is that a test-mode surprise (e.g. S2S collect not honouring the failure
+VPA) would surface in Phase 3 rather than now. Accepted because the
+alternative — blocking all build work on credentials — wastes the phases that
+need none.
+
+---
+
+## ADR-029 — SENTINEL's 31 eval scenarios: kept and scoped, not retired
+Date: 2026-08-29    Phase: 0    Status: Accepted
+
+### Context
+Kickoff housekeeping item 7: SENTINEL's golden set (31 scenarios: 9 happy-path,
+7 hard-but-correct, 4 correct-refusal, 6 policy-triggering, 5 adversarial-lite)
+tests reconciliation and disputes — a different product from the checkout.
+Options: retire them, or scope them explicitly as separate.
+
+### Decision
+Keep them, scoped. They are regression coverage for the enforcement layer the
+commerce loop runs through — retiring them would un-test the dependency
+precisely while we extend it (new tool classes, mandate in `DecisionContext`,
+new reason codes). Scoping made explicit in `evals/README.md`: the 31 belong
+to the control plane; the commerce suite lives at `evals/commerce/` with its
+own count from Phase 6; no CONDUIT-facing document may quote "31" as a
+commerce number. The repo README already reports them under the inherited
+enforcement suite, correctly labelled.
+
+### Trade-off accepted
+`make eval` keeps exercising scenarios about a product this repo no longer
+foregrounds, costing CI time and requiring the scoping note to prevent
+misquotation — accepted over losing regression coverage of the boundary that
+every commerce call will cross.
+
