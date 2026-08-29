@@ -104,6 +104,55 @@ class CartService:
         record = self.expire_if_due(record, now_ms=now_ms)
         return self.price(record, now_ms=now_ms)
 
+    # ------------------------------------------------------------- upsell
+    def accept_upsell(self, cart_id: str, offer_id: str, *, now_ms: int) -> PricedCart:
+        """The ONLY path an upsell enters the cart (06 §B2: the agent may
+        offer — the system may never silently add). Acceptance RE-VALIDATES
+        everything against the LIVE world, because the offer was cleared
+        against an earlier cart state and the world moves — the re-price
+        lesson, reused rather than rediscovered."""
+        record = self._open_cart(cart_id, now_ms)
+        offer = record.offers.get(offer_id)
+        if offer is None:
+            raise CartError(
+                f"no offer '{offer_id}' on this cart. Offers are server-issued — "
+                f"read them from cart_view. An invented offer is a policy "
+                f"violation, not a creative flourish.")
+        item_id = offer["item_id"]
+        if item_id in record.lines:
+            raise CartError(f"'{item_id}' is already in the cart; the offer no longer applies.")
+        item = self._item_or_reject(item_id)
+        if not item.availability.purchasable(offer["quantity"]):
+            raise CartError(
+                f"offer '{offer_id}' withdrawn: '{item_id}' is no longer available. "
+                f"The cart is unchanged.")
+        if item.price_minor != offer["unit_price_minor"]:
+            # the world moved: never bind the stale offer price. Refresh the
+            # stored offer so the next view shows the new truth (the cap is
+            # not double-counted — same offer, new price).
+            offer["unit_price_minor"] = item.price_minor
+            offer["tax_minor"] = _tax_minor(item.price_minor * offer["quantity"],
+                                            item.tax.rate_bps)
+            offer["offer_total_minor"] = (item.price_minor * offer["quantity"]
+                                          + offer["tax_minor"])
+            self._repo.put(record)
+            raise CartError(
+                f"offer '{offer_id}' re-priced since it was shown "
+                f"(now {item.price_minor} minor units/unit). Re-read cart_view — "
+                f"the refreshed offer appears there if it is still affordable.")
+        current = self.price(record, now_ms=now_ms)
+        if current.total_minor + offer["offer_total_minor"] > current.mandate_remaining_minor:
+            raise CartError(
+                f"offer '{offer_id}' no longer fits the mandate: the cart changed "
+                f"since the offer was cleared. Remove something or decline the "
+                f"offer; the cart is unchanged.")
+        record.lines[item_id] = offer["quantity"]
+        record.accepted_upsells[item_id] = {
+            "rule_id": offer["rule_id"], "offer_id": offer_id,
+            "accepted_at_ms": now_ms}
+        self._repo.put(record)
+        return self.price(record, now_ms=now_ms)
+
     # ------------------------------------------------------------- pricing
     def price(self, record: CartRecord, *, now_ms: int) -> PricedCart:
         """The server computes every figure from live catalog truth. The
@@ -120,22 +169,87 @@ class CartService:
             lines.append(PricedLine(
                 item_id=item_id, name=item.text.name, quantity=qty,
                 unit_price_minor=item.price_minor, line_total_minor=line_total,
-                tax_minor=tax, price_version=item.price_version))
+                tax_minor=tax, price_version=item.price_version,
+                upsell_rule_id=(record.accepted_upsells.get(item_id) or {}).get("rule_id")))
+        remaining = self._ledger.balance(record.mandate_id).remaining_minor
+        total = subtotal + tax_total
+        offers = self._surface_offers(record, total, remaining)
         # Record the snapshot the agent is being shown — the diff's baseline.
         if record.status is CartStatus.OPEN:
             record.last_priced = {
                 ln.item_id: [ln.unit_price_minor, ln.price_version] for ln in lines}
             record.last_priced_catalog_version = self._catalog.catalog_version()
             self._repo.put(record)
-        remaining = self._ledger.balance(record.mandate_id).remaining_minor
         return PricedCart(
             cart_id=record.cart_id, mandate_id=record.mandate_id,
             currency=record.currency, lines=tuple(lines),
             subtotal_minor=subtotal, tax_total_minor=tax_total,
-            total_minor=subtotal + tax_total,
+            total_minor=total,
             catalog_version=self._catalog.catalog_version(),
             mandate_remaining_minor=remaining,
-            expires_at_ms=record.expires_at_ms, status=record.status)
+            expires_at_ms=record.expires_at_ms, status=record.status,
+            upsell_offers=tuple(offers))
+
+    def _surface_offers(self, record: CartRecord, total_minor: int,
+                        remaining_minor: int) -> list[dict]:
+        """Which offers this view carries. SUPPRESSION IS PRE-MODEL BY
+        CONSTRUCTION (06 §B3): an offer whose acceptance would exceed the
+        mandate is simply not in the response — the model never sees an
+        offer it cannot afford, so there is nothing to reject after
+        acceptance. Surfacing is capped cumulatively per cart, and every
+        offer is stored with the cart state that cleared it; acceptance
+        re-validates against the live state regardless."""
+        if record.status is not CartStatus.OPEN:
+            return []
+        merchant = self._catalog.merchant()
+        cap = merchant.max_upsell_offers_per_cart if merchant else 0
+        surfaced_rules = {o["rule_id"] for o in record.offers.values()}
+        changed = False
+        for rule in self._catalog.upsell_rules():         # sorted: deterministic
+            if (rule.trigger_item_id not in record.lines
+                    or rule.offer_item_id in record.lines
+                    or rule.rule_id in surfaced_rules
+                    or record.offers_surfaced >= cap):
+                continue
+            item = self._item_or_reject(rule.offer_item_id)
+            quantity = item.constraints.min_quantity
+            if not item.availability.purchasable(quantity):
+                continue
+            line_total = item.price_minor * quantity
+            offer_total = line_total + _tax_minor(line_total, item.tax.rate_bps)
+            if total_minor + offer_total > remaining_minor:
+                continue                                   # suppressed pre-model
+            offer_id = f"off_{record.cart_id}_{record.offers_surfaced + 1}"
+            record.offers[offer_id] = {
+                "offer_id": offer_id, "rule_id": rule.rule_id,
+                "item_id": rule.offer_item_id, "quantity": quantity,
+                "unit_price_minor": item.price_minor,
+                "tax_minor": offer_total - line_total,
+                "offer_total_minor": offer_total,
+                "cleared_at": {
+                    "cart_total_minor": total_minor,
+                    "mandate_remaining_minor": remaining_minor,
+                    "catalog_version": self._catalog.catalog_version(),
+                    "price_version": item.price_version,
+                },
+            }
+            record.offers_surfaced += 1
+            surfaced_rules.add(rule.rule_id)
+            changed = True
+        if changed:
+            self._repo.put(record)
+        # visibility: surfaced, not yet in the cart, and STILL affordable at
+        # the stored (re-validated-on-acceptance) price
+        visible = []
+        for offer in record.offers.values():
+            if offer["item_id"] in record.lines:
+                continue
+            if total_minor + offer["offer_total_minor"] > remaining_minor:
+                continue
+            out = dict(offer)
+            out["name"] = self._item_or_reject(offer["item_id"]).text.name
+            visible.append(out)
+        return visible
 
     # ------------------------------------------------------------- helpers
     def record(self, cart_id: str) -> CartRecord:

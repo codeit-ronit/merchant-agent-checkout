@@ -70,9 +70,10 @@ ITEMS: tuple[CatalogItem, ...] = (
 )
 
 UPSELL_RULES: tuple[UpsellRule, ...] = (
-    # Merchant-authored: a main course invites a dessert. The ONLY offers that exist.
+    # Merchant-authored: a main invites a dessert. The ONLY offers that exist.
     UpsellRule("rule_dessert_with_mains", "itm_paneer-tikka", "itm_gulab-jamun"),
     UpsellRule("rule_bread_with_dal", "itm_dal-makhani", "itm_garlic-naan"),
+    UpsellRule("rule_dessert_with_rice", "itm_steamed-rice", "itm_gulab-jamun"),
 )
 
 

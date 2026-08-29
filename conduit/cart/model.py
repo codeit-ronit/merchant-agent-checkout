@@ -43,6 +43,7 @@ class PricedLine:
     line_total_minor: int    # unit × qty
     tax_minor: int           # floor(line_total × rate_bps / 10000)
     price_version: int
+    upsell_rule_id: str | None = None   # set iff the line entered via explicit acceptance
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,10 @@ class PricedCart:
     mandate_remaining_minor: int
     expires_at_ms: int
     status: CartStatus
+    # Offers the server surfaced WITH this view. Suppression is pre-model by
+    # construction: an offer that would exceed the mandate is never in here,
+    # so the model never sees it (06 §B3).
+    upsell_offers: tuple[dict, ...] = ()
 
     def to_public(self) -> dict:
         return {
@@ -76,9 +81,11 @@ class PricedCart:
                     "line_total_minor": ln.line_total_minor,
                     "tax_minor": ln.tax_minor,
                     "price_version": ln.price_version,
+                    "upsell_rule_id": ln.upsell_rule_id,
                 }
                 for ln in self.lines
             ],
+            "upsell_offers": [dict(o) for o in self.upsell_offers],
             "subtotal_minor": self.subtotal_minor,
             "tax_total_minor": self.tax_total_minor,
             "total_minor": self.total_minor,
@@ -107,3 +114,13 @@ class CartRecord:
     # the agent BELIEVED, per line — not merely that the totals differ.
     last_priced: dict[str, list[int]] = field(default_factory=dict)
     last_priced_catalog_version: int = 0
+    # Upsell state (06 §B). Offers the server has SURFACED for this cart,
+    # keyed by offer_id, each bound to the cart/catalog state that cleared it
+    # — acceptance re-validates against the LIVE state (the re-price lesson,
+    # reused). Surfacing is cumulative: the per-cart cap counts every offer
+    # ever shown, not just currently visible ones.
+    offers: dict[str, dict] = field(default_factory=dict)
+    offers_surfaced: int = 0
+    # item_id -> {rule_id, offer_id, accepted_at_ms}: the lines that entered
+    # via explicit acceptance — what the receipt marks as upsells.
+    accepted_upsells: dict[str, dict] = field(default_factory=dict)

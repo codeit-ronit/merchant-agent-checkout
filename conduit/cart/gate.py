@@ -233,6 +233,12 @@ class CommitGate:
             "mandate_id": record.mandate_id,
             "mandate_remaining_minor": balance.remaining_minor,
             "catalog_version": priced.catalog_version,
+            # the receipt marks every upsell: which rule offered it, which
+            # server-issued offer was accepted, and when (06 §B3 Visible)
+            "upsells": [
+                {"item_id": item_id, **details}
+                for item_id, details in record.accepted_upsells.items()
+            ],
             "notes_echo": notes_as_dict(order.get("notes")),
             "idempotent_replay": False,
         }
