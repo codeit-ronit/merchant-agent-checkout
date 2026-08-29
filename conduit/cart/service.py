@@ -144,6 +144,9 @@ class CartService:
     def save(self, record: CartRecord) -> None:
         self._repo.put(record)
 
+    def find_by_committed_order(self, order_id: str) -> CartRecord | None:
+        return self._repo.find_by_committed_order(order_id)
+
     def live_item(self, item_id: str):
         """Live catalog truth for one item (rejects phantoms). Used by the gate."""
         return self._item_or_reject(item_id)

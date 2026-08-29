@@ -14,6 +14,7 @@ class CartRepository(Protocol):
     def get(self, cart_id: str) -> CartRecord | None: ...
     def put(self, record: CartRecord) -> None: ...
     def open_carts(self) -> list[CartRecord]: ...
+    def find_by_committed_order(self, order_id: str) -> CartRecord | None: ...
 
 
 class InMemoryCartRepository:
@@ -28,6 +29,10 @@ class InMemoryCartRepository:
 
     def open_carts(self) -> list[CartRecord]:
         return [c for c in self._carts.values() if c.status is CartStatus.OPEN]
+
+    def find_by_committed_order(self, order_id: str) -> CartRecord | None:
+        return next((c for c in self._carts.values()
+                     if c.committed_order_id == order_id), None)
 
 
 class SqliteCartRepository:
@@ -70,3 +75,8 @@ class SqliteCartRepository:
     def open_carts(self) -> list[CartRecord]:
         rows = self._conn.execute("SELECT cart_id FROM carts WHERE status = 'OPEN'").fetchall()
         return [self.get(r[0]) for r in rows]
+
+    def find_by_committed_order(self, order_id: str) -> CartRecord | None:
+        row = self._conn.execute("SELECT cart_id FROM carts WHERE committed_order_id = ?",
+                                 (order_id,)).fetchone()
+        return self.get(row[0]) if row else None

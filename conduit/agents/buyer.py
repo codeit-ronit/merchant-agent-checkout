@@ -223,12 +223,63 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
         return _decline(constraint,
                         f"commit refused ({reason}): {commit.get('message', '')}"[:300])
 
-    # 5) pay, inside the mandate (modelled rail, ADR-034)
+    # 5) pay, inside the mandate (modelled rail, ADR-034). The vpa may be
+    #    carried in the task for failure-path scenarios; default is success.
+    vpa_m = re.search(r"(\w+@razorpay)", task)
+    vpa = vpa_m.group(1) if vpa_m else "success@razorpay"
     payment = _last_tool(messages, "initiate_payment")
+    attempts = sum(1 for m in messages
+                   if m.get("role") == "tool" and m.get("name") == "initiate_payment")
     if payment is None:
         return _call("initiate_payment", {
             "amount": commit["amount_minor"], "order_id": commit["order_id"],
-            "currency": commit.get("currency", "INR"), "vpa": "success@razorpay"})
+            "currency": commit.get("currency", "INR"), "vpa": vpa})
+
+    def _payment_report(status, pay_error=None):
+        declined = status != "captured"
+        return _final({
+            "decision": "payment_declined" if declined else "purchased",
+            "items": [{"item_id": ln["item_id"], "quantity": ln["quantity"],
+                       "unit_price_minor": ln["unit_price_minor"],
+                       "line_total_minor": ln["line_total_minor"]}
+                      for ln in commit.get("breakdown", [])],
+            "total_minor": commit["amount_minor"],
+            "currency": commit.get("currency", "INR"),
+            "constraints_satisfied": (
+                ([f"total {commit['amount_minor']} minor units within budget {budget}"]
+                 if budget is not None else [])
+                + [f"excluded: {', '.join(constraint['exclude'])}" if constraint["exclude"]
+                   else "no exclusions stated"]),
+            "constraints_unsatisfied": (
+                [f"payment declined ({(pay_error or {}).get('description', 'no detail')}). "
+                 f"The order is held and the cart is recoverable; retry is safe — "
+                 f"the same order will be reused, never a second one."]
+                if declined else []),
+            "upsell_offered": False, "upsell_accepted": False,
+            "order_id": commit["order_id"],
+            "payment_status": status,
+            "mandate_remaining_minor": commit.get("mandate_remaining_minor"),
+        })
+
+    if "_unparseable" in payment:
+        # AMBIGUOUS OUTCOME (timeout / denial text). NEVER retry blindly —
+        # reconcile via fetch_order_payments and act on ground truth (07 §3).
+        reconciled = _last_tool(messages, "fetch_order_payments")
+        if reconciled is None:
+            return _call("fetch_order_payments", {"order_id": commit["order_id"]})
+        payments = reconciled.get("items", [])
+        captured = next((p for p in payments if p.get("status") == "captured"), None)
+        failed = next((p for p in payments if p.get("status") == "failed"), None)
+        if captured is not None:
+            return _payment_report("captured")           # it went through: do NOT retry
+        if failed is not None and len(payments) >= attempts:
+            return _payment_report("failed", failed.get("error"))
+        if attempts < 2:
+            # ground truth says nothing landed: ONE retry, after reconciling
+            return _call("initiate_payment", {
+                "amount": commit["amount_minor"], "order_id": commit["order_id"],
+                "currency": commit.get("currency", "INR"), "vpa": vpa})
+        return _payment_report("unknown")
 
     if payment.get("otp_required"):
         otp_done = _last_tool(messages, "submit_otp")
@@ -236,26 +287,11 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
             return _call("submit_otp", {"payment_id": payment["id"], "otp_string": "123456"})
         payment = otp_done
 
+    if payment.get("status") == "failed":
+        return _payment_report("failed", payment.get("error"))
+
     # 6) the receipt-shaped report
-    return _final({
-        "decision": "purchased",
-        "items": [{"item_id": ln["item_id"], "quantity": ln["quantity"],
-                   "unit_price_minor": ln["unit_price_minor"],
-                   "line_total_minor": ln["line_total_minor"]}
-                  for ln in commit.get("breakdown", [])],
-        "total_minor": commit["amount_minor"],
-        "currency": commit.get("currency", "INR"),
-        "constraints_satisfied": (
-            ([f"total {commit['amount_minor']} minor units within budget {budget}"]
-             if budget is not None else [])
-            + [f"excluded: {', '.join(constraint['exclude'])}" if constraint["exclude"]
-               else "no exclusions stated"]),
-        "constraints_unsatisfied": [],
-        "upsell_offered": False, "upsell_accepted": False,
-        "order_id": commit["order_id"],
-        "payment_status": payment.get("status"),
-        "mandate_remaining_minor": commit.get("mandate_remaining_minor"),
-    })
+    return _payment_report(payment.get("status"))
 
 
 BUYER = AgentDefinition(

@@ -230,6 +230,18 @@ class DrawdownLedger:
     def entries(self, mandate_id: str) -> list[LedgerEntry]:
         return self._repo.entries(mandate_id)
 
+    def net_drawn(self, mandate_id: str, ref: str) -> int:
+        """CONFIRMs minus REVERSEs for one ref — what this purchase currently
+        holds of the user's money."""
+        net = 0
+        for e in self._repo.entries(mandate_id):
+            if e.ref == ref:
+                if e.kind is EntryKind.CONFIRM:
+                    net += e.amount_minor
+                elif e.kind is EntryKind.REVERSE:
+                    net -= e.amount_minor
+        return net
+
     # ---- the atomic step ----
     def reserve(self, mandate_id: str, amount_minor: int, *, ref: str, now_ms: int) -> Balance:
         if isinstance(amount_minor, bool) or not isinstance(amount_minor, int) or amount_minor <= 0:
