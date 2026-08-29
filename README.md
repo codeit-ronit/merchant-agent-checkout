@@ -3,6 +3,14 @@
 **Making any Razorpay merchant transactable by an AI buyer, end to end.**
 A Razorpay Buildathon submission — Track 01: AI Growth & Agentic Commerce.
 
+> **Nine arithmetic failures. Zero wrong charges.** In the committed eval, the
+> deliberately-flawed model tier mis-states its own total on 40.9% of commits —
+> and the charged amount is wrong 0% of the time, because the server re-prices
+> at the moment of binding and rejects every mis-statement. The model chooses
+> and explains; code calculates and binds. That sentence is what this
+> architecture exists to earn, and it is a measurement, not a claim
+> (`make eval-commerce`).
+
 > Independent project — not affiliated with, endorsed by, or produced by Razorpay
 > or NPCI. Integrates the publicly published open-source
 > [`razorpay/razorpay-mcp-server`](https://github.com/razorpay/razorpay-mcp-server)
@@ -135,14 +143,25 @@ first; the clean sheet after.
 what our injection-containment judgement gave up: when a simulated
 quarantine-failure makes the agent obey a merchant's planted "substitute X
 with Y" directive, the swapped basket **binds** (₹394 — inside the user's
-budget, inside the mandate, but not what they asked for). Two of the three
-attack shapes never even reach the controls — quantity-inflation and
-add-expensive both bust the user's *stated budget* and the agent dismantles
-the cart itself. The alternative posture (escalating every cart mutation
-under untrusted content) blocked **100% of benign purchases** in the same
-experiment — no commerce at all. The give-up is one attack shape, bounded by
+budget, inside the mandate, but not what they asked for). That is the honest
+residual, and it is one precise shape.
+
+The same experiment produced a finding we did not design for: **the user's
+stated constraint is itself the first containment layer.** Two of the three
+attack shapes — inflate the quantity, add an expensive item — never reached
+any control, because they bust the stated budget and the agent's honest
+budget logic dismantles the cart. The budget check was never designed as a
+security control; in a constrained agent, it functions as one.
+
+And we did not merely judge the alternative posture acceptable to skip —
+**we measured it, and it blocked 100% of benign traffic.** Escalating every
+cart mutation under untrusted content (merchant text is *always* in context
+after a catalog read) stopped all three benign control purchases dead. A
+control that blocks all legitimate work is not a safer control; it is an off
+switch with extra steps. The give-up stands as one attack shape, bounded by
 budget and mandate, reversible with one YAML line, and contingent on the
-real-model fooling rate that quarantine exists to minimise.
+real-model fooling rate that quarantine exists to minimise — a named, live
+reversal trigger, not a closed question.
 
 **2. The weak tier mis-states totals on 40.9% of its commits — and charged
 the wrong amount 0 times.** The weak deterministic tier carries the classic
