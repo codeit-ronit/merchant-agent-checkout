@@ -451,6 +451,12 @@ class MandateGateRule(Rule):
     kind: str = "mandate_gate"
     applies_to_roles: tuple[BindingRole, ...] = (BindingRole.COLLECTION,)
     apply_to_money_movement: bool = True
+    # The ONLY tools a valid mandate may resolve past the money-movement class
+    # floor. The DENY side stays broad (any covered call without a valid
+    # mandate is refused), but consent to a purchase is not consent to
+    # arbitrary money movement: a dinner mandate must never authorise a
+    # refund or a payout. Empty = resolve nothing (fail closed).
+    resolves_tools: tuple[str, ...] = ()
 
     def _applies(self, ctx: DecisionContext) -> bool:
         if ctx.money.binding_role in self.applies_to_roles:

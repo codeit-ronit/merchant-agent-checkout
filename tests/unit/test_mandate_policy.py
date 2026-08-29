@@ -31,7 +31,8 @@ BASELINE = ToolClassRule(id="base", class_dispositions={
     RiskClass.IRREVERSIBLE_WRITE: Disposition.REQUIRE_APPROVAL,
     RiskClass.MONEY_MOVEMENT: Disposition.ALLOW,   # floor still escalates it
 })
-GATE = MandateGateRule(id="mandate_gate")
+GATE = MandateGateRule(id="mandate_gate",
+                       resolves_tools=("initiate_payment", "submit_otp"))
 TIERS = CollectionTierRule(id="tiers", review_over_minor=1_000_000,
                            elevated_over_minor=20_000_000, currency="INR")
 
@@ -123,6 +124,23 @@ class TestMandateResolvesTheFloor:
                          mandate=GOOD.model_copy(update={"status": "REVOKED"})))
         assert d.disposition is Disposition.DENY
         assert d.reason_code is ReasonCode.DENY_MANDATE_REVOKED
+
+    @pytest.mark.critical
+    def test_a_dinner_mandate_never_authorises_a_refund(self):
+        """Consent to a purchase is not consent to arbitrary money movement:
+        the mandate resolves the floor ONLY for the tools the rule names. A
+        refund under a perfectly valid mandate still needs a human."""
+        d = evaluate(pset(BASELINE, GATE),
+                     ctx(risk=RiskClass.MONEY_MOVEMENT, tool="create_refund",
+                         role=BindingRole.DISBURSEMENT, amount=5000))
+        assert d.disposition is Disposition.REQUIRE_APPROVAL
+        assert d.reason_code is ReasonCode.ESCALATE_MONEY_MOVEMENT
+
+    def test_empty_resolves_list_fails_closed(self):
+        bare_gate = MandateGateRule(id="gate_no_resolve")
+        d = evaluate(pset(BASELINE, bare_gate),
+                     ctx(risk=RiskClass.MONEY_MOVEMENT, tool="initiate_payment"))
+        assert d.disposition is Disposition.REQUIRE_APPROVAL
 
     def test_mandate_never_resolves_a_tier_review(self):
         """A ₹15,000 commit inside a ₹100,000 mandate still needs the human

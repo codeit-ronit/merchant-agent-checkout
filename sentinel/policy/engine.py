@@ -124,9 +124,16 @@ def _evaluate_inner(policy_set: PolicySet, ctx: DecisionContext) -> PolicyDecisi
     #     the class floor is resolvable — a tier review, a provenance
     #     escalation, or any DENY still stands. Monotonicity holds: like
     #     human approval, this rescues only an escalation, never a denial.
+    mandate_rule = next((r for r in policy_set.rules
+                         if getattr(r, "kind", "") == "mandate_gate"), None)
     if (disposition == Disposition.REQUIRE_APPROVAL
             and reason_code == ReasonCode.ESCALATE_MONEY_MOVEMENT
-            and any(getattr(r, "kind", "") == "mandate_gate" for r in policy_set.rules)):
+            and mandate_rule is not None
+            and ctx.tool_name in getattr(mandate_rule, "resolves_tools", ())):
+        # Consent to a purchase is not consent to arbitrary money movement:
+        # the mandate resolves the floor ONLY for the tools the rule names
+        # (fail closed on an empty list). A refund under a valid dinner
+        # mandate still needs a human.
         from sentinel.policy.rules import mandate_failure
         if mandate_failure(ctx) is None:
             disposition = Disposition.ALLOW

@@ -40,6 +40,10 @@ rules:
     description: "Money binds only inside the user's mandate: right merchant, unexpired, unrevoked, within remaining balance. Every failure is un-approvable."
     applies_to_roles: [COLLECTION]
     apply_to_money_movement: true
+    # Consent to a purchase is not consent to arbitrary money movement: the
+    # mandate resolves the class floor ONLY for the purchase's payment leg.
+    # A refund or payout under a valid mandate still needs a human.
+    resolves_tools: [initiate_payment, submit_otp]
 
   # --- everything below is inherited SENTINEL governance, unchanged ---
   - id: payment_hard_ceiling
