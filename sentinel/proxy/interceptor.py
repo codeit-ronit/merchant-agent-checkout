@@ -238,7 +238,14 @@ class Interceptor:
             self.idempotency.record(idem_key, redacted)
 
         self.trace("tool_result_received", {"tool": descriptor.name, "redactions": len(detections)})
-        entry = self._audit(ctx, decision, outcome="forwarded")
+        # Domain verdict, declaratively mapped (descriptor.outcome_field): a
+        # forwarded call can still be a domain-level refusal, and that verdict
+        # must be first-class in the audit ledger, not inferred from state.
+        app_outcome = None
+        if descriptor.outcome_field and isinstance(raw_result, dict):
+            raw_value = raw_result.get(descriptor.outcome_field)
+            app_outcome = str(raw_value) if raw_value is not None else None
+        entry = self._audit(ctx, decision, outcome="forwarded", app_outcome=app_outcome)
         return InterceptOutcome(
             Disposition.ALLOW, decision, entry, result=redacted, executed=True,
             quarantined_fields=tuple(quarantined_fields), redaction_count=len(detections))
@@ -256,12 +263,14 @@ class Interceptor:
         return InterceptOutcome(Disposition.DENY, decision, entry,
                                 security_event=security_event, upstream_error=upstream_error)
 
-    def _audit(self, ctx: DecisionContext, decision: PolicyDecision, *, outcome: str) -> AuditEntry:
+    def _audit(self, ctx: DecisionContext, decision: PolicyDecision, *, outcome: str,
+               app_outcome: str | None = None) -> AuditEntry:
         return self.ledger.record(
             run_id=ctx.run_id, step_id=ctx.step_id, call_id=ctx.call_id,
             timestamp_ms=ctx.env.now_epoch_ms, tool_name=ctx.tool_name,
             risk_class=ctx.risk_class, arguments_redacted=ctx.arguments_redacted,
             argument_hash=ctx.argument_hash, decision=decision, outcome=outcome,
+            app_outcome=app_outcome,
             policy_set_version=self.policy_set.version,
             agent_version=self.run_meta.get("agent_version"),
             git_commit=self.run_meta.get("git_commit"),

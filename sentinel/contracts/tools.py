@@ -58,6 +58,13 @@ class ToolDescriptor(Contract):
     # --- pagination awareness (silent page-one reads are a correctness bug) ---
     is_paginated: bool = False
 
+    # --- domain outcome: which RESPONSE field carries the tool's own verdict.
+    # Declarative (set in tool_classes.yaml), so a tool whose successful call
+    # can still REFUSE at the domain level (e.g. a commit gate returning a
+    # structured rejection) surfaces that verdict as a first-class, queryable
+    # audit field instead of an ALLOW that quietly meant "no purchase". ---
+    outcome_field: Optional[str] = None
+
     @property
     def is_forbidden(self) -> bool:
         return self.risk_class == RiskClass.FORBIDDEN

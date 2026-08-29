@@ -187,3 +187,7 @@ tools:
     currency_arg_path: currency
     entity_arg_paths: [cart_id]
     provenance_map: {"breakdown[].name": UNTRUSTED}
+    # The gate's domain verdict (COMMITTED / REJECT_*) becomes the audit
+    # entry's app_outcome — so "commits that produced no order" is a direct
+    # ledger query, never an inference from downstream state (ADR-033).
+    outcome_field: reason_code

@@ -45,6 +45,12 @@ class AuditEntry(Contract):
 
     # --- execution outcome ---
     outcome: str = ""   # forwarded | blocked | idempotent_replay | upstream_error | security_event
+    # The tool's own domain verdict, when its descriptor declares an
+    # outcome_field (e.g. cart_commit's reason_code). Distinct from `outcome`
+    # by design: the boundary can forward a call whose domain answer was a
+    # refusal, and "every money action explainable" must hold in THIS ledger,
+    # not only in downstream state.
+    app_outcome: Optional[str] = None
 
     # --- meter ---
     latency_ms: float = 0.0
@@ -70,7 +76,13 @@ class AuditEntry(Contract):
         EXCEPT ``entry_hash`` itself. Includes ``previous_hash`` and ``sequence``.
 
         Timing floats are stringified (ADR-010) so the structure canonicalises
-        deterministically without risking IEEE-754 round-trips changing a hash."""
+        deterministically without risking IEEE-754 round-trips changing a hash.
+
+        Schema evolution rule (ADR-033): a LATER-ADDED optional field is
+        dropped from the payload when None, so chains written before the field
+        existed still verify, while any present value is hash-protected."""
         from sentinel.common.canonical import stringify_floats
         data = self.model_dump(mode="json", exclude={"entry_hash"})
+        if data.get("app_outcome") is None:
+            data.pop("app_outcome", None)
         return stringify_floats(data)

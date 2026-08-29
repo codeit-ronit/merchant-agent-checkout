@@ -160,3 +160,62 @@ class TestFlowThroughBoundary:
         assert out.result["committed"] is False
         assert out.result["reason_code"] == GateReason.REJECT_REPRICE_DIVERGENCE.value
         assert out.result["diff"]["lines"][0]["actual_unit_minor"] == 24000
+
+
+class TestCommerceOutcomeInAudit:
+    """ADR-033: a forwarded cart_commit whose domain answer was a refusal must
+    be visible in the AUDIT LEDGER itself — 'every money action explainable'
+    holds in the ledger the bar names, not only in downstream state."""
+
+    @pytest.mark.critical
+    def test_commits_that_produced_no_order_are_a_direct_audit_query(self, world):
+        _, _, audit, _, catalog, _ = world
+        # one refused commit (re-price divergence), then the re-confirm that
+        # commits at the new truth — two commit entries, opposite verdicts
+        created = _call(world, "cart_create", {"mandate_id": "mnd_dinner"})
+        cart_a = created.result["cart_id"]
+        _call(world, "cart_add_item",
+              {"cart_id": cart_a, "item_id": "itm_paneer-tikka", "quantity": 1})
+        catalog.set_price("itm_paneer-tikka", 24000, now_ms=T0 + 1)
+        _call(world, "cart_commit",
+              {"cart_id": cart_a, "expected_amount_minor": 21000, "currency": "INR"})
+        _call(world, "cart_commit",
+              {"cart_id": cart_a, "expected_amount_minor": 25200, "currency": "INR"})
+
+        # THE query the trail must support, written against the ledger alone:
+        no_order = [e for e in audit.entries()
+                    if e.tool_name == "cart_commit"
+                    and e.app_outcome and not e.app_outcome.startswith("COMMITTED")]
+        committed = [e for e in audit.entries()
+                     if e.tool_name == "cart_commit"
+                     and e.app_outcome and e.app_outcome.startswith("COMMITTED")]
+        assert len(no_order) == 1
+        assert no_order[0].app_outcome == "REJECT_REPRICE_DIVERGENCE"
+        assert no_order[0].outcome == "forwarded"   # boundary said ALLOW —
+        assert len(committed) == 1                  # — the ledger still tells the truth
+
+    def test_app_outcome_survives_chain_verification(self, world):
+        from sentinel.audit.verify import verify_chain
+        created = _call(world, "cart_create", {"mandate_id": "mnd_dinner"})
+        cart_id = created.result["cart_id"]
+        _call(world, "cart_add_item",
+              {"cart_id": cart_id, "item_id": "itm_garlic-naan", "quantity": 1})
+        _call(world, "cart_commit",
+              {"cart_id": cart_id, "expected_amount_minor": 4200, "currency": "INR"})
+        _, _, audit, *_ = world
+        assert verify_chain(audit.entries()).ok
+
+
+class TestCreateReplaySemantics:
+    def test_identical_cart_create_in_one_run_replays_the_same_cart(self, world):
+        """Discovered, then kept deliberately: SENTINEL's write-idempotency
+        guard keys on (tool, arguments), so a second cart_create with
+        identical arguments in the same run REPLAYS the first cart rather
+        than minting a second. That is the guard doing its job — retry-safe
+        writes — and the buyer agent uses one cart per run. Documented in
+        ADR-033; a future multi-cart-per-run design must add a client
+        reference argument to make intents distinguishable."""
+        a = _call(world, "cart_create", {"mandate_id": "mnd_dinner"})
+        b = _call(world, "cart_create", {"mandate_id": "mnd_dinner"})
+        assert b.idempotent_replay is True
+        assert b.result["cart_id"] == a.result["cart_id"]

@@ -81,6 +81,7 @@ def _descriptor(name: str, spec: dict[str, Any], upstream_tool: dict[str, Any],
         provenance_map=_parse_provenance_map(spec.get("provenance_map")),
         pii_map=_parse_pii_map(spec.get("pii_map")),
         is_paginated=bool(spec.get("is_paginated", False)),
+        outcome_field=spec.get("outcome_field"),
     )
 
 
