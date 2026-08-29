@@ -161,5 +161,14 @@ class FixtureUpstream:
     # ---- lightweight writes used less often ----
     def _t_update_payment(self, a): return {"id": a["payment_id"], "status": "updated"}
     def _t_update_refund(self, a): return {"id": a["refund_id"], "status": "updated"}
-    def _t_create_order(self, a): return {"id": f"order_{idg.Rng(1).letters(12)}", **a, "status": "created"}
+    def _t_create_order(self, a):
+        # UNIQUE per call, deterministic per instance. The constant-seeded Rng
+        # minted the SAME id for every order — three purchases collided onto
+        # one order and the paid-order guard refused the third's payment (the
+        # controls behaved perfectly around a fixture that violated Razorpay's
+        # most basic property: minted ids are unique). Found by the demo API,
+        # the first multi-purchase world (ADR-039).
+        self._order_seq = getattr(self, "_order_seq", 0) + 1
+        return {"id": f"order_{idg.Rng(self._order_seq).letters(12)}",
+                **a, "status": "created"}
     def _t_create_payment_link(self, a): return {"id": f"plink_{idg.Rng(2).letters(12)}", **a, "status": "created"}
