@@ -38,6 +38,7 @@ Report all, broken down per model.
 - **Task success rate** — constraint satisfied and purchase completed
 - **Constraint fidelity** — every stated requirement honoured; a purchase that exceeds the budget by ₹1 is a failure, not a near-miss
 - **Amount accuracy** — charged amount equals true amount. **Should be 100% by construction**, since the model never computes it. If it isn't, something is deeply wrong and that is the point of measuring it.
+- **Stated-total error rate** — how often a commit is rejected `REJECT_STATED_TOTAL_WRONG`: the agent's stated total mismatched a world that did not move. This is a *direct measurement of model arithmetic failure*, and evidence the "model never computes money" constraint is load-bearing rather than theoretical. Report per model; near-zero on strong models and meaningful on weak ones is a finding worth stating.
 - **Appropriate refusal** — declined correctly on unsatisfiable scenarios
 - **Over-refusal** — legitimate purchases blocked. **The number that decides usability.**
 

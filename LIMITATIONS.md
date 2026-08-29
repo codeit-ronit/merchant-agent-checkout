@@ -1,7 +1,46 @@
-# LIMITATIONS.md — what SENTINEL does not do
+# LIMITATIONS.md — what this project does not do
 
 Naming your own scope cuts is a seniority signal, not an admission. This file is
 deliberately unflinching. Where a limitation has a known fix, the fix is named.
+First the commerce loop (CONDUIT), then the enforcement layer (SENTINEL).
+
+## Discounts are deferred, not half-built
+The catalog has no merchant discount rules, so "discounts from merchant rules
+only" is vacuously satisfied (ADR-032). The reason it is deferred rather than
+sketched: a discount is a *negative* money action authored by the merchant and
+applied by code, and it needs the same attribution and bounding model the
+upsell got — a merchant-authored rule as the only source, a cap, receipt
+visibility, and suppression logic — or it becomes an unbounded price-mutation
+channel. Half of that model is worse than none of it.
+
+## Catalog-from-order-history is dropped (ADR-030)
+Verified live: order entities carry no line items and a fresh test account's
+`notes` are empty. Demonstrating "zero-effort catalog derivation" would require
+seeding our own history — a circular demo. The path is real only for merchants
+whose integrations already write item-shaped `notes`; this account cannot
+represent them.
+
+## Agents can be price-discriminated against
+A merchant could quote AI buyers higher than humans. We do not prevent this —
+there is no human-facing price to compare against. It is a real property of
+agent-readable catalogs; detection would require cross-referencing the
+merchant's human storefront.
+
+## Modelled versus real — the line, stated plainly
+Catalog, cart, and mandate are MODELLED services over real primitives. Every
+Razorpay call is REAL (test mode). Reserve Pay is an NPCI rail-layer product
+with no Razorpay API: we model its semantics; we do not integrate it. See
+`PROTOCOLS.md` for every protocol's claim level.
+
+## Commerce state is in-process
+The drawdown ledger's atomicity is a process-level lock over a repository
+seam (ADR-032). Single-operator local deployment, as inherited. Multi-process
+deployment would move the lock into a database transaction — the seam exists,
+the work is not done.
+
+---
+
+# SENTINEL — the enforcement layer's own limitations
 
 ## The audit ledger is tamper-EVIDENT, not tamper-PROOF
 The hash chain makes retroactive alteration *detectable*: change entry N and
