@@ -76,13 +76,13 @@ Every phase ends with something demonstrable and an appended `DECISIONS.md` entr
 7. Cart expiry with reservation release
 
 **Exit:**
-- [ ] No cart operation accepts an amount; rejection tested, not silent ignore
-- [ ] Re-price produces an itemised structured diff
-- [ ] Divergence rejects and preserves the cart
-- [ ] Idempotent commit: same request twice → one order
-- [ ] Failed `create_order` releases the reservation
-- [ ] Concurrent commits cannot over-draw; tested with real concurrency
-- [ ] Catalog unreachable → fail closed
+- [x] No cart operation accepts an amount; rejection tested, not silent ignore (`test_cart_mcp_boundary.py`; strict arg layer)
+- [x] Re-price produces an itemised structured diff — with WHY per line, from the stored last-priced snapshot (`test_commit_gate.py::TestRepriceDiff`)
+- [x] Divergence rejects and preserves the cart; hallucinated totals get their own honest reason (`REJECT_STATED_TOTAL_WRONG`)
+- [x] Idempotent commit: same request twice → one order (`TestIdempotency`)
+- [x] Failed `create_order` releases the reservation; cart recoverable (`TestFailClosed`)
+- [x] Concurrent commits cannot over-draw; tested with REAL concurrency — barrier-released threads (`test_drawdown_ledger.py::TestRealConcurrency`)
+- [x] Catalog unreachable → fail closed, nothing reserved (`TestFailClosed`)
 
 ---
 

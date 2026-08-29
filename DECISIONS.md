@@ -1434,3 +1434,79 @@ without a SENTINEL diff.
 Phase 2's cart tools strain the wrapper (e.g. needing transactional state
 across inner/outer calls) — then promote the composite to a first-class
 conduit MCP server rather than growing branches in the wrapper.
+
+---
+
+## ADR-032 — The commit gate: structured rejections, snapshot-based diffs, one boundary crossing
+Date: 2026-08-29    Phase: 2    Status: Accepted
+
+### Context
+Phase 2 is the heart of the build: the off-rail cart and the single guarded
+path from cart to `create_order`. Several real choices were made; each is
+named here with its cost.
+
+### Decisions
+
+**1. Gate rejections are structured RESULTS, not errors.** A re-price
+divergence, a named stock failure, or a mandate shortfall is a well-formed
+answer the agent must reason over — `{committed: false, reason_code, message,
+next_step, diff?}` — not an upstream exception. The spec requires the diff to
+reach the agent as structured data (04 §4.2); an error string cannot carry an
+itemised diff. *Cost:* the boundary trace shows `ALLOW` + executed for a call
+that commercially REFUSED — the policy layer permitted the attempt; the
+commerce layer answered no. The two layers' verdicts are distinct on purpose,
+and the UI must render both.
+
+**2. The diff's baseline is a server-stored snapshot of the agent's last
+priced view.** Every `cart_view`/mutation response is recorded on the cart
+(`last_priced`: unit price + price version per line). At commit the diff can
+therefore say per line what the agent BELIEVED, what is true, and WHY
+("price changed v1→v2: 20000 → 24000"), and distinguish two failure modes
+with different honest messages: `REJECT_REPRICE_DIVERGENCE` (the world moved)
+vs `REJECT_STATED_TOTAL_WRONG` (no price moved; the agent's arithmetic did —
+"the catalog computes money; agents do not"). *Cost:* one more field to
+persist, and the baseline reflects the last SERVER-shown view, which is the
+correct baseline precisely because agent beliefs formed elsewhere don't count.
+
+**3. One boundary crossing per binding event (closes ADR-027's watch item).**
+`cart_commit` crosses the interceptor classified COLLECTION with
+`amount_arg_path: expected_amount_minor`; the gate's inner `create_order`
+goes straight to the inner upstream and never crosses the boundary. Proven:
+a commit produces exactly one audit entry, and `create_order` never appears
+as a boundary event. Evaluating policy on the agent's STATED amount is sound
+because execution only proceeds when it equals the re-priced server truth —
+divergence rejects before anything binds. A commit above the ₹10,000 review
+tier is stopped at the boundary BEFORE the gate runs (tested: nothing
+reserved). *Cost:* the policy engine never sees the gate's internal write;
+acceptable because the gate is server code outside attacker influence and
+its input amount was just policy-checked under the same value.
+
+**4. Reserve-before-forward with the ledger as the serialisation point.**
+`reserve` is one atomic check-and-append under a lock; 16 barrier-released
+threads racing ₹300 reservations against ₹2,000 yield exactly 6 — proven
+with genuinely parallel commits, because sequential tests pass on broken
+implementations. Failed `create_order` (or an upstream response with no
+order id) releases the hold; the cart stays recoverable; retry is idempotent
+over `(cart_id, final_amount, mandate_id)`.
+
+**5. Mechanical choices, recorded:** tax is per-line integer floor
+(`line_total × rate_bps // 10000`) — deterministic, no rounding mode to
+argue about; cart expiry is checked on touch and releases any held
+reservation; `cart_commit` carries an explicit `currency` argument mirroring
+`create_order` (the gate rejects a mismatch with the cart's currency);
+`notes` read-back uses a helper that accepts both Razorpay serialisations
+(empty list / object — ADR-030); merchant discount rules do not exist in the
+catalog model, so the "discounts from merchant rules only" clause is
+vacuously satisfied and discounts are out of scope (recorded, not silent).
+
+### Trade-off accepted (overall)
+The gate holds commerce state (idempotency map, drawdown ledger) in process —
+consistent with the single-operator, local deployment inherited from
+SENTINEL. Multi-process deployment would need the ledger's lock to become a
+database transaction; the repository seam exists for exactly that.
+
+### Revisit if
+Phase 3's mandate policy composition needs the gate's mandate check to move
+into `DecisionContext` entirely — then the gate's reserve stays (it is the
+atomic hold), but its "insufficient balance" pre-check wording should defer
+to the policy engine's reason codes so one explanation format survives.
