@@ -19,6 +19,11 @@ from sentinel.api.service import ControlPlane
 from sentinel.common.config import repo_root
 
 app = FastAPI(title="SENTINEL control plane", version="0.1.0")
+
+# CONDUIT commerce surface (catalog / mandates / purchase+SSE / orders) — the
+# one-line mount is the whole SENTINEL-side change (ADR-031 layering).
+from conduit.api import router as _commerce_router  # noqa: E402
+app.include_router(_commerce_router)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 cp = ControlPlane()
 
