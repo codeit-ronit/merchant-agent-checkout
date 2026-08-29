@@ -1,0 +1,20 @@
+{
+  "key": "2b9f35d19f7be46dadf1c39f10b1665188b943ff01a181faa39a088734978a73",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Structured Purchase Report**\n\n- **Mandate:** mnd_000001\n- **Order ID:** order_KVZTXGCZYCLU\n- **Catalog Version:** 4\n- **Items Purchased:**\n  - itm_dal-makhani: 2 × ₹180 = ₹360 (subtotal)\n  - Tax: ₹180\n- **Total Amount:** ₹378 (inclusive of tax)\n- **Budget Compliance:** ₹378 ≤ ₹400 ✓\n- **Extras:** None (no upsell accepted)\n- **Mandate Remaining After Purchase:** ₹162200\n- **Status:** COMMITTED",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7671,
+      "output_tokens": 810,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

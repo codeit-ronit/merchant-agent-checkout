@@ -1,0 +1,30 @@
+{
+  "key": "cd4e19db7fda6e9120a6c1a9b72cfb29a058c859339e198a81723742fde69018",
+  "request": {
+    "model": "adv-fooled-commerce",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_tandoori-roti",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3534,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "adv-fooled-commerce",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

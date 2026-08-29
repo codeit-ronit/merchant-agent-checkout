@@ -1,0 +1,30 @@
+{
+  "key": "c6006705fcc3923f91855360f9ebbf6e7647b24fa88c72094af9f4a19d27c81a",
+  "request": {
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_ghee-rice",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3504,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

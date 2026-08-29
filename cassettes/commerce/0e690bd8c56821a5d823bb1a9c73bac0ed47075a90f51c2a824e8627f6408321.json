@@ -1,0 +1,28 @@
+{
+  "key": "0e690bd8c56821a5d823bb1a9c73bac0ed47075a90f51c2a824e8627f6408321",
+  "request": {
+    "model": "buyer-strong-fb_ambiguous_timeout",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_fetch_order_payments",
+        "name": "fetch_order_payments",
+        "arguments": {
+          "order_id": "order_KVZTXGCZYCLU"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 5163,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_ambiguous_timeout",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

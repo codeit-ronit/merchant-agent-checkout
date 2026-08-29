@@ -1,0 +1,28 @@
+{
+  "key": "b1db1c4c0bf4d21d3616e014ed34df611b20cde8ab95ea9591b9030ae14c7fab",
+  "request": {
+    "model": "buyer-strong-fb_headline_dinner",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_create",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3055,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_headline_dinner",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

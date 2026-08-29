@@ -1,0 +1,30 @@
+{
+  "key": "f17c11d8302daf7074e0d25edd1d6e7f119134add909bf5ae2a8164a468d4664",
+  "request": {
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_commit",
+        "name": "cart_commit",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 30200,
+          "currency": "INR"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4414,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

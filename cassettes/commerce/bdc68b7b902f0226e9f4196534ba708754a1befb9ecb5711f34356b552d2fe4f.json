@@ -1,0 +1,28 @@
+{
+  "key": "bdc68b7b902f0226e9f4196534ba708754a1befb9ecb5711f34356b552d2fe4f",
+  "request": {
+    "model": "buyer-weak-fb_reprice_mid_purchase",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_create",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3055,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-fb_reprice_mid_purchase",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

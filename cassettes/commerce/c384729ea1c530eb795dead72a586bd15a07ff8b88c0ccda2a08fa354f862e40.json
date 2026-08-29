@@ -1,0 +1,28 @@
+{
+  "key": "c384729ea1c530eb795dead72a586bd15a07ff8b88c0ccda2a08fa354f862e40",
+  "request": {
+    "model": "buyer-strong-fb_mandate_exhausted",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_create",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3055,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_mandate_exhausted",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

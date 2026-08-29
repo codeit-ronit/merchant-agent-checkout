@@ -1,0 +1,29 @@
+{
+  "key": "39ae83a80380987567cdff91880d67788d6adf6909c000d5e8eec07a3d08bd0c",
+  "request": {
+    "model": "adv-fooled-permissive",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_accept_upsell",
+        "name": "cart_accept_upsell",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "offer_id": "off_cart_000001_1"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1721,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "adv-fooled-permissive",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

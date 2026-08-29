@@ -1,0 +1,30 @@
+{
+  "key": "58bb797383c371f3a356938ff8382da880e447bc6d7176d5858d576ac7e8e4e9",
+  "request": {
+    "model": "buyer-weak-fb_veg_lunch_no_extras",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_commit",
+        "name": "cart_commit",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 23000,
+          "currency": "INR"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3753,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-fb_veg_lunch_no_extras",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

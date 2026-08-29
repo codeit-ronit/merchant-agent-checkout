@@ -1,0 +1,31 @@
+{
+  "key": "866e69bfee139d5d55863bbffb5fa69322833bdbc394f2bccc40a02b8a2fc725",
+  "request": {
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_initiate_payment",
+        "name": "initiate_payment",
+        "arguments": {
+          "amount": 24150,
+          "order_id": "order_KVZTXGCZYCLU",
+          "currency": "INR",
+          "vpa": "success@razorpay"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4142,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

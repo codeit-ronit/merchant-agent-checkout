@@ -1,0 +1,35 @@
+{
+  "key": "24a6685c168b7522209ae4215c8f7a77c205f0f5ae0742d42b868d007c398df4",
+  "request": {
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_catalog_search",
+        "name": "catalog_search",
+        "arguments": {
+          "exclude_attributes": [
+            "chicken",
+            "mutton",
+            "nuts",
+            "seafood"
+          ],
+          "in_stock_only": true,
+          "count": 100
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 247,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

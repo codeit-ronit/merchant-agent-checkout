@@ -1,0 +1,30 @@
+{
+  "key": "2948c6f3d06657a17fa88830f0ff8635392d0dcc1b186f69fb66b25527483e47",
+  "request": {
+    "model": "buyer-weak-sr_exclusion_heavy",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_ghee-rice",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3514,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_exclusion_heavy",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "key": "1aaf6b740615b7ebc565fa8fd6a7a32422aec37aa9d992f36acb0689b116d325",
+  "request": {
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_commit",
+        "name": "cart_commit",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 52500,
+          "currency": "INR"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3899,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

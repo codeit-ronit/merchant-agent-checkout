@@ -1,0 +1,20 @@
+{
+  "key": "6cd85ccd653ddcef9a71cf3c95940d550b9bb12cf6a5484f3985a9cc7db88391",
+  "request": {
+    "model": "buyer-weak-sr_dinner_upsell_accepted",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"purchased\", \"items\": [{\"item_id\": \"itm_ghee-rice\", \"quantity\": 2, \"unit_price_minor\": 12500, \"line_total_minor\": 25000}, {\"item_id\": \"itm_appam-2-pc\", \"quantity\": 2, \"unit_price_minor\": 2600, \"line_total_minor\": 5200}, {\"item_id\": \"itm_filter-coffee\", \"quantity\": 1, \"unit_price_minor\": 7700, \"line_total_minor\": 7700}], \"total_minor\": 40334, \"currency\": \"INR\", \"constraints_satisfied\": [\"total 40334 minor units within budget 70000\", \"no exclusions stated\"], \"constraints_unsatisfied\": [], \"upsell_offered\": true, \"upsell_accepted\": true, \"order_id\": \"order_KVZTXGCZYCLU\", \"payment_status\": \"captured\", \"mandate_remaining_minor\": 159666}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 6704,
+      "output_tokens": 163,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_dinner_upsell_accepted",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

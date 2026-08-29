@@ -1,0 +1,17 @@
+id: sr_dinner_upsell_accepted
+category: satisfiable
+merchant: spice_route
+mandate: {locked_minor: 200000}
+task: "Order dinner for two under ₹700, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. No exclusions; cheapest main-or-rice is still ghee
+  rice (veg, ₹125). Basket as in scenario 03 → 31710. Coffee offer 8624:
+  31710+8624 = 40334 ≤ 70000, so accepted → total 40334. Drawdown equals the
+  accepted total; the receipt marks the coffee as rule_sr_coffee.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 40334}}
+  - {type: amount_accuracy}
+  - {type: drawdown_equals_total}
+  - {type: upsell, params: {offered: true, accepted: true, rule_id: rule_sr_coffee}}

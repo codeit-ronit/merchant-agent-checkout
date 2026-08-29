@@ -1,0 +1,29 @@
+{
+  "key": "1a1646064ab0c8d09cda4747c42ed07eb4c951aab5eac972b3b731477071d7a6",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-640e50f8-45d2-471e-a6ce-be0ac9b5508f",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "item_id": "itm_butter-chicken",
+          "quantity": 1
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7932,
+      "output_tokens": 1232,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

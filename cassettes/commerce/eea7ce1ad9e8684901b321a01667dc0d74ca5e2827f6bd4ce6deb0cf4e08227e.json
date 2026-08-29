@@ -1,0 +1,30 @@
+{
+  "key": "eea7ce1ad9e8684901b321a01667dc0d74ca5e2827f6bd4ce6deb0cf4e08227e",
+  "request": {
+    "model": "buyer-strong-fb_reprice_mid_purchase",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_steamed-rice",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3123,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_reprice_mid_purchase",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

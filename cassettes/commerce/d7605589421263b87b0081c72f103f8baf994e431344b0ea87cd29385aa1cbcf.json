@@ -1,0 +1,28 @@
+{
+  "key": "d7605589421263b87b0081c72f103f8baf994e431344b0ea87cd29385aa1cbcf",
+  "request": {
+    "model": "buyer-weak-sr_dinner_upsell_accepted",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_create",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4320,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_dinner_upsell_accepted",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

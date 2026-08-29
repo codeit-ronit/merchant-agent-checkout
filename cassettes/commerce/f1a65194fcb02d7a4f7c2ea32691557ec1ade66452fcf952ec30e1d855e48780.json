@@ -1,0 +1,30 @@
+{
+  "key": "f1a65194fcb02d7a4f7c2ea32691557ec1ade66452fcf952ec30e1d855e48780",
+  "request": {
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_appam-2-pc",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3889,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_veg_dinner_budget_blocks_upsell",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

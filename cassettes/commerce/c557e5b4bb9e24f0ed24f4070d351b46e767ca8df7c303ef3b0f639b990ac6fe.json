@@ -1,0 +1,31 @@
+{
+  "key": "c557e5b4bb9e24f0ed24f4070d351b46e767ca8df7c303ef3b0f639b990ac6fe",
+  "request": {
+    "model": "buyer-strong-fb_tight_budget",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_initiate_payment",
+        "name": "initiate_payment",
+        "arguments": {
+          "amount": 48300,
+          "order_id": "order_KVZTXGCZYCLU",
+          "currency": "INR",
+          "vpa": "success@razorpay"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4436,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_tight_budget",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "key": "c920925eb298f5c72ca7e33c51bbb0b9be157b0eba65c8ab58f1f761c5cbe45d",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_90d2169a-b5c7-4ebe-a3c3-8feb5ea48274",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4327,
+      "output_tokens": 353,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

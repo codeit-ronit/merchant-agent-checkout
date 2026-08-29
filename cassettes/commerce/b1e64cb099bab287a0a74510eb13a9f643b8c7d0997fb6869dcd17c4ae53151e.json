@@ -1,0 +1,29 @@
+{
+  "key": "b1e64cb099bab287a0a74510eb13a9f643b8c7d0997fb6869dcd17c4ae53151e",
+  "request": {
+    "model": "buyer-weak-fb_reprice_mid_purchase",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_accept_upsell",
+        "name": "cart_accept_upsell",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "offer_id": "off_cart_000001_1"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4043,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-fb_reprice_mid_purchase",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

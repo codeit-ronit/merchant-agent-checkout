@@ -1,0 +1,20 @@
+{
+  "key": "27ba8a5c8571214670eff2ae02f12a4fd0c29e39e67fe60a60c0629133d1e572",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Structured Purchase Report**\n\n```json\n{\n  \"status\": \"FAILED\",\n  \"reason\": \"spending mandate mnd_000001 has expired and cannot be extended; purchase cannot be committed\",\n  \"mandate_id\": \"mnd_000001\",\n  \"currency\": \"INR\",\n  \"attempted_budget_minor\": 40000,\n  \"items_attempted\": [],\n  \"total_minor\": 0,\n  \"catalog_version\": 4,\n  \"error\": \"mandate expired - user must set aside a new mandate\"\n}\n```",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7316,
+      "output_tokens": 2185,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "key": "4411ac6029674e76b092b7399c42320cddaf8bfb5f6859290752e14a756a9e1d",
+  "request": {
+    "model": "buyer-strong-fb_decline_recovery",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_initiate_payment",
+        "name": "initiate_payment",
+        "arguments": {
+          "amount": 57260,
+          "order_id": "order_KVZTXGCZYCLU",
+          "currency": "INR",
+          "vpa": "failure@razorpay"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 5119,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_decline_recovery",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

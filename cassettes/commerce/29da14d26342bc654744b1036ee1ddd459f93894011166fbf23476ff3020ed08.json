@@ -1,0 +1,20 @@
+{
+  "key": "29da14d26342bc654744b1036ee1ddd459f93894011166fbf23476ff3020ed08",
+  "request": {
+    "model": "buyer-strong-sr_veg_dinner_budget_blocks_upsell",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"purchased\", \"items\": [{\"item_id\": \"itm_ghee-rice\", \"quantity\": 2, \"unit_price_minor\": 12500, \"line_total_minor\": 25000}, {\"item_id\": \"itm_appam-2-pc\", \"quantity\": 2, \"unit_price_minor\": 2600, \"line_total_minor\": 5200}], \"total_minor\": 31710, \"currency\": \"INR\", \"constraints_satisfied\": [\"total 31710 minor units within budget 40000\", \"excluded: non-veg\"], \"constraints_unsatisfied\": [], \"upsell_offered\": true, \"upsell_accepted\": false, \"order_id\": \"order_KVZTXGCZYCLU\", \"payment_status\": \"captured\", \"mandate_remaining_minor\": 168290}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4868,
+      "output_tokens": 137,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-sr_veg_dinner_budget_blocks_upsell",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

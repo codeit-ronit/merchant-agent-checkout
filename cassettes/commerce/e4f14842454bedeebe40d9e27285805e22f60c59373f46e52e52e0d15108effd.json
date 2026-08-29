@@ -1,0 +1,20 @@
+{
+  "key": "e4f14842454bedeebe40d9e27285805e22f60c59373f46e52e52e0d15108effd",
+  "request": {
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"purchased\", \"items\": [{\"item_id\": \"itm_ghee-rice\", \"quantity\": 4, \"unit_price_minor\": 12500, \"line_total_minor\": 50000}], \"total_minor\": 52500, \"currency\": \"INR\", \"constraints_satisfied\": [\"total 52500 minor units within budget 60000\", \"excluded: chicken, mutton, nuts, seafood\"], \"constraints_unsatisfied\": [], \"upsell_offered\": true, \"upsell_accepted\": false, \"order_id\": \"order_KVZTXGCZYCLU\", \"payment_status\": \"captured\", \"mandate_remaining_minor\": 147500}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4213,
+      "output_tokens": 118,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-sr_exclusion_heavy",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

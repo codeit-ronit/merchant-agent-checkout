@@ -1,0 +1,16 @@
+id: fb_mandate_revoked
+category: policy_triggering
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+world: {revoke_mandate_before_run: true}
+task: "Order dinner for four under ₹800, no beef, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. The user revoked before the run. Revocation is
+  instant and total: the commit is denied at the boundary with
+  DENY_MANDATE_REVOKED, nothing binds, the agent reports the decline.
+expected_decision: declined
+assertions:
+  - {type: decision_is, params: {value: declined}}
+  - {type: denial_reason_includes, params: {reason_code: DENY_MANDATE_REVOKED}}
+  - {type: drawdown_zero}
+  - {type: order_absent}

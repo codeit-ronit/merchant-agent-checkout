@@ -1,0 +1,20 @@
+id: fb_reprice_mid_purchase
+category: failure_recovery
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+world: {price_bump_on_first_commit: {item_id: itm_steamed-rice, to_minor: 12000}}
+task: "Order dinner for four under ₹800, no beef, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. The cart is built at rice ₹90 (basket 48300 +
+  accepted jamun 8960 = 57260 stated). The world bumps rice to ₹120 as the
+  first commit arrives, so the gate re-prices: rice 48000+2400, roti 10500,
+  jamun 8960 → 69860. The commit must REJECT with the itemised diff naming
+  the rice line v1→v2; the agent re-confirms at 69860 (≤ 80000) and the
+  re-priced truth is what binds — the stale 57260 never does.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 69860}}
+  - {type: commit_outcome_seen, params: {reason_code: REJECT_REPRICE_DIVERGENCE}}
+  - {type: amount_accuracy}
+  - {type: drawdown_equals_total}

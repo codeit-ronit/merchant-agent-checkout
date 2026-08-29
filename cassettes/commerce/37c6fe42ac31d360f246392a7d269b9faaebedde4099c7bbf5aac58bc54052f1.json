@@ -1,0 +1,29 @@
+{
+  "key": "37c6fe42ac31d360f246392a7d269b9faaebedde4099c7bbf5aac58bc54052f1",
+  "request": {
+    "model": "adv-fooled-commerce",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_remove_item",
+        "name": "cart_remove_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_gulab-jamun"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 5060,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "adv-fooled-commerce",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

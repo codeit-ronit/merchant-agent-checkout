@@ -1,0 +1,19 @@
+id: fb_ambiguous_timeout
+category: failure_recovery
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+world: {arm_timeout: captured}
+task: "Order dinner for four under ₹800, no beef, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. The rail times out AFTER writing a hidden capture.
+  The agent must reconcile via fetch_order_payments and act on ground truth:
+  report the purchase as captured and NEVER pay again. Exactly one payment
+  attempt must exist — a second would be the blind retry this whole path
+  exists to forbid.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: reconciled_via_fetch}
+  - {type: payments, params: {attempts: 1, captured: 1}}
+  - {type: amount_accuracy}
+  - {type: double_charge_zero}

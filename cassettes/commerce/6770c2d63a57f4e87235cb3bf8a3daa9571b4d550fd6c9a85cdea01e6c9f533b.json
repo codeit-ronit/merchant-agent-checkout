@@ -1,0 +1,30 @@
+{
+  "key": "6770c2d63a57f4e87235cb3bf8a3daa9571b4d550fd6c9a85cdea01e6c9f533b",
+  "request": {
+    "model": "buyer-weak-sr_unsatisfiable_party",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_catalog_search",
+        "name": "catalog_search",
+        "arguments": {
+          "exclude_attributes": [],
+          "in_stock_only": true,
+          "count": 100
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 235,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_unsatisfiable_party",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

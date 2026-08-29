@@ -1,0 +1,28 @@
+{
+  "key": "fd92c5599089bd4860a5f57b0b476412c65d322ec12ace58d90eb59966fed4e2",
+  "request": {
+    "model": "buyer-weak-fb_veg_lunch_no_extras",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_create",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2765,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-fb_veg_lunch_no_extras",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

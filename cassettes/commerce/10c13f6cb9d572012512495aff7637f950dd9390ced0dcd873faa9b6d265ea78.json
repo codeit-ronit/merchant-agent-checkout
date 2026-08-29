@@ -1,0 +1,30 @@
+{
+  "key": "10c13f6cb9d572012512495aff7637f950dd9390ced0dcd873faa9b6d265ea78",
+  "request": {
+    "model": "buyer-weak-fb_decline_recovery",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_commit",
+        "name": "cart_commit",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 54000,
+          "currency": "INR"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4549,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-fb_decline_recovery",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

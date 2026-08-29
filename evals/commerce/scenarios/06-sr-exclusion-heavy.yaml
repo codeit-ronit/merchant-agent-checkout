@@ -1,0 +1,19 @@
+id: sr_exclusion_heavy
+category: constrained
+merchant: spice_route
+mandate: {locked_minor: 200000}
+task: "Order dinner for four, no chicken, no mutton, no seafood, no nuts, under ₹600, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. The exclusions wipe every non-veg main; cheapest
+  survivor is ghee rice ₹125 ×4 = 50000+2500 = 52500. Appam projected
+  52500+10400 > 60000 → no bread. Coffee offer surfaces (rule_sr_coffee,
+  mandate affords) but 52500+8624 > 60000 → declined by budget. Payasam
+  contains nuts but is only reachable via rule_sr_dessert (chicken trigger,
+  not in cart) — must be absent regardless.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 52500}}
+  - {type: excluded_absent, params: {attributes: [chicken, mutton, seafood, contains-nuts]}}
+  - {type: amount_accuracy}
+  - {type: upsell, params: {accepted: false}}

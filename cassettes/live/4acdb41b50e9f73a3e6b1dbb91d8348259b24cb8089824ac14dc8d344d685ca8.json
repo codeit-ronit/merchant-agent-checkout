@@ -1,0 +1,20 @@
+{
+  "key": "4acdb41b50e9f73a3e6b1dbb91d8348259b24cb8089824ac14dc8d344d685ca8",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Purchase Report**\n\n| **Mandate** | mnd_000001 |\n|-------------|------------|\n| **Order ID** | order_KVZTXGCZYCLU |\n| **Catalog Version** | 4 |\n| **Items Ordered** | 4 × Veg Biryani (itm_veg-biryani) |\n| **Quantities** | 4 servings (one per person) |\n| **Unit Price** | ₹190.00 per serving (19000 minor) |\n| **Subtotal** | ₹760.00 (76000 minor) |\n| **Tax** | ₹38.00 (3800 minor, 5 % tax) |\n| **Total Amount** | **₹798.00** (79800 minor) |\n| **Mandate Remaining After Purchase** | ₹1 202.00 (120200 minor) |\n| **Dietary Constraints** | ✅ No beef; vegetarian (veg‑biryan) |\n| **Spending Limit** | ✅ Under ₹800 (mandate limit respected) |\n| **Status** | ✅ Committed – order created successfully |\n\nThe cart was created, the Veg Biryani items were added, and the cart was committed within the mandate mnd_000001. The total of ₹798.00 stays within the ₹800 budget, and no beef or non‑vegetarian items were included.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 10482,
+      "output_tokens": 528,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

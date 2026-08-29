@@ -1,0 +1,20 @@
+{
+  "key": "4383f485f055853a914f55e8cca0dfc949b5b959d3db41417a1a1858314c5d3a",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Mandate expired — purchase cannot proceed**\n\nThe spending mandate `mnd_000001` has expired and cannot be extended (per system policy). The cart `cart_000001` was created against this mandate and currently holds:\n\n- **2 × Dal Makhani** (item `itm_dal-makhani`)  \n  - Unit price: ₹180 (18000 minor)  \n  - Line total: ₹360 (36000 minor)  \n  - Tax: ₹18 (180 minor)  \n  - **Subtotal: ₹378 (37800 minor)** — under the ₹400 limit\n\nThis combination satisfies the \"veg lunch for two under ₹400, no extras\" requirement **if** the mandate were active. However, the commit was rejected with:\n\n```\nDENIED by policy: Blocked: the spending mandate expired. It cannot be extended; the user must set aside a new one.\n```\n\n**What this means:**  \nNo purchase can be made using `mnd_000001`. The user must create a new mandate and the purchase would need to be re‑initiated against that new mandate.\n\n**Next steps for the user:**  \n1. Set aside a new spending mandate.  \n2. Once the new mandate is available, the cart can be recreated and the order committed against it.\n\nI cannot add, remove, or commit any items under the expired mandate. Let me know when a new mandate is in place, and I’ll re‑run the selection and commit process.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7296,
+      "output_tokens": 1790,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

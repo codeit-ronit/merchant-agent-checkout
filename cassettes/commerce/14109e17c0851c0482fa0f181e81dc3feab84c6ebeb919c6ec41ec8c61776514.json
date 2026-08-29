@@ -1,0 +1,30 @@
+{
+  "key": "14109e17c0851c0482fa0f181e81dc3feab84c6ebeb919c6ec41ec8c61776514",
+  "request": {
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_tandoori-roti",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3223,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

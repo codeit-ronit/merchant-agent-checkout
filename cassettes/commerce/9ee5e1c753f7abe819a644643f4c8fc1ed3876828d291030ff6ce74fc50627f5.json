@@ -1,0 +1,20 @@
+{
+  "key": "9ee5e1c753f7abe819a644643f4c8fc1ed3876828d291030ff6ce74fc50627f5",
+  "request": {
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"purchased\", \"items\": [{\"item_id\": \"itm_steamed-rice\", \"quantity\": 2, \"unit_price_minor\": 9000, \"line_total_minor\": 18000}, {\"item_id\": \"itm_tandoori-roti\", \"quantity\": 2, \"unit_price_minor\": 2500, \"line_total_minor\": 5000}], \"total_minor\": 24150, \"currency\": \"INR\", \"constraints_satisfied\": [\"total 24150 minor units within budget 40000\", \"excluded: extras, non-veg\"], \"constraints_unsatisfied\": [], \"upsell_offered\": true, \"upsell_accepted\": false, \"order_id\": \"order_KVZTXGCZYCLU\", \"payment_status\": \"captured\", \"mandate_remaining_minor\": 175850}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4208,
+      "output_tokens": 140,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_veg_lunch_no_extras",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

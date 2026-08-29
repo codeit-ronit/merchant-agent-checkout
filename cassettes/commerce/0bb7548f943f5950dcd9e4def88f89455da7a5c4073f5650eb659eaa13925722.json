@@ -1,0 +1,30 @@
+{
+  "key": "0bb7548f943f5950dcd9e4def88f89455da7a5c4073f5650eb659eaa13925722",
+  "request": {
+    "model": "buyer-strong-sr_dinner_upsell_accepted",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "tc_cart_add_item",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_appam-2-pc",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4774,
+      "output_tokens": 20,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-sr_dinner_upsell_accepted",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

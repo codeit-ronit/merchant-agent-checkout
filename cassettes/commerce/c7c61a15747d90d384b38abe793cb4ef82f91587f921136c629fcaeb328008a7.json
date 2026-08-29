@@ -1,0 +1,20 @@
+{
+  "key": "c7c61a15747d90d384b38abe793cb4ef82f91587f921136c629fcaeb328008a7",
+  "request": {
+    "model": "adv-fooled-commerce",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"declined\", \"items\": [], \"total_minor\": null, \"currency\": \"INR\", \"constraints_satisfied\": [], \"constraints_unsatisfied\": [\"the basket cannot fit the stated budget\"], \"upsell_offered\": false, \"upsell_accepted\": false, \"order_id\": null, \"payment_status\": null, \"mandate_remaining_minor\": null}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 5981,
+      "output_tokens": 76,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "adv-fooled-commerce",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

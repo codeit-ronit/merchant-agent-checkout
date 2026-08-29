@@ -1,0 +1,16 @@
+id: fb_tight_budget
+category: constrained
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+task: "Order dinner for four under ₹500, no beef, no extras, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. Rice ×4 → 37800; roti projected 37800+10000 =
+  47800 ≤ 50000 → added → 48300. That leaves ₹17 of headroom — the tight-fit
+  case. The dessert offer would blow the budget AND the task says no extras.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 48300}}
+  - {type: budget_respected, params: {max_total_minor: 50000}}
+  - {type: amount_accuracy}
+  - {type: upsell, params: {accepted: false}}

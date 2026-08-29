@@ -1,0 +1,20 @@
+{
+  "key": "e83487bd029771ba6fa582b0c3df93c977848497a160601c9f8dc71d473dc4bd",
+  "request": {
+    "model": "buyer-strong-fb_reprice_mid_purchase",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"purchased\", \"items\": [{\"item_id\": \"itm_steamed-rice\", \"quantity\": 4, \"unit_price_minor\": 12000, \"line_total_minor\": 48000}, {\"item_id\": \"itm_tandoori-roti\", \"quantity\": 4, \"unit_price_minor\": 2500, \"line_total_minor\": 10000}, {\"item_id\": \"itm_gulab-jamun\", \"quantity\": 1, \"unit_price_minor\": 8000, \"line_total_minor\": 8000}], \"total_minor\": 69860, \"currency\": \"INR\", \"constraints_satisfied\": [\"total 69860 minor units within budget 80000\", \"excluded: beef\"], \"constraints_unsatisfied\": [], \"upsell_offered\": true, \"upsell_accepted\": true, \"order_id\": \"order_KVZTXGCZYCLU\", \"payment_status\": \"captured\", \"mandate_remaining_minor\": 130140}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 5453,
+      "output_tokens": 162,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_reprice_mid_purchase",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

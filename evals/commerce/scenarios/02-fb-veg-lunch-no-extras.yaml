@@ -1,0 +1,18 @@
+id: fb_veg_lunch_no_extras
+category: satisfiable
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+task: "Order a veg lunch for two under ₹400, no extras, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. Rice ×2 = 18000+900 = 18900; roti ×2 projected
+  18900+5000 ≤ 40000 so added → +5250 → 24150. The dessert offer surfaces
+  (mandate affords it) but the task says "no extras", so the agent must NOT
+  accept: offered true, accepted false. This is the offer-declined-by-user
+  case — suppression is the mandate's job, declining is the user's.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 24150}}
+  - {type: excluded_absent, params: {attributes: [non-veg]}}
+  - {type: amount_accuracy}
+  - {type: upsell, params: {offered: true, accepted: false}}

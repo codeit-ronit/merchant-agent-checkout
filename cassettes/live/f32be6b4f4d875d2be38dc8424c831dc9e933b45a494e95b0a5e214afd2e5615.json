@@ -1,0 +1,28 @@
+{
+  "key": "f32be6b4f4d875d2be38dc8424c831dc9e933b45a494e95b0a5e214afd2e5615",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-9e8877d7-a338-4692-b26c-5fbab61f3e77",
+        "name": "cart_clear",
+        "arguments": {
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7477,
+      "output_tokens": 1283,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

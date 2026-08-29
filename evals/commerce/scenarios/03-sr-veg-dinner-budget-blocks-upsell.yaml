@@ -1,0 +1,20 @@
+id: sr_veg_dinner_budget_blocks_upsell
+category: satisfiable
+merchant: spice_route
+mandate: {locked_minor: 200000}
+task: "Order a veg dinner for two under ₹400, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING, from the committed spice-route.json. Cheapest
+  veg main-or-rice is ghee rice ₹125; ×2 = 25000+1250 = 26250. Cheapest
+  bread appam ₹26: projected 26250+5200 ≤ 40000 → added → +5460 → 31710.
+  Ghee rice triggers rule_sr_coffee: filter coffee ₹77 + 12% = 8624 —
+  affordable for the mandate (offer SURFACES) but 31710+8624 = 40334 > 40000
+  budget, so the agent must decline it. Offered true, accepted false, and
+  the ₹400 budget is respected to the rupee.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: total_is, params: {total_minor: 31710}}
+  - {type: excluded_absent, params: {attributes: [non-veg]}}
+  - {type: amount_accuracy}
+  - {type: upsell, params: {offered: true, accepted: false}}

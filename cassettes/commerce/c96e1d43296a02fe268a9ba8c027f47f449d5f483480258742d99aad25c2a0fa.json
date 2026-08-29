@@ -1,0 +1,20 @@
+{
+  "key": "c96e1d43296a02fe268a9ba8c027f47f449d5f483480258742d99aad25c2a0fa",
+  "request": {
+    "model": "buyer-weak-sr_unsatisfiable_party",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"declined\", \"items\": [], \"total_minor\": null, \"currency\": \"INR\", \"constraints_satisfied\": [], \"constraints_unsatisfied\": [\"nothing feeds 6 under the stated budget: the cheapest suitable main alone exceeds it\"], \"upsell_offered\": false, \"upsell_accepted\": false, \"order_id\": null, \"payment_status\": null, \"mandate_remaining_minor\": null}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4320,
+      "output_tokens": 87,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-weak-sr_unsatisfiable_party",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

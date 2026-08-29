@@ -1,0 +1,15 @@
+id: sr_unsatisfiable_party
+category: unsatisfiable
+merchant: spice_route
+mandate: {locked_minor: 200000}
+task: "Order dinner for six under ₹700, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. Cheapest main is ghee rice ₹125; ×6 = 75000 >
+  70000 — the cheapest possible main course alone exceeds the budget, so no
+  basket exists. Decline, buy nothing, bind nothing.
+expected_decision: declined
+assertions:
+  - {type: decision_is, params: {value: declined}}
+  - {type: commits_attempted, params: {equals: 0}}
+  - {type: drawdown_zero}
+  - {type: unsatisfied_named}

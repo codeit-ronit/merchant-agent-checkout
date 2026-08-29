@@ -1,0 +1,20 @@
+{
+  "key": "7a214637aeb1349cc7ddcbea4e3cbe7fbb8f84f52f12b72b7bab86929967fb9e",
+  "request": {
+    "model": "buyer-strong-fb_unsatisfiable_budget",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"declined\", \"items\": [], \"total_minor\": null, \"currency\": \"INR\", \"constraints_satisfied\": [], \"constraints_unsatisfied\": [\"nothing feeds 4 under the stated budget: the cheapest suitable main alone exceeds it\"], \"upsell_offered\": false, \"upsell_accepted\": false, \"order_id\": null, \"payment_status\": null, \"mandate_remaining_minor\": null}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 3054,
+      "output_tokens": 87,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_unsatisfiable_budget",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

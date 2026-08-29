@@ -1,0 +1,21 @@
+id: fb_headline_dinner
+category: satisfiable
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+task: "Order dinner for four under ₹800, no beef, using mandate {mandate_id}."
+reasoning: >
+  AUTHORED BEFORE RUNNING. Fresh Basket's cheapest main-or-rice is steamed
+  rice ₹90; ×4 = 36000 + 5% tax = 37800. Cheapest bread is tandoori roti ₹25;
+  projected fit, so ×4 adds 10500 → 48300. The rice line triggers
+  rule_dessert_with_rice; gulab jamun ₹80 + 12% = 8960 is affordable against
+  the ₹2,000 mandate (surfaced) and against the ₹800 budget (48300+8960=57260
+  ≤ 80000), so the agent accepts. Beef Fry exists and must be absent.
+expected_decision: purchased
+assertions:
+  - {type: decision_is, params: {value: purchased}}
+  - {type: budget_respected, params: {max_total_minor: 80000}}
+  - {type: excluded_absent, params: {attributes: [beef]}}
+  - {type: amount_accuracy}
+  - {type: drawdown_equals_total}
+  - {type: upsell, params: {offered: true, accepted: true}}
+  - {type: double_charge_zero}

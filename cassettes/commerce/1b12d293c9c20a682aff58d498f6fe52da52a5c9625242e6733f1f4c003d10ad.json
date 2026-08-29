@@ -1,0 +1,20 @@
+{
+  "key": "1b12d293c9c20a682aff58d498f6fe52da52a5c9625242e6733f1f4c003d10ad",
+  "request": {
+    "model": "buyer-strong-fb_mandate_revoked",
+    "provider": "scripted"
+  },
+  "response": {
+    "text": "{\"decision\": \"declined\", \"items\": [], \"total_minor\": null, \"currency\": \"INR\", \"constraints_satisfied\": [], \"constraints_unsatisfied\": [\"commit refused (): \"], \"upsell_offered\": false, \"upsell_accepted\": false, \"order_id\": null, \"payment_status\": null, \"mandate_remaining_minor\": null}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4578,
+      "output_tokens": 71,
+      "reported": true
+    },
+    "provider": "scripted",
+    "model": "buyer-strong-fb_mandate_revoked",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

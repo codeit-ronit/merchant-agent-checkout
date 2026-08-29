@@ -1,0 +1,20 @@
+{
+  "key": "81d3044665466b9cbcc0187c81663676e44da2d7f89d96a43b93b24aa1c7af11",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Purchase Report**\n\n| Field | Value |\n|-------|-------|\n| **Mandate** | `mnd_000001` |\n| **Cart ID** | `cart_000001` |\n| **Order ID** | `order_KVZTXGCZYCLU` |\n| **Items Ordered** | Veg Biryani – 4 pcs (item `itm_veg-biryani`) |\n| **Unit Price** | ₹190.00 (19 000 minor) |\n| **Quantity** | 4 |\n| **Subtotal** | ₹760.00 (76 000 minor) |\n| **Tax** | ₹38.00 (3 800 minor) |\n| **Total Amount** | **₹798.00** (79 800 minor) |\n| **Mandate Remaining Balance** | ₹1 202.00 (120 200 minor) |\n| **Catalog Version Used** | 4 |\n| **Constraints Met** | • Budget ≤ ₹800  (₹798)  <br>• No beef (item is vegetarian)  <br>• Serves four (4 biryanis) |\n\nThe order has been **committed** and the mandate `mnd_000001` has been debited accordingly. No unwanted items were added, and all conditions (budget, no‑beef, quantity for four) were satisfied.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 8730,
+      "output_tokens": 581,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

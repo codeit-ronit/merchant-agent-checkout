@@ -1,0 +1,20 @@
+{
+  "key": "fe3d6a4cdda1788f6bbe0acd9ee6f769be25d45133718c2b45c5584fc3c7009b",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Structured Purchase Report**\n\n**Mandate:** mnd_000001  \n**Order ID:** order_KVZTXGCZYCLU  \n**Catalog Version:** 4  \n\n**Items Purchased**\n- Dal Makhani (itm_dal-makhani): quantity 2\n  - Unit price: ₹180 (18000 minor) each\n  - Line total: ₹360 (36000 minor)\n  - Tax: ₹180 (1800 minor)\n  - Attributes: veg\n\n**Order Total**\n- Subtotal: ₹360 (36000 minor)\n- Tax total: ₹180 (1800 minor)\n- **Grand total: ₹378 (37800 minor)**\n- Constraint check: **₹378 ≤ ₹400** ✓ (under budget)\n\n**Mandate Impact**\n- Mandate remaining before: ₹2000 (200000 minor)\n- Mandate remaining after: ₹1622 (162200 minor)\n- Debited: ₹378 (37800 minor)\n\n**Upsell Handling**\n- An upsell offer for Garlic Naan (₹40) was presented during cart view\n- **No extras were accepted** per user constraint \"no extras\"\n- Upsell was rejected/cart cleared of optional items\n\n**Order Status**\n- ✅ Committed successfully\n- ✅ Price re-validated against live catalog at commit\n- ✅ Mandate sufficiency checked (₹378 ≤ ₹2000 available)\n- ✅ Availability confirmed (dal-makhani: IN_STOCK, quantity 2 purchasable)\n- ✅ No policy violations\n\n**Final Note:** The purchase satisfies all stated constraints: vegetarian lunch for two, total under ₹400 (₹378), no extras, and within mandate mnd_000001's balance.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7651,
+      "output_tokens": 2366,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

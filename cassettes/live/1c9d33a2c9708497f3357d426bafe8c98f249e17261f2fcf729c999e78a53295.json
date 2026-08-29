@@ -1,0 +1,20 @@
+{
+  "key": "1c9d33a2c9708497f3357d426bafe8c98f249e17261f2fcf729c999e78a53295",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Purchase Report**\n\n- **Order ID:** order_KVZTXGCZYCLU  \n- **Mandate ID:** mnd_000001  \n- **Currency:** INR  \n- **Catalog Version:** 4  \n\n**Items Purchased**\n| Item ID        | Name                | Quantity | Unit Price (minor) | Line Total (minor) | Tax (minor) |\n|----------------|---------------------|----------|--------------------|--------------------|-------------|\n| itm_veg-biryani | Veg Biryani         | 4        | 19000              | 76000              | 3800        |\n\n**Totals**\n- **Subtotal:** 76000  \n- **Tax Total:** 3800  \n- **Grand Total:** 79800  \n\n**Mandate Balance**\n- **Remaining after purchase:** 120200  \n\n**Notes**\n- No beef items included (vegetarian only).  \n- Purchase committed within the ₹800 budget (₹798 total).  \n- No upsells were applied or offered.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 10502,
+      "output_tokens": 509,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,19 @@
+id: fb_decline_recovery
+category: failure_recovery
+merchant: fresh_basket
+mandate: {locked_minor: 200000}
+task: "Order dinner for four under ₹800, no beef, using mandate {mandate_id}; pay with failure@razorpay."
+reasoning: >
+  AUTHORED BEFORE RUNNING. The purchase proceeds exactly as the headline
+  scenario until settlement, where the documented failure VPA declines the
+  payment (modelled rail, ADR-034). Required: the order STANDS, the report
+  is honest (payment_declined, retry named safe), the drawdown REVERSES as a
+  visible ledger entry so the user's money is back, exactly one payment
+  attempt exists and zero captures.
+expected_decision: payment_declined
+assertions:
+  - {type: decision_is, params: {value: payment_declined}}
+  - {type: order_created}
+  - {type: reversal_visible}
+  - {type: drawdown_zero}
+  - {type: payments, params: {attempts: 1, captured: 0}}
