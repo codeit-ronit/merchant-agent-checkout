@@ -1,0 +1,25 @@
+{
+  "milestone": "Phase 3: natural language -> real Razorpay order",
+  "task": "Order dinner for four under \u20b9800, no beef, using mandate mnd_000001.",
+  "order_id": "order_TVWCd7DHE9KzQh",
+  "amount_minor": 48300,
+  "payment_status_modelled_rail": "captured",
+  "mandate_remaining_minor": 151700,
+  "items": [
+    {
+      "item_id": "itm_steamed-rice",
+      "quantity": 4,
+      "unit_price_minor": 9000,
+      "line_total_minor": 36000
+    },
+    {
+      "item_id": "itm_tandoori-roti",
+      "quantity": 4,
+      "unit_price_minor": 2500,
+      "line_total_minor": 10000
+    }
+  ],
+  "audit_chain_ok": true,
+  "recorded_at_epoch_ms": 1787991859518,
+  "note": "order + fetch_order are REAL (test mode); settlement is the labelled modelled rail (ADR-034); all data synthetic"
+}

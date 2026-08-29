@@ -21,6 +21,7 @@ from typing import Any, Callable
 from conduit.cart.gate import CommitGate
 from conduit.cart.model import CartError
 from conduit.cart.service import CartService
+from conduit.rail import ModelledSettlementRail
 from conduit.catalog.service import CatalogError, CatalogService, SearchQuery
 from conduit.mcp.tools import (
     CART_TOOL_NAMES,
@@ -44,11 +45,13 @@ class ConduitUpstream:
 
     def __init__(self, inner: Upstream, catalog: CatalogService,
                  cart: CartService | None = None, gate: CommitGate | None = None,
+                 rail: "ModelledSettlementRail | None" = None,
                  now_ms_fn: Callable[[], int] | None = None):
         self._inner = inner
         self._catalog = catalog
         self._cart = cart
         self._gate = gate
+        self._rail = rail
         self._now_ms = now_ms_fn or (lambda: int(time.time() * 1000))
 
     # ---- Upstream interface ----
@@ -67,6 +70,19 @@ class ConduitUpstream:
                 return getattr(self, f"_t_{name}")(arguments)
             except CartError as exc:
                 raise UpstreamError(str(exc)) from exc
+        # MODELLED settlement rail (ADR-034): the real S2S payment API is not
+        # enabled on this account, so these tools are served by a labelled
+        # faithful model over real order state. Every minted entity carries
+        # "modelled": true. fetch_order_payments answers from the rail only
+        # for orders whose payments the rail owns; everything else stays real.
+        if self._rail is not None:
+            if name in self._rail.RAIL_TOOLS:
+                if name == "initiate_payment":
+                    return self._rail.initiate_payment(arguments, now_ms=self._now_ms())
+                return self._rail.submit_otp(arguments, now_ms=self._now_ms())
+            if name == "fetch_order_payments" and self._rail.knows_order(
+                    arguments.get("order_id", "")):
+                return self._rail.fetch_order_payments(arguments["order_id"])
         if name not in CATALOG_TOOL_NAMES:
             return self._inner.call_tool(name, arguments)
         handler = getattr(self, f"_t_{name}")
