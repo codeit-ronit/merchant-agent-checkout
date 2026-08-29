@@ -9,7 +9,9 @@ interface NavItem {
 
 // Six views, one job each. The glyphs are simple line marks (not brand icons).
 const ITEMS: NavItem[] = [
-  { to: '/', label: 'Run console', glyph: '▤', job: 'Watch a run decide' },
+  { to: '/', label: 'Buy', glyph: '❯', job: 'The split view — watch a purchase' },
+  { to: '/merchant', label: 'Merchant', glyph: '▣', job: 'Catalog, mandates, orders' },
+  { to: '/runs', label: 'Run console', glyph: '▤', job: 'Watch a run decide' },
   { to: '/approvals', label: 'Approvals', glyph: '⏱', job: 'Authorize or reject' },
   { to: '/policies', label: 'Policies', glyph: '§', job: 'Read & dry-run' },
   { to: '/evals', label: 'Evaluations', glyph: '▦', job: 'Model vs enforcement' },

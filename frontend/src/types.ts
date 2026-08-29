@@ -284,3 +284,115 @@ export interface HealthResult {
   mode: string;
   note: string;
 }
+
+// ---------------------------------------------------------------- commerce
+export interface MandateView {
+  mandate_id: string;
+  locked_minor: number;
+  currency: string;
+  scope_merchant_id: string;
+  expires_at_ms: number;
+  status: 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'EXHAUSTED';
+  reserved_minor: number;
+  drawn_minor: number;
+  remaining_minor: number;
+}
+
+export interface CartLine {
+  item_id: string;
+  name: string;
+  quantity: number;
+  unit_price_minor: number;
+  line_total_minor: number;
+  tax_minor: number;
+  price_version: number;
+  upsell_rule_id: string | null;
+}
+
+export interface UpsellOffer {
+  offer_id: string;
+  rule_id: string;
+  item_id: string;
+  quantity: number;
+  unit_price_minor: number;
+  offer_total_minor: number;
+  name?: string;
+}
+
+export interface CartView {
+  cart_id: string;
+  status: string;
+  lines: CartLine[];
+  subtotal_minor: number;
+  tax_total_minor: number;
+  total_minor: number;
+  catalog_version: number;
+  mandate_remaining_minor: number;
+  upsell_offers: UpsellOffer[];
+}
+
+export interface CommerceSnapshot {
+  mandate: MandateView | null;
+  cart: CartView | null;
+  commit: {
+    policy: { disposition: string | null; reason_code: string | null; human_reason: string | null };
+    commerce: string | null;
+    order_id: string | null;
+  } | null;
+  payment: { id: string; status: string; amount: number; modelled?: boolean; error?: { description?: string } | null } | null;
+}
+
+export interface CommerceTraceEvent {
+  type: string;
+  sequence: number;
+  timestamp_ms: number;
+  payload: Record<string, unknown>;
+  commerce: CommerceSnapshot;
+}
+
+export interface BuyerReport {
+  decision: string;
+  items: { item_id: string; quantity: number; unit_price_minor: number; line_total_minor: number }[];
+  total_minor: number | null;
+  currency: string;
+  constraints_satisfied: string[];
+  constraints_unsatisfied: string[];
+  upsell_offered: boolean;
+  upsell_accepted: boolean;
+  order_id: string | null;
+  payment_status: string | null;
+  mandate_remaining_minor: number | null;
+}
+
+export interface PurchaseResult {
+  run_ref: string;
+  task: string;
+  terminal: string;
+  output: BuyerReport | null;
+  final_snapshot: CommerceSnapshot;
+}
+
+export interface CatalogItemView {
+  item_id: string;
+  price_minor: number;
+  currency: string;
+  stock: string;
+  stock_count: number | null;
+  tax_rate_bps: number;
+  category: string;
+  attributes: string[];
+  name: string;
+  description: string;
+  merchant_note: string | null;
+}
+
+export interface CommerceOrder {
+  order_id: string;
+  cart_id: string;
+  mandate_id: string;
+  amount_minor: number;
+  currency: string;
+  upsells: Record<string, { rule_id: string; offer_id: string; accepted_at_ms: number }>;
+  payments: { id: string; status: string; amount: number }[];
+  claim: Record<string, string>;
+}

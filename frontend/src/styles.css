@@ -352,3 +352,88 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
   .app-content { padding:20px 16px 60px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+
+/* ================= CONDUIT commerce (frontend/DESIGN.md) =================
+   Extends the existing system: same tokens, glyph+word states, mono money.
+   The ONE animated element is the mandate meter's width. */
+
+.buyer-shell { display: grid; grid-template-columns: minmax(320px, 5fr) minmax(360px, 6fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .buyer-shell { grid-template-columns: 1fr; } }
+.buyer-left, .buyer-right { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.commerce-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; }
+.panel-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.panel-head h3 { font-family: var(--serif); font-size: 16px; margin: 0; }
+.machinery-head { padding: 2px 4px; }
+
+/* stamps: state reads without colour — glyph + word, always */
+.commerce-stamp { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); white-space: nowrap; }
+.stamp-allow { color: var(--allow); background: var(--allow-wash); border-color: var(--allow); }
+.stamp-deny { color: var(--deny); background: var(--deny-wash); border-color: var(--deny); }
+.stamp-escalate { color: var(--escalate); background: var(--escalate-wash); border-color: var(--escalate); }
+.stamp-await { color: var(--await); background: var(--await-wash); border-color: var(--await); }
+.stamp-muted { color: var(--muted); background: var(--bg-sunk); }
+
+.claim-chip { font-family: var(--mono); font-size: 11px; padding: 1px 7px; border-radius: 4px; border: 1px dashed var(--line-strong); color: var(--muted); white-space: nowrap; }
+.claim-real { border-style: solid; color: var(--accent); border-color: var(--accent-soft); }
+
+/* the meter — money is the hero; the width transition is the motion budget */
+.mandate-meter { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; }
+.mandate-meter-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mandate-amount { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 30px; margin: 6px 0 8px; }
+.mandate-of { font-size: 14px; color: var(--muted); }
+.mandate-bar { height: 12px; border-radius: 6px; background: var(--bg-sunk); border: 1px solid var(--line); overflow: hidden; }
+.mandate-fill { height: 100%; background: var(--await); transition: width 300ms ease-out; }
+.mandate-dead { background: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .mandate-fill { transition: none; } }
+.mandate-empty p { color: var(--muted); margin: 0; }
+
+/* mandate creation — setting money aside, not filling a form */
+.mandate-create { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mandate-rupee { font-size: 22px; }
+.mandate-input { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 22px; width: 7ch; padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel-2); color: var(--ink); }
+.mandate-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.mandate-option { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.mandate-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }
+.order-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+
+/* cart */
+.cart-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cart-table td { padding: 6px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.cart-table .mono { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.cart-total { font-size: 18px; font-weight: 700; }
+.upsell-mark { display: inline-block; margin-left: 8px; font-size: 11px; color: var(--escalate); border: 1px solid var(--escalate); border-radius: 4px; padding: 0 5px; }
+
+/* conversation + events */
+.convo-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.convo-lines li { padding: 8px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+.event-feed { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+.event-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 6px 8px; border-left: 3px solid var(--line-strong); background: var(--panel-2); border-radius: 0 6px 6px 0; }
+.event-words { font-size: 13px; }
+
+/* one event, two verdicts, both true */
+.two-verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel-2); }
+@media (max-width: 640px) { .two-verdicts { grid-template-columns: 1fr; } }
+.verdict { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+
+/* final states — designed, not residual */
+.final-card { margin-top: 12px; padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line-strong); }
+.final-ok { border-color: var(--allow); background: var(--allow-wash); }
+.final-warn { border-color: var(--escalate); background: var(--escalate-wash); }
+.receipt-amount { font-size: 30px; font-variant-numeric: tabular-nums; margin: 4px 0; }
+.error-words { color: var(--deny); font-size: 14px; }
+
+/* task input + demo toggles */
+.task-input { width: 100%; font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel-2); color: var(--ink); resize: vertical; }
+.demo-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+
+/* merchant console */
+.merchant-shell { display: flex; flex-direction: column; gap: 14px; }
+.table-scroll { overflow-x: auto; }
+.catalog-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.catalog-table th, .catalog-table td { padding: 6px 8px; border: 1px solid var(--line); text-align: left; }
+.trust-head { background: var(--allow-wash); color: var(--allow); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.untrust-head { background: var(--escalate-wash); color: var(--escalate); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.untrust-cell { background: color-mix(in srgb, var(--escalate-wash) 40%, transparent); }
+.small { font-size: 12px; }
+.muted { color: var(--muted); }

@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { NavRail } from './components/NavRail';
 import { Header } from './components/Header';
 import { RunConsole } from './views/RunConsole';
+import { BuyerConsole } from './views/BuyerConsole';
+import { MerchantConsole } from './views/MerchantConsole';
 import { ApprovalQueue } from './views/ApprovalQueue';
 import { PolicyEditor } from './views/PolicyEditor';
 import { EvalDashboard } from './views/EvalDashboard';
@@ -16,7 +18,9 @@ export default function App() {
         <Header />
         <main className="app-content" id="main-content" tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<RunConsole />} />
+            <Route path="/" element={<BuyerConsole />} />
+            <Route path="/merchant" element={<MerchantConsole />} />
+            <Route path="/runs" element={<RunConsole />} />
             <Route path="/approvals" element={<ApprovalQueue />} />
             <Route path="/policies" element={<PolicyEditor />} />
             <Route path="/evals" element={<EvalDashboard />} />

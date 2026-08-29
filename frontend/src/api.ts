@@ -104,3 +104,53 @@ export const api = {
 export function runStreamUrl(runId: string): string {
   return `/api/runs/${encodeURIComponent(runId)}/stream`;
 }
+
+// ---------------------------------------------------------------- commerce
+import type {
+  CatalogItemView,
+  CommerceOrder,
+  MandateView,
+  PurchaseResult,
+} from './types';
+
+export function getCommerceCatalog(): Promise<{
+  merchant: { merchant_id: string; display_name: string };
+  items: CatalogItemView[];
+  catalog_version: number;
+  rules: { rule_id: string; trigger_item_id: string; offer_item_id: string }[];
+}> {
+  return request('/commerce/catalog');
+}
+
+export function listMandates(): Promise<MandateView[]> {
+  return request('/commerce/mandates');
+}
+
+export function createMandate(amountMinor: number, expiresInDays = 7): Promise<MandateView> {
+  return request('/commerce/mandates', {
+    method: 'POST',
+    body: JSON.stringify({ amount_minor: amountMinor, expires_in_days: expiresInDays }),
+  });
+}
+
+export function revokeMandate(mandateId: string): Promise<MandateView> {
+  return request(`/commerce/mandates/${mandateId}/revoke`, { method: 'POST' });
+}
+
+export function startPurchase(req: {
+  task: string;
+  mandate_id: string;
+  decline_demo?: boolean;
+  timeout_demo?: boolean;
+  reprice_demo?: boolean;
+}): Promise<PurchaseResult> {
+  return request('/commerce/purchase', { method: 'POST', body: JSON.stringify(req) });
+}
+
+export function purchaseStreamUrl(runRef: string): string {
+  return `/api/commerce/purchase/${runRef}/stream`;
+}
+
+export function listCommerceOrders(): Promise<CommerceOrder[]> {
+  return request('/commerce/orders');
+}
