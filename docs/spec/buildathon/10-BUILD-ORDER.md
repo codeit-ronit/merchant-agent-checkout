@@ -207,7 +207,16 @@ the permitting rule and audit reference is Phase 7 surface work.*
 
 Design pass before implementation, per `09-UI.md` §6. Split view first — it is the signature and everything else is support.
 
-**Exit:** per `09-UI.md` §9.
+**Exit:** per `09-UI.md` §9 — all verified in the running app (ADR-039):
+- [x] Split view: conversation and machinery synchronised live (one enriched event stream drives both panes — synchrony by construction)
+- [x] Cart, totals, and mandate drawdown update in real time as the agent works
+- [x] Every policy decision visible with its plain-language reason (+ reason code in mono)
+- [x] Re-price diff surfaced; the two-verdict row shows "policy allowed / commerce refused" side by side
+- [x] Mandate creation reads as setting money aside; instant revoke works from the merchant console
+- [x] Real vs modelled surfaced persistently (▢ modelled / ◆ Razorpay · test chips on panel headers and entities)
+- [x] Receipt names the total, order id (real chip), payment status (modelled chip), mandate remaining, and marks the accepted offer
+- [x] Failure states explain what happened and the next step (decline / timeout / declined-honestly cards)
+- [x] Amounts tabular-aligned; states glyph+word (colour-independent); responsive stack < 900px; reduced motion honoured; designed empty states
 
 ---
 

@@ -1899,3 +1899,78 @@ The live pass shows real models fooled by planted directives at a meaningful
 rate (flip `escalate_reversible` — one line — and re-run the experiment), or
 stated-total errors on strong real models exceed the weak tier's (the prompt
 needs the echo-the-total instruction strengthened).
+
+---
+
+## ADR-039 — Phase 7: the interface extends the system, and the demo world found a fixture lie
+Date: 2026-08-29    Phase: 7    Status: Accepted
+
+### Context
+09-UI demands a design pass before any component, a split view as the
+signature, one precise use of motion, copy from the user's side, and the
+real-vs-modelled line surfaced in the interface itself. ADR-032 left the
+interesting design problem: ALLOW at the boundary, refused by commerce — two
+verdicts, one event, both true.
+
+### Decisions
+
+**1. Extend, don't invent (`frontend/DESIGN.md`, committed before any
+component).** The operator surface already carries a deliberate system —
+ink/slate, muted brass for real-rail provenance, glyph+word states that
+survive grayscale, serif display, tabular mono for every amount. The buyer
+surface and merchant console are the same product seen from two sides;
+commerce states map onto the existing hues with their own glyphs (● set
+aside, ◔ reserving, ✓ committed, ✕ blocked, ○ exhausted), and persistent
+claim chips (▢ modelled / ◆ Razorpay · test) sit on panel headers, not in a
+footnote.
+
+**2. Synchrony is structural.** The purchase runs server-side; every trace
+event is enriched AT CAPTURE with a commerce snapshot (mandate view, this
+run's cart, the latest commit's BOTH verdicts from the audit ledger's
+app_outcome, the rail payment) and replayed as a paced SSE stream. Left-pane
+narration and right-pane machinery render from the SAME events — the moment
+the agent "says" adding rice, the line appears, the total recomputes, and
+the mandate bar (the ONE animated element; reduced-motion honoured) shrinks,
+because they are one event.
+
+**3. The two-verdict row renders both truths side by side** — "✓ policy
+allowed" next to "✕ commerce refused · REJECT_REPRICE_DIVERGENCE" — never
+merged, never hidden; and ALLOW_MANDATE_BOUND renders in the user's words
+("inside the spending mandate the user set aside — consent was given
+upfront"). Verified live in the browser.
+
+**4. The demo world found two real bugs, one of them a fixture LIE.**
+(a) Snapshot leakage: a second purchase's opening events carried the first
+purchase's cart — fixed with per-run cart/audit baselines, then codified as
+a test. (b) **The fixture minted the SAME order id for every create_order**
+(constant-seeded RNG): three purchases collided onto one order, the
+paid-order guard refused the third's payment, and the buyer correctly
+reconciled and reported the FIRST capture — every control behaved perfectly
+around an upstream double that violated Razorpay's most basic property.
+Unique-per-call ids now; the demo API was the first multi-purchase world,
+which is why five phases of tests never saw it. Also fixed en route:
+per-purchase private cassette dirs (the demo state resets deterministic
+counters while a shared dir persists — message-identical keys could replay a
+stale response against a different world).
+
+**5. One mount line.** The commerce router (`conduit/api.py`: catalog,
+mandates create/view/revoke, purchase + SSE stream, orders) joins the
+operator server via a single include — the whole SENTINEL-side change.
+
+### Verified in the real app (browser, this session)
+Clean purchase ₹572.60 with the marked merchant offer; reprice demo
+re-confirming at ₹698.60 with the two-verdict row on screen and a UNIQUE
+order id; merchant console with the trusted/untrusted split and instant
+revoke; decline/timeout/revoke demos green in the API tests. Suite: 395 →
+401.
+
+### Trade-off accepted
+The demo API state is per-process and in-memory (single operator, local —
+inherited posture); the SSE stream replays a completed run rather than
+streaming mid-flight — honest for a deterministic sub-second run, and the
+pacing is what makes the demo readable.
+
+### Revisit if
+A real-model live demo needs mid-run streaming (runs take seconds, not
+milliseconds) — the sink already captures events incrementally; the endpoint
+would switch from replay to tail.
