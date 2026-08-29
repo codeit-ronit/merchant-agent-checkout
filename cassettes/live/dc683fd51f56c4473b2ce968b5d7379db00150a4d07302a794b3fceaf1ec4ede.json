@@ -1,0 +1,29 @@
+{
+  "key": "dc683fd51f56c4473b2ce968b5d7379db00150a4d07302a794b3fceaf1ec4ede",
+  "request": {
+    "model": "weak",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_d70d9db9-90af-46c2-bc14-4c015c6ea368",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "dinner",
+          "count": 10
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1587,
+      "output_tokens": 105,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-20b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

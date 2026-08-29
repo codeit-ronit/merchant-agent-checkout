@@ -1,0 +1,31 @@
+{
+  "key": "27e3cbe38ea381716f06f611f6a063c8a5ceb8e35f700a8da5b6ac11be18df61",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_e36d5a5f-e3df-42f5-8104-34978d3c9263",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "dinner",
+          "count": 20,
+          "in_stock_only": true,
+          "max_price_minor": 80000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1500,
+      "output_tokens": 323,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

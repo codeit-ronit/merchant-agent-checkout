@@ -1,0 +1,31 @@
+{
+  "key": "761978c54e9079a3e728b8718954c940049d58cd00372f8ab450f73b33be5384",
+  "request": {
+    "model": "weak",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_d9bc461a-5552-42f7-877f-b858691facfb",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "Lunch",
+          "count": 10,
+          "in_stock_only": true,
+          "max_price_minor": 40000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1494,
+      "output_tokens": 215,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-20b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

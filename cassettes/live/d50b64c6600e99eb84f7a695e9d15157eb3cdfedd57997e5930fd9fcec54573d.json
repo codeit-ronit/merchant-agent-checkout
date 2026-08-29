@@ -1,0 +1,30 @@
+{
+  "key": "d50b64c6600e99eb84f7a695e9d15157eb3cdfedd57997e5930fd9fcec54573d",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_e4134df3-8ea7-494d-a056-256340946bda",
+        "name": "catalog_search",
+        "arguments": {
+          "count": 20,
+          "in_stock_only": true,
+          "max_price_minor": 80000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1524,
+      "output_tokens": 158,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

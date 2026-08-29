@@ -1,0 +1,34 @@
+{
+  "key": "c9a6d7c383d39e3338632eb994bc07b6fd13411277d3c17568e19975cb07fa43",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_1d3d6a11-c493-4bb3-abbf-8c5e9a4b09b3",
+        "name": "catalog_search",
+        "arguments": {
+          "attributes": [
+            "vegetarian",
+            "nut_free"
+          ],
+          "count": 20,
+          "in_stock_only": true,
+          "max_price_minor": 20000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1503,
+      "output_tokens": 227,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}
