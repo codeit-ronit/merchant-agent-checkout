@@ -157,7 +157,14 @@ the permitting rule and audit reference is Phase 7 surface work.*
 4. Receipt marks upsell, rule, and acceptance
 5. Per-cart cap
 
-**Exit:** per `06-BUYER-AGENT-AND-UPSELL.md` §B6.
+**Exit:** per `06-BUYER-AGENT-AND-UPSELL.md` §B6 — all met (ADR-037, `tests/unit/test_upsell.py`):
+- [x] Every offer traces to a merchant rule; an invented offer_id is refused and named a policy violation
+- [x] Offer suppressed pre-model when it would exceed the mandate — absent from the response by construction
+- [x] Silent addition structurally impossible: `cart_accept_upsell` with a server-issued id is the only path in
+- [x] Upsell price sourced from catalog; acceptance re-validates price/stock/mandate against the LIVE cart (the review's TOCTOU condition — critical test: cleared-then-cart-grew is withdrawn)
+- [x] Receipt marks the upsell, its rule, its offer id, and the acceptance time; breakdown lines carry `upsell_rule_id`
+- [x] Per-cart offer cap enforced cumulatively (counts what was shown)
+- [~] Upsell acceptance rate as a revenue metric → Phase 6 eval reporting
 
 ---
 

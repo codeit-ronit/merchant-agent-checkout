@@ -115,6 +115,18 @@ stand-in's job, deterministic and offline) and testing agent **judgement**
 (the model's job, measured in the eval) — and it is why the demo records with
 a real model while the test suite never needs one.
 
+The strongest pattern of all, seven instances deep: **a control measuring
+something adjacent to what you assumed.** Risk class vs binding role (the QR
+bypass). Boundary verdict vs commerce outcome (ALLOW for a refused commit).
+Authorisation *existence* vs authorisation *scope* (a valid dinner mandate
+resolving the money floor for a refund — the user said "you may spend ₹2,000
+at Fresh Basket"; the system heard "you may move money"). Same shape every
+time: the check is green, and it is honestly reporting a property one step
+away from the one you needed. How we hunt it now: for every control, write
+the one-sentence property it should guarantee ("a refund under a valid
+mandate still needs a human") and check the sentence against the code —
+sentences that read as obviously correct once written were invisible before.
+
 There is a second named pattern worth a sentence: **validating against something you authored.** Three catches of the same disease in three different shapes — the schema-parity check that compared the fixture against a manifest transcribed from the same docs (ADR-003a, fixed by capturing live); the order-history catalog path whose only demo would have run against history we seeded ourselves (ADR-030, dropped); and a Phase 2 test asserting "the stale amount never binds" on the fixture's `.executed` list, **which does not record `create_order`** — a green check on the single most important property in the build that never actually observed a bind (caught in review, replaced with a real forward count). That third shape is the subtlest: the reference wasn't authored, the *observation surface* was assumed. The test is one question: *who wrote — or chose — the thing this check passes against?* If the answer is "we did," the check is theatre until the observation comes from outside.
 
 ## 6. Numbers to have ready

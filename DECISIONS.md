@@ -1755,3 +1755,69 @@ documented in ADR-026 as the road not taken.
 S2S is enabled (the request to Razorpay support is worth making): the decline
 and timeout demos upgrade from modelled to real behind the same seam, and the
 `failure@razorpay` VPA becomes a live trigger again.
+
+---
+
+## ADR-037 — Phase 5: the upsell may offer; nothing may silently add
+Date: 2026-08-29    Phase: 5    Status: Accepted
+
+### Context
+Track 01's headline is revenue growth; the upsell reconnects to it and is the
+strongest test of the bar because it is a POSITIVE money action (06 §B).
+Review flagged the timing subtlety up front: an offer cleared as affordable
+at one cart state may not be affordable at acceptance — the same class as the
+re-price problem, already solved once at the commit gate.
+
+### Decisions
+
+**1. Suppression is pre-model BY CONSTRUCTION.** Offers are computed
+server-side with every priced view: rule triggered by a cart line, offer item
+absent from the cart, purchasable, and affordable — current total + offer
+total ≤ the ledger-derived mandate remaining. An offer that fails any of
+these is simply not in the response; the model never sees an offer it cannot
+afford, so there is nothing to reject after acceptance (tested: a mandate
+that covers the cart but not cart+offer produces an EMPTY offers list).
+
+**2. Offers are state-bound; acceptance re-validates live (the review's
+condition, implemented).** Every surfaced offer stores the cart/catalog state
+that cleared it (`cleared_at`), and `cart_accept_upsell` re-checks EVERYTHING
+against the live world: item still purchasable, price unchanged (a re-priced
+offer is refused stale and refreshed for the next view — same offer id, the
+cap is not double-counted), and current total + offer ≤ current remaining.
+The critical test is the review's exact scenario: cleared when affordable,
+the agent then adds items, acceptance is withdrawn with a next step and the
+cart unchanged. The value checked at one moment is re-checked at the moment
+it is acted on — the re-price pattern reused, not rediscovered.
+
+**3. Acceptance is the ONLY path in, and offers cannot be invented.** The
+only code path that adds an upsell line takes a server-issued offer_id; a
+fabricated id is refused and NAMED a policy violation. Structural proof of
+no-silent-addition: surfacing without acceptance leaves the cart unchanged.
+
+**4. The cap counts what was SHOWN, cumulatively.** A rule whose offer became
+moot still spent the cap — an agent that upsells on every mutation is a bad
+shopping experience regardless of per-offer legality (a product judgement,
+06 §B4, named as one).
+
+**5. The receipt marks everything (Visible, 06 §B3):** commit results carry
+`upsells: [{item_id, rule_id, offer_id, accepted_at_ms}]` and breakdown lines
+carry `upsell_rule_id` — a user reviewing the purchase never wonders why a
+line is there. Offer names are merchant text and quarantine like every other
+untrusted field (`upsell_offers[].name` in every cart tool's provenance map).
+
+**6. The brain's judgement is the BUDGET; the mandate is the server's.**
+The agent accepts at most one offer, only when the user's stated budget still
+fits (and never when the task says "no extras"); the mandate affordability
+was already guaranteed by suppression. End to end: dinner for four is now
+rice, rotis, and a gulab jamun at ₹572.60 — offered by a merchant rule,
+accepted explicitly, inside the budget.
+
+### Trade-off accepted
+Cumulative capping can starve a later, better offer on a long-lived cart —
+accepted: predictable-and-boring beats an offer engine with reflow logic, and
+the merchant sets the cap. Suite: 380 → 392 green.
+
+### Revisit if
+Phase 6's revenue metrics show suppressed-then-refreshed offers confusing
+models (acceptance-rate anomalies on re-priced offers) — then offer ids
+should version instead of refreshing in place.
