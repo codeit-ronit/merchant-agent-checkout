@@ -48,6 +48,17 @@ Five minutes is the stated limit. **Use three.** A tight three beats a padded fi
 
 **Narration discipline:** no talking-head intro, no logo animation, no "in today's world." Start on the problem. Every claim on screen must be visible on screen.
 
+**The claim guard (ADR-034), verbatim, every time settlement appears:** *"The
+order is real — Razorpay minted this id. The settlement is modelled — the S2S
+payment API is gated on this account."* Both halves in the same breath. The
+README is corrected; a video is where an overclaim slips out casually, so the
+sentence is scripted here rather than trusted to improvisation.
+
+**Record the demo with a REAL model**, not the deterministic stand-in. The
+stand-in optimises the stated constraint exactly (it will buy rice and rotis
+for four); a real model brings priors about what dinner is. The demo shows
+judgement, not just logic — and the eval reports both.
+
 ## 3. The README
 
 Structure, in order:
@@ -94,6 +105,15 @@ They asked for it explicitly. You have four genuinely good ones. Pick two or thr
 Write each in three sentences: what you assumed, what was actually true, what you changed. **The second and third are the strongest** — both are cases where new work exposed an existing control that was silently broken, which is the hardest class of bug to find deliberately.
 
 And one sentence for the methodology, which is rarer and better than a bug story: the upstream's own README claims 46 tools while the live image serves 41 — the **fourth** documented docs-vs-live drift, each caught the same way, by capturing the manifest from the running image instead of trusting any document. (The fifth instance was subtler and our own: "no mandate in the surface" was true of tool names but not of `create_order`'s argument schema — the surface is the tool list *plus every schema in it*. ADR-028.)
+
+And one observation that is more interesting than its joke: asked for "dinner
+for four under ₹800," the deterministic stand-in bought **rice and rotis for
+four** — constraint-perfect, gastronomically tragic. A stand-in optimises the
+stated constraint *exactly*; a real model brings priors about what dinner
+*is*. That is the genuine difference between testing agent **logic** (the
+stand-in's job, deterministic and offline) and testing agent **judgement**
+(the model's job, measured in the eval) — and it is why the demo records with
+a real model while the test suite never needs one.
 
 There is a second named pattern worth a sentence: **validating against something you authored.** Three catches of the same disease in three different shapes — the schema-parity check that compared the fixture against a manifest transcribed from the same docs (ADR-003a, fixed by capturing live); the order-history catalog path whose only demo would have run against history we seeded ourselves (ADR-030, dropped); and a Phase 2 test asserting "the stale amount never binds" on the fixture's `.executed` list, **which does not record `create_order`** — a green check on the single most important property in the build that never actually observed a bind (caught in review, replaced with a real forward count). That third shape is the subtlest: the reference wasn't authored, the *observation surface* was assumed. The test is one question: *who wrote — or chose — the thing this check passes against?* If the answer is "we did," the check is theatre until the observation comes from outside.
 
