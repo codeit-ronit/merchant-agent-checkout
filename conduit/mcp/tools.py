@@ -62,6 +62,62 @@ CATALOG_TOOLS: list[dict[str, Any]] = [
 
 CATALOG_TOOL_NAMES = frozenset(t["name"] for t in CATALOG_TOOLS)
 
+CART_TOOLS: list[dict[str, Any]] = [
+    _tool(
+        "cart_create",
+        "(modelled) Create a cart bound to a mandate. Carts are off the payment "
+        "rail: mutations are free, and only cart_commit binds anything.",
+        {"mandate_id": _STR}, ["mandate_id"],
+    ),
+    _tool(
+        "cart_add_item",
+        "(modelled) Add an item by id and quantity. The server prices it from "
+        "live catalog truth and returns the full cart with the mandate's "
+        "remaining balance. No price argument exists.",
+        {"cart_id": _STR, "item_id": _STR, "quantity": _INT},
+        ["cart_id", "item_id", "quantity"],
+    ),
+    _tool(
+        "cart_update_item",
+        "(modelled) Change the quantity of a line already in the cart.",
+        {"cart_id": _STR, "item_id": _STR, "quantity": _INT},
+        ["cart_id", "item_id", "quantity"],
+    ),
+    _tool(
+        "cart_remove_item",
+        "(modelled) Remove a line from the cart.",
+        {"cart_id": _STR, "item_id": _STR}, ["cart_id", "item_id"],
+    ),
+    _tool(
+        "cart_view",
+        "(modelled) The current cart with server-computed totals, the catalog "
+        "version that priced it, and the mandate's remaining balance.",
+        {"cart_id": _STR}, ["cart_id"],
+    ),
+    _tool(
+        "cart_clear",
+        "(modelled) Remove every line. The cart itself survives.",
+        {"cart_id": _STR}, ["cart_id"],
+    ),
+    _tool(
+        "cart_commit",
+        "(modelled gate; the ONE binding step) Commit the cart: the server "
+        "re-prices against live catalog truth, diffs against "
+        "expected_amount_minor, checks availability and the mandate, reserves "
+        "the drawdown, and creates exactly one real order. Divergence rejects "
+        "with an itemised diff and the cart survives. Pass the total exactly "
+        "as cart_view reported it.",
+        {"cart_id": _STR, "expected_amount_minor": _INT, "currency": _STR},
+        ["cart_id", "expected_amount_minor", "currency"],
+    ),
+]
+
+CART_TOOL_NAMES = frozenset(t["name"] for t in CART_TOOLS)
+
+# cart_commit is the ONE tool where an amount argument is legitimate: it is the
+# agent's stated BELIEF, verified against the server truth before anything binds.
+AMOUNT_BEARING_TOOLS = frozenset({"cart_commit"})
+
 # Argument names that smell like an agent asserting money. Rejected by the
 # upstream with a loud, specific error — silence would teach the agent it worked.
 _PRICE_SHAPED = ("price", "amount", "total", "cost")

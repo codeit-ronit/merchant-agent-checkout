@@ -76,14 +76,23 @@ def test_schema_parity_passes():
 
 def test_reconciliation_classifies_all_fixture_tools():
     # Reconcile against the surface this repo actually serves: the fixture
-    # upstream wrapped by CONDUIT's catalog layer (ADR-031). The invariant is
-    # unchanged — no unclassified tool, no dead config entry — but "server"
-    # now means the composite, since that is what the proxy fronts here.
+    # upstream wrapped by CONDUIT's catalog + cart layers (ADR-031/032). The
+    # invariant is unchanged — no unclassified tool, no dead config entry —
+    # but "server" means the full composite the proxy fronts here.
+    from conduit.cart.gate import CommitGate
+    from conduit.cart.service import CartService
+    from conduit.cart.store import InMemoryCartRepository
     from conduit.catalog.service import CatalogService
     from conduit.catalog.store import InMemoryCatalogRepository
+    from conduit.mandate.ledger import DrawdownLedger, InMemoryLedgerRepository
     from conduit.mcp.upstream import ConduitUpstream
 
-    up = ConduitUpstream(FixtureUpstream(), CatalogService(InMemoryCatalogRepository()))
+    inner = FixtureUpstream()
+    catalog = CatalogService(InMemoryCatalogRepository())
+    drawdown = DrawdownLedger(InMemoryLedgerRepository())
+    carts = CartService(InMemoryCartRepository(), catalog, drawdown)
+    up = ConduitUpstream(inner, catalog, cart=carts,
+                         gate=CommitGate(carts, drawdown, inner))
     report = reconcile(up.list_tools())
     assert not report.unclassified
     assert not report.stale

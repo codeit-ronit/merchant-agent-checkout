@@ -164,3 +164,26 @@ tools:
     risk_class: READ
     is_paginated: true
     provenance_map: {"items[].name": UNTRUSTED, "items[].description": UNTRUSTED, "items[].merchant_note": UNTRUSTED}
+
+  # ---------------- CONDUIT cart (MODELLED; off-rail — ADR-032) ----------------
+  # Mutations change state but bind nothing: REVERSIBLE_WRITE, BindingRole NONE —
+  # exactly the distinction the binding-role model exists for. Line names in the
+  # priced view are merchant-authored → UNTRUSTED.
+  cart_create:      {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [mandate_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_add_item:    {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_update_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_remove_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_view:        {risk_class: READ, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_clear:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  # The ONE binding step (ADR-027): reversible (an unpaid order is abandonable
+  # intent-to-collect) but COLLECTION-binding, so it inherits the full collection
+  # governance: per-call tiers, run aggregate, currency. expected_amount_minor is
+  # the agent's stated BELIEF — the gate re-prices and rejects on divergence, so
+  # execution only ever proceeds when it equals server truth.
+  cart_commit:
+    risk_class: REVERSIBLE_WRITE
+    binding_role: COLLECTION
+    amount_arg_path: expected_amount_minor
+    currency_arg_path: currency
+    entity_arg_paths: [cart_id]
+    provenance_map: {"breakdown[].name": UNTRUSTED}
