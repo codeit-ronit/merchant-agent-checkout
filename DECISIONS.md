@@ -1687,3 +1687,71 @@ for demo quality; real models choose better.
 Phase 6's adversarial results show injected catalog text steering purchases
 within the mandate at a rate that matters — then per-item confirmation or a
 category-pinning rule tightens the commerce set without a human per mutation.
+
+---
+
+## ADR-036 — Phase 4: failure is a first-class outcome, and consent stays purchase-shaped
+Date: 2026-08-29    Phase: 4    Status: Accepted
+
+### Context
+The bar's "one failure handled gracefully," done properly (07): in payments a
+failure means a decline, an ambiguous timeout, a failed OTP — operational
+events in the normal course of business. On the modelled rail (ADR-034) the
+failure injection is directly controllable, which also means the narration
+must say the decline is modelled — scripted verbatim in `11` §2.
+
+### Decisions
+
+**1. The drawdown's reaction to payment outcomes is a coordinator, not gate
+logic.** `SettlementCoordinator` subscribes to the rail's terminal payment
+statuses. Decline → REVERSE as a visible ledger entry (ADR-026 implemented:
+the history shows RESERVE→CONFIRM→REVERSE, the balance is restored, nothing
+deleted). Retry-success after a reversal → re-draw (reserve+confirm), safe
+because the boundary re-gated the retry's amount against the ledger-derived
+remaining BEFORE the rail ran; a re-draw failure is therefore an invariant
+breach and raises loudly rather than being absorbed.
+
+**2. Retry reuses, never recreates.** Same cart + same amount → the same
+order (gate idempotency, Phase 2); a corrected instrument is a NEW payment
+attempt on that order. Proven end to end: one order, two attempts, one
+capture, drawdown net exactly once. The demo property in one ledger read.
+
+**3. The ambiguous timeout writes state then raises.** `arm_timeout()` makes
+the rail record the payment (captured or failed — the caller cannot know)
+and then time out. Recovery is layered: the AGENT reconciles via
+`fetch_order_payments` and acts on ground truth (both directions tested:
+hidden success → report success, never pay again; hidden failure → honest
+decline, reversal fires); below it, the proxy's idempotency guard refuses
+the IDENTICAL blind retry outright — defence in depth that holds even for an
+agent that never learned the rule.
+
+**4. No double charge, three shapes, three tests:** identical retry →
+boundary replay of the same payment; new instrument on a paid order → the
+rail's paid-order guard refuses, naming reconciliation as the next step
+(Razorpay reality: a paid order takes no further payments); genuinely
+concurrent attempts with different instruments → per-order serialisation,
+exactly one capture.
+
+**5. Consent stays purchase-shaped (`resolves_tools`).** Writing the matrix
+surfaced that a valid dinner mandate would have resolved the money-movement
+floor for ANY money tool — a refund included. The mandate gate now names the
+only tools it may resolve (`initiate_payment`, `submit_otp`), empty list =
+resolve nothing, fail closed. A refund under a perfectly valid mandate still
+needs a human — a critical test says so. The DENY side stays broad.
+
+**6. OTP failure is a held state, then an exhausted one.** Wrong OTP (the
+modelled rail's `000000`) holds the payment for retry with the attempt count
+named; three failures fail the payment and the reversal fires; the order is
+held and the same order replays for a corrected retry.
+
+### Trade-off accepted
+Reverse-on-decline means a user who retries later may find the freed balance
+spent elsewhere — the retry is then denied against the live remaining, which
+is honest but can strand an unpaid order (already possible via mid-flight
+revocation, ADR-035). The stricter hold-for-retry-window alternative stays
+documented in ADR-026 as the road not taken.
+
+### Revisit if
+S2S is enabled (the request to Razorpay support is worth making): the decline
+and timeout demos upgrade from modelled to real behind the same seam, and the
+`failure@razorpay` VPA becomes a live trigger again.

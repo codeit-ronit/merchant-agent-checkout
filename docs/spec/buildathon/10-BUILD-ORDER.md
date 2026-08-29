@@ -137,11 +137,13 @@ the permitting rule and audit reference is Phase 7 surface work.*
 6. Every row of `07-FAILURE-MODES.md` §4
 
 **Exit:**
-- [ ] Decline demonstrated end to end with idempotent retry
-- [ ] Timeout reconciles before retrying, with a test
-- [ ] Every failure row has a passing test
-- [ ] Every failure response carries an actionable next step
-- [ ] Double-charge impossible under retry, timeout, and concurrency — three tests
+- [x] Decline demonstrated end to end with idempotent retry — one order, two attempts, one capture; drawdown RESERVE→CONFIRM→REVERSE→RESERVE→CONFIRM visible in the ledger (`test_failure_matrix.py::TestDecline`)
+- [x] Timeout reconciles before retrying, with tests in BOTH directions (hidden success → never pays again; hidden failure → honest decline) plus the boundary refusing the identical blind retry (`TestAmbiguousTimeout`)
+- [x] Every failure row has a passing test — the mapping is the docstring of `test_failure_matrix.py`
+- [x] Every failure response carries an actionable next step (`TestActionableNextSteps`)
+- [x] Double-charge impossible under retry, timeout, and concurrency — three critical tests (`TestNoDoubleCharge`)
+- [x] Drawdown behaviour on decline: decided (ADR-026), implemented (SettlementCoordinator), recorded (ADR-036)
+- [x] Bonus hole closed while writing the matrix: `resolves_tools` — a valid dinner mandate can no longer authorise a refund (critical test)
 
 ---
 
@@ -176,7 +178,10 @@ the permitting rule and audit reference is Phase 7 surface work.*
    of arithmetic failure that proves the no-model-money constraint is
    load-bearing
 4. Gates including amount-accuracy hard zero and over-refusal ceiling
-5. Adversarial suite with benign controls
+5. Adversarial suite with benign controls — MUST include the named
+   `unnarrowed_cart_mutation` group (08-EVAL §7): the specific probes of what
+   `escalate_reversible: false` gave up, reported by name, with the
+   one-YAML-line reversal criterion stated
 6. Expand toward ~40
 
 **Exit:**
