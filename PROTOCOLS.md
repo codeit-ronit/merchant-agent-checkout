@@ -17,7 +17,7 @@ and claim nothing).
 | **UPI Reserve Pay** | NPCI, launched GFF 2025 | Rail: block funds once, debit within the block without repeated PINs | **Modelled.** Reserve Pay is an NPCI *rail-layer* product. It is not a Razorpay API and does not appear in the MCP tool surface as a tool. CONDUIT's mandate implements its policy semantics (lock, scope, expiry, drawdown, instant revoke) over real test-mode primitives. |
 | **UAP** | NPCI Unified Agentic Payments | Agent authority: verify authority, define limits, establish accountability | **Referenced, intent only.** Not public; requires RBI approval. CONDUIT is forward-compatible with its stated purpose — nothing more. Never write "UAP-compliant". |
 | **x402** | Coinbase-led HTTP 402 payments | Settlement (machine-native) | **Referenced.** Out of scope; settlement here is UPI/card test rails. |
-| **Card rails / UPI** | Razorpay gateway, test mode | Settlement | **Real.** `create_order` → `initiate_payment` → `submit_otp` against `rzp_test_*` keys. Money never moves; data is synthetic. |
+| **Card rails / UPI** | Razorpay gateway, test mode | Settlement | **Split (ADR-034).** `create_order` and every read-back are **Real** against `rzp_test_*` keys — order ids are Razorpay-minted. The settlement leg (`initiate_payment` → `submit_otp`) is **Modelled**: the S2S payment API is feature-gated and not enabled on this account (verified empirically — 404 from the wrapped endpoint for both documented test VPAs). The modelled rail is faithful to the documented shapes, marks every entity `"modelled": true`, and drops out for the real tools if S2S is ever enabled. Money never moves; data is synthetic. |
 
 ## One empirical nuance (found 2026-08-29, Phase 0)
 

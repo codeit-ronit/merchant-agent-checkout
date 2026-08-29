@@ -109,13 +109,17 @@ Every phase ends with something demonstrable and an appended `DECISIONS.md` entr
 5. Receipt
 
 **Exit — the ones that matter:**
-- [ ] **A natural-language constraint produces a real Razorpay test-mode order with a Razorpay-minted id**
-- [ ] Mandate scope, expiry, and revocation all enforced, with tests
-- [ ] Exhaustion is un-approvable DENY
-- [ ] Concurrent draws serialise; over-draw impossible
-- [ ] Agent never computes a total; tested
-- [ ] Agent declines honestly on unsatisfiable constraints
-- [ ] Balance survives suspend/resume because it is ledger-derived
+- [x] **A natural-language constraint produces a real Razorpay test-mode order with a Razorpay-minted id** — `order_TVWCd7DHE9KzQh`, recorded in `artifacts/phase3-live-run.json`; settlement on the labelled modelled rail per ADR-034
+- [x] Mandate scope, expiry, and revocation all enforced, with tests (`test_mandate_policy.py`, `test_mandate_lifecycle.py` — incl. mid-flight revocation)
+- [x] Exhaustion is un-approvable DENY — a valid human approval cannot rescue it (critical test)
+- [x] Concurrent draws serialise; over-draw impossible (Phase 2 barrier-thread tests; ledger defence-in-depth)
+- [x] Agent never computes a total; tested — every bound amount is a server total; the stated-total-wrong path has its own reason code and metric
+- [x] Agent declines honestly on unsatisfiable constraints, buying nothing (`test_buyer_agent.py::TestHonestFailure`)
+- [x] Balance survives suspend/resume because it is ledger-derived (snapshot is a callable; sqlite reopen test)
+
+*Receipt note: the structured output carries items, prices charged, total,
+order id, payment status, and mandate remaining; the rendered receipt with
+the permitting rule and audit reference is Phase 7 surface work.*
 
 **The project is now demonstrable.** Everything after strengthens it.
 
@@ -167,7 +171,10 @@ Every phase ends with something demonstrable and an appended `DECISIONS.md` entr
    NOT authored around a known-good scenario — generated, with the constraint
    scenarios written *after* the catalog exists. Otherwise task-success
    measures fixture design, not how well the agent shops.
-3. All metrics per `08-EVAL.md` §4
+3. All metrics per `08-EVAL.md` §4 — including the stated-total error rate
+   (`REJECT_STATED_TOTAL_WRONG` frequency), the direct per-model measurement
+   of arithmetic failure that proves the no-model-money constraint is
+   load-bearing
 4. Gates including amount-accuracy hard zero and over-refusal ceiling
 5. Adversarial suite with benign controls
 6. Expand toward ~40

@@ -1510,3 +1510,180 @@ Phase 3's mandate policy composition needs the gate's mandate check to move
 into `DecisionContext` entirely — then the gate's reserve stays (it is the
 atomic hold), but its "insufficient balance" pre-check wording should defer
 to the policy engine's reason codes so one explanation format survives.
+
+---
+
+## ADR-034 — Phase 3 item 0: the payment leg, verified — and the settlement leg goes Modelled
+Date: 2026-08-29    Phase: 3    Status: Accepted (operator may override)
+
+### Context
+The five ADR-028 UNVERIFIED items were closed against real `rzp_test_` keys
+through the live razorpay/mcp image (all calls test-mode, synthetic data,
+structure-only logging). Verdicts:
+
+1. **`create_order` real response — CLOSED.** Full order entity with a
+   Razorpay-minted id (`order_TVVvrkoRRilZS1`), `status: created`, integer
+   amounts, and `notes` echoed as an OBJECT when populated / a LIST when
+   empty — both shapes now confirmed live (ADR-030's parser rule stands).
+2. **Decline via `failure@razorpay` — CLOSED AS BLOCKED.** `initiate_payment`
+   returns *"The requested URL was not found on the server"* for both test
+   VPAs: the S2S create-payment API is feature-gated and NOT enabled on this
+   account. We cannot distinguish "not enabled" from "endpoint moved" without
+   Razorpay support; either way the tool is unusable here, and no decline —
+   or success, or timeout — can be produced through it.
+3. **`submit_otp` behaviour — BLOCKED**, same endpoint family.
+4. **`fetch_tokens` — CLOSED, with a surprise.** Keyed by contact, it
+   AUTO-CREATES (or fetches) a customer and returns
+   `{customer: {...}, saved_payment_methods: {count, items[]}}` — which
+   yields a real `cust_` id without any create_customer tool existing.
+   Customer `notes` also serialise list-when-empty.
+5. **`single_block_multiple_debit` — CLOSED: the rail ACCEPTS it.** With the
+   real customer id, `create_order` + `method: upi` + `token: {max_amount,
+   frequency, type: single_block_multiple_debit}` minted a REAL order
+   (`order_TVVx2BsE93kh9W`). The response does not echo the token block, and
+   the debit leg is unverifiable here (item 2), so the claim upgrade is
+   partial and precise: *the rail accepted a block-and-debit mandate order in
+   test mode; the debit against it is unverified.*
+
+Also captured: MCP tool errors arrive as `{"text": "..."}` blobs, not
+structured errors — the commit gate already treats an id-less response as
+failure-and-release, so it fails safe on exactly this shape (tested in
+Phase 2).
+
+### Decision
+**The settlement leg becomes a labelled MODELLED rail over real orders.**
+The Phase 3 milestone is untouched — a natural-language constraint producing
+a real Razorpay-minted order id is fully achievable, and the order IS the
+binding money action (ADR-026: the mandate governs binding, not settlement).
+`initiate_payment` → `submit_otp` are modelled faithfully to their documented
+shapes (including deliberate decline, OTP, and ambiguous-timeout behaviour)
+under the same claim discipline as catalog/cart/mandate — surfaced in the UI,
+never blurred. The decline deliverable ("one failure handled gracefully")
+demonstrates on the modelled rail against REAL order state, reconciled via
+the real `fetch_order_payments`.
+
+### Trade-off accepted
+The demo's money-movement step is modelled, weakening "watch a real payment
+fail" to "watch a faithfully modelled payment fail against a real order."
+Accepted over the alternatives: a hosted-checkout browser step would break
+the agentic flow, and blocking Phase 3 on a Razorpay S2S enablement request
+gambles the whole build on a support queue. The kickoff's own instruction —
+"if declines cannot be triggered in test mode, say so" — anticipated exactly
+this.
+
+### Revisit if
+S2S gets enabled on the account (a dashboard/support request is worth making
+in parallel): the modelled rail's seam is the same Upstream interface, so the
+real tools drop in and the decline demo upgrades to fully real.
+
+---
+
+## ADR-033 — The commerce verdict is first-class in the audit ledger
+Date: 2026-08-29    Phase: 3    Status: Accepted
+
+### Context
+ADR-032 made gate rejections structured results, so the boundary shows
+ALLOW+forwarded for commits that commercially REFUSED. Review flagged the
+second-order effect: anyone auditing by boundary verdict alone would read a
+refused commit as a success — "every money action explainable" would hold at
+the policy layer and quietly fail at the audit layer, the layer the bar names.
+
+### Decision
+A generic, declarative facet — no tool-name branching anywhere:
+`tool_classes.yaml` may declare `outcome_field: <response field>` on any tool;
+the interceptor copies that field's value into a new `AuditEntry.app_outcome`.
+`cart_commit` declares `reason_code`, so *"commits that produced no order"* is
+a direct ledger query (`tool_name == cart_commit and not
+app_outcome.startswith("COMMITTED")`) — proven by a critical test that runs a
+refused and a committed commit and queries the ledger alone.
+
+Two things surfaced while building it, both kept:
+- **Hash-chain schema evolution rule:** a later-added optional field is
+  dropped from the chain payload when None, so ledgers written before the
+  field existed still verify, while any present value is hash-protected.
+  (Found the hard way: a persisted dev ledger failed verification after the
+  field landed.)
+- **Same-args cart_create replays (discovered, kept deliberately):**
+  SENTINEL's write-idempotency guard keys on (tool, arguments), so a second
+  identical cart_create in one run replays the first cart rather than minting
+  a second — the guard doing its job. Documented in a test; a future
+  multi-cart-per-run design must add a client reference argument.
+
+### Trade-off accepted
+One more field in the audit contract and a special case in `chain_payload`.
+Accepted: the alternative was an audit trail that tells the truth only when
+joined against downstream state.
+
+---
+
+## ADR-035 — Phase 3: consent moves upstream — the mandate IS the approval
+Date: 2026-08-29    Phase: 3    Status: Accepted
+
+### Context
+The brief demands "end to end" (no human mid-flow); the engine's class floor
+demands MONEY_MOVEMENT never be auto-allowed (invariant 5, untouchable from
+config). Those reconcile only if the user's upfront consent can stand where a
+reviewer's approval stands.
+
+### Decisions
+
+**1. Mandate resolution sits exactly where approval resolution sits.** A new
+closed rule type `mandate_gate` DENIES every mandate failure — missing,
+revoked, expired, out-of-scope, exhausted — all UN-APPROVABLE (a critical
+test proves a valid human approval cannot rescue exhaustion: a reviewer
+overriding a user-set limit would make consent theatre). When the mandate is
+valid, the engine resolves the class-floor escalation to
+`ALLOW_MANDATE_BOUND` — deliberately narrow: only the class floor; a tier
+review, a provenance escalation, or any DENY still stands. Monotonicity
+holds: like human approval, consent rescues an escalation, never a denial.
+
+**2. Injection containment for commerce is structural, and the engine now
+honours the guard's declared scope.** Building the buyer surfaced that the
+engine HARDCODED provenance narrowing for both write classes, ignoring the
+`escalate_reversible` flag that always existed in config — every cart
+mutation after a catalog read suspended for approval, putting a human back in
+a loop the brief says has none. The engine now narrows exactly the classes
+the policy's own provenance_guard declares (strict declares both → SENTINEL
+behaviour unchanged, red-team A/B intact). Commerce declares
+`escalate_reversible: false`: the off-rail cart binds nothing, is
+server-priced, and the mandate bounds what commit can do — being fooled is
+bounded by upfront consent, which is the pilot's own sentence. Irreversible
+writes still narrow; reads stay scope-restricted.
+
+**3. Mandate state enters DecisionContext as a CALLABLE** (`RunConfig.
+mandate_env_fn`) — the balance is ledger-derived per call, because it changes
+as commits confirm mid-run. Snapshot-at-run-start would go stale exactly when
+it matters.
+
+**4. The buyer agent** (06 §A): least-privilege scope (catalog/cart/commit/
+modelled-payment/read-back; refunds, payouts, links, QR, customer mutation
+excluded), versioned prompt-as-documentation, schema-validated structured
+output including unsatisfied constraints, honest decline buying NOTHING.
+Every amount it acts on is read back from a server response; its internal
+arithmetic only CHOOSES (the gate re-prices regardless).
+
+**5. Revocation mid-commit is truthful:** ledger `confirm` refuses on a
+non-ACTIVE mandate; the gate returns `REJECT_MANDATE_REVOKED_MIDFLIGHT`
+naming the upstream order that exists unpaid and stating that nothing was
+drawn.
+
+### The milestone, recorded
+"Order dinner for four under ₹800, no beef, using mandate mnd_000001" →
+**`order_TVWCd7DHE9KzQh`**, a REAL Razorpay-minted test-mode order (₹483.00),
+verified via live `fetch_order` with our cart/mandate/catalog-version echoed
+in `notes`; settlement captured on the labelled modelled rail (ADR-034);
+payment decided by `ALLOW_MANDATE_BOUND`; audit chain verified. Recorded in
+`artifacts/phase3-live-run.json`. Suite: 359 → 366 green, red-team A/B intact.
+
+### Trade-off accepted
+Weakening reversible-write narrowing for the commerce set is a real, named
+reduction in one control's coverage, traded for the end-to-end property and
+justified by structural containment; the adversarial suite (Phase 6) measures
+what remains. The deterministic brain optimises for cheapest-satisfying, not
+appetising (it bought rice and rotis for four) — fine for correctness, noted
+for demo quality; real models choose better.
+
+### Revisit if
+Phase 6's adversarial results show injected catalog text steering purchases
+within the mandate at a rate that matters — then per-item confirmation or a
+category-pinning rule tightens the commerce set without a human per mutation.

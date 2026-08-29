@@ -84,8 +84,8 @@ Never blurred, surfaced in the UI and not only here:
 
 | Layer | Claim level |
 |---|---|
-| Razorpay test-mode API calls (`create_order`, `initiate_payment`, `submit_otp`, `fetch_tokens`, …) via the live MCP surface | **Real** |
-| Catalog, cart, mandate (Reserve Pay semantics) — faithful models over real primitives | **Modelled** |
+| Razorpay test-mode API calls (`create_order`, `fetch_order`, `fetch_order_payments`, `fetch_tokens`, …) via the live MCP surface — every order id is Razorpay-minted | **Real** |
+| Catalog, cart, mandate (Reserve Pay semantics), **and the settlement leg** (`initiate_payment` → `submit_otp`): the S2S payment API is not enabled on this test account (verified empirically, ADR-034), so settlement is a faithful labelled model over real order state | **Modelled** |
 | AP2 (global analogue), UAP (forward-compatibility of intent only) | **Referenced** |
 
 Reserve Pay is an NPCI rail-layer product, not a Razorpay API — it does not
