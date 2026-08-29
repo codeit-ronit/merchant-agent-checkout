@@ -39,6 +39,14 @@ class ReasonCode(str, Enum):
     DENY_TOOL_DENIED = "DENY_TOOL_DENIED"
     DENY_ARGUMENT_CONSTRAINT = "DENY_ARGUMENT_CONSTRAINT"
     DENY_UNBOUNDED_COLLECTION = "DENY_UNBOUNDED_COLLECTION"
+    # CONDUIT mandate gate (05-MANDATE §3.4) — all DENY, all un-approvable:
+    # a reviewer must not be able to override a limit the USER set.
+    DENY_MANDATE_MISSING = "DENY_MANDATE_MISSING"
+    DENY_MANDATE_REVOKED = "DENY_MANDATE_REVOKED"
+    DENY_MANDATE_EXPIRED = "DENY_MANDATE_EXPIRED"
+    DENY_MANDATE_SCOPE = "DENY_MANDATE_SCOPE"
+    DENY_MANDATE_EXHAUSTED = "DENY_MANDATE_EXHAUSTED"
+    ALLOW_MANDATE_BOUND = "ALLOW_MANDATE_BOUND"
     # --- ESCALATE (REQUIRE_APPROVAL) ---
     ESCALATE_MONEY_MOVEMENT = "ESCALATE_MONEY_MOVEMENT"
     ESCALATE_IRREVERSIBLE = "ESCALATE_IRREVERSIBLE"
@@ -69,6 +77,12 @@ CODE_DISPOSITION: dict[ReasonCode, Disposition] = {
     ReasonCode.DENY_TOOL_DENIED: Disposition.DENY,
     ReasonCode.DENY_ARGUMENT_CONSTRAINT: Disposition.DENY,
     ReasonCode.DENY_UNBOUNDED_COLLECTION: Disposition.DENY,
+    ReasonCode.DENY_MANDATE_MISSING: Disposition.DENY,
+    ReasonCode.DENY_MANDATE_REVOKED: Disposition.DENY,
+    ReasonCode.DENY_MANDATE_EXPIRED: Disposition.DENY,
+    ReasonCode.DENY_MANDATE_SCOPE: Disposition.DENY,
+    ReasonCode.DENY_MANDATE_EXHAUSTED: Disposition.DENY,
+    ReasonCode.ALLOW_MANDATE_BOUND: Disposition.ALLOW,
     ReasonCode.ESCALATE_MONEY_MOVEMENT: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_IRREVERSIBLE: Disposition.REQUIRE_APPROVAL,
     ReasonCode.ESCALATE_AMOUNT_THRESHOLD: Disposition.REQUIRE_APPROVAL,
@@ -119,6 +133,18 @@ _TEMPLATES: dict[ReasonCode, str] = {
         "Blocked: an argument to {tool} violated a policy constraint ({detail}).",
     ReasonCode.DENY_UNBOUNDED_COLLECTION:
         "Blocked: {tool} does not bind a fixed amount (a variable-amount collection), so its size cannot be governed; refused.",
+    ReasonCode.DENY_MANDATE_MISSING:
+        "Blocked: {tool} binds money but this run has no spending mandate. The user must set one aside first.",
+    ReasonCode.DENY_MANDATE_REVOKED:
+        "Blocked: the user revoked the spending mandate. Nothing further can be bound against it — revocation is instant and total.",
+    ReasonCode.DENY_MANDATE_EXPIRED:
+        "Blocked: the spending mandate expired. It cannot be extended; the user must set aside a new one.",
+    ReasonCode.DENY_MANDATE_SCOPE:
+        "Blocked: the mandate was set aside for a different merchant. A mandate for one merchant is never drawable by another.",
+    ReasonCode.DENY_MANDATE_EXHAUSTED:
+        "Blocked: {tool} for {amount} would take you {shortfall} over the limit the user set. No reviewer can approve past a user-set limit.",
+    ReasonCode.ALLOW_MANDATE_BOUND:
+        "Allowed: {tool} ({amount}) is inside the spending mandate the user set aside — consent was given upfront, so no per-payment approval is needed.",
     ReasonCode.ESCALATE_MONEY_MOVEMENT:
         "Needs approval: {tool} moves money ({amount}) and always requires a human reviewer.",
     ReasonCode.ESCALATE_IRREVERSIBLE:

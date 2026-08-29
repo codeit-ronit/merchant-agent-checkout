@@ -1,0 +1,109 @@
+# CONDUIT — COMMERCE policy set (the buyer agent's posture). ADR-035.
+#
+# The thesis, as configuration: consent moves upstream. The user sets a
+# mandate once; inside it the agent transacts uninterrupted; outside it,
+# nothing can act. Concretely:
+#   * every mandate failure is a DENY — un-approvable by construction. A
+#     reviewer overriding a user-set limit would make consent theatre.
+#   * MONEY_MOVEMENT is class-floored to REQUIRE_APPROVAL by the engine
+#     (invariant 5, untouchable from config); a VALID mandate resolves that
+#     floor to ALLOW_MANDATE_BOUND the same way a human approval would —
+#     the mandate IS the approval, given upfront.
+#   * cart mutations stay free under untrusted content: they bind nothing
+#     and are server-priced, so injection containment is STRUCTURAL
+#     (catalog-only items, re-price at commit, the mandate ceiling) rather
+#     than per-mutation human review — which would put a human back in the
+#     loop the brief says has none. Irreversible writes still narrow.
+#
+# Amounts are integer minor units (paise). ₹10,000 = 1000000.
+
+id: commerce
+version: "1"
+description: "Buyer-agent posture: mandate-bound money movement, structural injection containment, collection governance intact."
+author: conduit
+
+rules:
+  # --- baseline disposition by risk class ---
+  - id: class_baseline
+    type: tool_class
+    description: "Reads and reversible writes allowed; irreversible writes need review; money movement resolves through the mandate (or a human, failing that)."
+    class_dispositions:
+      READ: ALLOW
+      REVERSIBLE_WRITE: ALLOW
+      IRREVERSIBLE_WRITE: REQUIRE_APPROVAL
+      MONEY_MOVEMENT: ALLOW      # engine floor -> REQUIRE_APPROVAL -> mandate resolves
+
+  # --- THE consent envelope. Fires DENY on missing/revoked/expired/
+  #     out-of-scope/exhausted; silent when the mandate authorises. ---
+  - id: mandate_gate
+    type: mandate_gate
+    description: "Money binds only inside the user's mandate: right merchant, unexpired, unrevoked, within remaining balance. Every failure is un-approvable."
+    applies_to_roles: [COLLECTION]
+    apply_to_money_movement: true
+
+  # --- everything below is inherited SENTINEL governance, unchanged ---
+  - id: payment_hard_ceiling
+    type: amount_cap
+    description: "No single money-moving action over ₹1,00,000 — cannot be approved by anyone."
+    scope: per_call
+    max_minor: 10000000
+    currency: INR
+    applies_to_classes: [MONEY_MOVEMENT]
+
+  - id: run_spend_ceiling
+    type: amount_cap
+    description: "No more than ₹2,00,000 of money movement in a single run."
+    scope: per_run
+    max_minor: 20000000
+    currency: INR
+    applies_to_classes: [MONEY_MOVEMENT]
+
+  - id: collection_tiers
+    type: collection_tier
+    description: "Collections over ₹10,000 need review; over ₹2,00,000 elevated review — a large commit still gets human eyes even inside a large mandate."
+    review_over_minor: 1000000
+    elevated_over_minor: 20000000
+    currency: INR
+
+  - id: collection_must_bind_amount
+    type: collection_bound_amount
+    description: "A variable-amount / unbound collection is refused — its size cannot be governed."
+
+  - id: collection_run_ceiling
+    type: amount_cap
+    description: "No more than ₹5,00,000 of collection bound in a single run — cannot be approved by anyone."
+    scope: per_run
+    max_minor: 50000000
+    currency: INR
+    applies_to_roles: [COLLECTION]
+
+  - id: money_movement_rate
+    type: rate_limit
+    description: "At most 5 money-moving calls per run."
+    scope: class
+    key: MONEY_MOVEMENT
+    max_count: 5
+    window: run
+
+  # --- injection defence, commerce-shaped (ADR-035): irreversible writes
+  #     narrow; reads stay in scope; REVERSIBLE writes stay free because the
+  #     cart binds nothing and the mandate bounds what commit can do. ---
+  - id: provenance_narrowing
+    type: provenance_guard
+    description: "Untrusted content escalates irreversible writes and restricts reads to scope; the off-rail cart stays free — containment is structural."
+    escalate_irreversible: true
+    escalate_reversible: false
+    restrict_reads_to_scope: true
+
+  # --- a new destination still escalates; the mandate's own instrument is
+  #     injected as a KNOWN counterparty by the runtime (consented upfront). ---
+  - id: novel_counterparty
+    type: counterparty_novelty
+    description: "A charge to a destination never seen before needs a reviewer — the mandate's own customer is known by consent."
+
+  - id: inr_only
+    type: argument_constraint
+    description: "Money movement must be denominated in INR in this deployment."
+    arg_path: currency
+    op: currency_in
+    value: [INR]

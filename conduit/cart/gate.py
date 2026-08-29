@@ -38,6 +38,7 @@ class GateReason(str, Enum):
     REJECT_UNAVAILABLE = "REJECT_UNAVAILABLE"
     REJECT_REQUIRES_ITEM_MISSING = "REJECT_REQUIRES_ITEM_MISSING"
     REJECT_MANDATE_INSUFFICIENT = "REJECT_MANDATE_INSUFFICIENT"
+    REJECT_MANDATE_REVOKED_MIDFLIGHT = "REJECT_MANDATE_REVOKED_MIDFLIGHT"
     REJECT_CART_EXPIRED = "REJECT_CART_EXPIRED"
     REJECT_NO_SUCH_CART = "REJECT_NO_SUCH_CART"
     REJECT_ALREADY_COMMITTED = "REJECT_ALREADY_COMMITTED"
@@ -196,7 +197,25 @@ class CommitGate:
                            "The cart is intact — retry the commit; it is idempotent.")
 
         # ---- 10. confirm the drawdown; the cart becomes COMMITTED ----
-        balance = self._ledger.confirm(record.mandate_id, ref=cart_id, now_ms=now_ms)
+        try:
+            balance = self._ledger.confirm(record.mandate_id, ref=cart_id, now_ms=now_ms)
+        except LedgerError as exc:
+            # Revoked (or otherwise dead) between reserve and confirm. The
+            # order exists upstream but NOTHING was drawn; it stands as an
+            # unpaid intent-to-collect and will not be paid. Truthful, not
+            # a stack trace (ADR-035).
+            try:
+                self._ledger.release(record.mandate_id, ref=cart_id, now_ms=now_ms)
+            except LedgerError:
+                pass  # revocation already released the hold
+            return _reject(
+                GateReason.REJECT_MANDATE_REVOKED_MIDFLIGHT,
+                f"the mandate was revoked mid-purchase ({exc}). Order {order_id} "
+                f"was created upstream but nothing was drawn against the mandate; "
+                f"it will not be paid.",
+                "Nothing was charged. If the user still wants this purchase, they "
+                "must set aside a new mandate.",
+                order_id=order_id)
         record.status = CartStatus.COMMITTED
         record.committed_order_id = order_id
         record.committed_amount_minor = priced.total_minor

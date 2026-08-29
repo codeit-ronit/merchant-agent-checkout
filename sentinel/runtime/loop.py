@@ -20,7 +20,7 @@ from typing import Callable, Optional
 from sentinel.audit.ledger import AuditLedger, InMemoryLedgerRepository
 from sentinel.common.ids import IdFactory
 from sentinel.contracts.approvals import ApprovalRequest
-from sentinel.contracts.decision import InjectedEnv
+from sentinel.contracts.decision import InjectedEnv, MandateEnv
 from sentinel.contracts.enums import BindingRole, Disposition, RunMode, TerminalState
 from sentinel.contracts.runs import RunRecord
 from sentinel.metering.meter import MeterAccumulator
@@ -69,6 +69,11 @@ class RunConfig:
     operator_scope_entities: frozenset = frozenset()
     seed: int = 20260821
     mode: RunMode = RunMode.FIXTURE
+    # CONDUIT (02 §4.6, the allowed extension): mandate state into
+    # DecisionContext. A CALLABLE, not a snapshot — the balance is
+    # ledger-derived and changes as commits confirm mid-run.
+    mandate_env_fn: Optional[Callable[[], "MandateEnv | None"]] = None
+    merchant_id: Optional[str] = None
 
 
 class AgentRunner:
@@ -180,7 +185,9 @@ class AgentRunner:
                 per_tool_count_run=dict(per_tool),
                 per_class_count_window=dict(per_class), tool_call_count_run=tool_calls,
                 elapsed_run_ms=now - started, known_counterparties=cfg.known_counterparties,
-                operator_scope_entities=cfg.operator_scope_entities)
+                operator_scope_entities=cfg.operator_scope_entities,
+                mandate=(cfg.mandate_env_fn() if cfg.mandate_env_fn else None),
+                merchant_id=cfg.merchant_id)
 
         malformed_retry_used = False
         while True:

@@ -412,8 +412,64 @@ class CollectionBoundAmountRule(Rule):
         return None
 
 
+# ---------------------------------------------------------------------------
+# mandate_gate — consent moved upstream (CONDUIT, 05-MANDATE §3.4)
+# ---------------------------------------------------------------------------
+def mandate_failure(ctx: DecisionContext) -> tuple[ReasonCode, dict] | None:
+    """Why the mandate does NOT authorise this call, or None if it does.
+    Shared by the rule (which DENIES on failure) and the engine's floor
+    resolution (which requires success before treating the mandate as the
+    upstream approval). Pure: compares injected values only."""
+    m = ctx.env.mandate
+    if m is None:
+        return ReasonCode.DENY_MANDATE_MISSING, {"tool": ctx.tool_name}
+    if m.status != "ACTIVE":
+        return ReasonCode.DENY_MANDATE_REVOKED, {}
+    if ctx.env.now_epoch_ms >= m.expires_at_ms:
+        return ReasonCode.DENY_MANDATE_EXPIRED, {}
+    if ctx.env.merchant_id is None or m.scope_merchant_id != ctx.env.merchant_id:
+        return ReasonCode.DENY_MANDATE_SCOPE, {}
+    amount = ctx.money.amount_minor
+    if amount is not None and amount > m.remaining_minor:
+        shortfall = amount - m.remaining_minor
+        return ReasonCode.DENY_MANDATE_EXHAUSTED, {
+            "tool": ctx.tool_name,
+            "amount": format_amount(amount, m.currency),
+            "shortfall": format_amount(shortfall, m.currency),
+        }
+    return None
+
+
+class MandateGateRule(Rule):
+    """The consent envelope as a policy rule. Applies to calls that bind or
+    move money (by binding role and/or risk class). Every failure is a DENY —
+    un-approvable by construction: a reviewer overriding a user-set limit
+    would make the consent model theatre (ADR: mandate exhaustion is not an
+    escalation). Composition order versus tiers/caps is irrelevant to
+    correctness because most-restrictive-wins; the DENY simply wins."""
+
+    kind: str = "mandate_gate"
+    applies_to_roles: tuple[BindingRole, ...] = (BindingRole.COLLECTION,)
+    apply_to_money_movement: bool = True
+
+    def _applies(self, ctx: DecisionContext) -> bool:
+        if ctx.money.binding_role in self.applies_to_roles:
+            return True
+        return self.apply_to_money_movement and ctx.risk_class == RiskClass.MONEY_MOVEMENT
+
+    def evaluate(self, ctx: DecisionContext) -> Optional[Outcome]:
+        if not self._applies(ctx):
+            return None
+        failure = mandate_failure(ctx)
+        if failure is not None:
+            code, params = failure
+            return Outcome(Disposition.DENY, code, self.id, params)
+        return None  # a valid mandate is silent here; the floor resolution speaks
+
+
 RULE_TYPES: dict[str, type[Rule]] = {
     "tool_class": ToolClassRule,
+    "mandate_gate": MandateGateRule,
     "collection_tier": CollectionTierRule,
     "collection_bound_amount": CollectionBoundAmountRule,
     "tool_allow": ToolAllowRule,

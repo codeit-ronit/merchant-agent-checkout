@@ -87,9 +87,21 @@ def _evaluate_inner(policy_set: PolicySet, ctx: DecisionContext) -> PolicyDecisi
     #    otherwise-ALLOW write is downgraded to REQUIRE_APPROVAL. This only ever
     #    tightens an ALLOW — it never rescues a DENY into an approval, so
     #    monotonicity holds.
-    has_provenance_guard = any(getattr(r, "kind", "") == "provenance_guard" for r in policy_set.rules)
-    if (has_provenance_guard and ctx.untrusted_in_context and disposition == Disposition.ALLOW
-            and ctx.risk_class in (RiskClass.REVERSIBLE_WRITE, RiskClass.IRREVERSIBLE_WRITE)):
+    guard_rule = next((r for r in policy_set.rules
+                       if getattr(r, "kind", "") == "provenance_guard"), None)
+    narrowed_classes: tuple[RiskClass, ...] = ()
+    if guard_rule is not None:
+        # Respect the rule's own declared scope (it always existed in config;
+        # the engine previously hardcoded both write classes). Strict keeps
+        # both true; commerce narrows only irreversible writes — the off-rail
+        # cart binds nothing and the mandate bounds what commit can do
+        # (ADR-035: injection containment for commerce is structural).
+        if getattr(guard_rule, "escalate_reversible", True):
+            narrowed_classes += (RiskClass.REVERSIBLE_WRITE,)
+        if getattr(guard_rule, "escalate_irreversible", True):
+            narrowed_classes += (RiskClass.IRREVERSIBLE_WRITE,)
+    if (ctx.untrusted_in_context and disposition == Disposition.ALLOW
+            and ctx.risk_class in narrowed_classes):
         disposition = Disposition.REQUIRE_APPROVAL
         reason_code = ReasonCode.ESCALATE_INJECTION_SUSPECTED
         deciding_rule = "__provenance_guard__"
@@ -104,7 +116,25 @@ def _evaluate_inner(policy_set: PolicySet, ctx: DecisionContext) -> PolicyDecisi
         deciding_rule = "__class_floor__"
         render_params = {"tool": ctx.tool_name, "amount": _fmt_amt(ctx)}
 
-    # 5. Approval resolution — a valid, argument-bound, unexpired approval turns
+    # 5b. Mandate resolution (CONDUIT): consent moved upstream. IFF this policy
+    #     set carries a mandate_gate rule AND the injected mandate authorises
+    #     this exact call (scope, expiry, status, balance — re-checked here,
+    #     not assumed), the CLASS-FLOOR escalation resolves to ALLOW: the
+    #     user's upfront consent is the approval. Deliberately narrow: only
+    #     the class floor is resolvable — a tier review, a provenance
+    #     escalation, or any DENY still stands. Monotonicity holds: like
+    #     human approval, this rescues only an escalation, never a denial.
+    if (disposition == Disposition.REQUIRE_APPROVAL
+            and reason_code == ReasonCode.ESCALATE_MONEY_MOVEMENT
+            and any(getattr(r, "kind", "") == "mandate_gate" for r in policy_set.rules)):
+        from sentinel.policy.rules import mandate_failure
+        if mandate_failure(ctx) is None:
+            disposition = Disposition.ALLOW
+            reason_code = ReasonCode.ALLOW_MANDATE_BOUND
+            deciding_rule = "__mandate_bound__"
+            render_params = {"tool": ctx.tool_name, "amount": _fmt_amt(ctx)}
+
+    # 5c. Approval resolution — a valid, argument-bound, unexpired approval turns
     #    an escalation into an allow. A DENY is never rescued.
     obligations: list[Obligation] = []
     if disposition == Disposition.REQUIRE_APPROVAL:

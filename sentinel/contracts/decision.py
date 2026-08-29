@@ -45,6 +45,20 @@ class MoneySemantics(Contract):
     counterparty_ref: Optional[str] = None
 
 
+class MandateEnv(Contract):
+    """The consent envelope's state at decision time (CONDUIT, 05-MANDATE
+    §3.4): a policy INPUT, not a parallel gate. Injected by the caller like
+    every other env fact — the engine never reads the ledger itself. The
+    balance is ledger-derived by the injector; the engine only compares."""
+
+    mandate_id: str
+    remaining_minor: int
+    currency: str
+    scope_merchant_id: str
+    expires_at_ms: int
+    status: str = "ACTIVE"           # ACTIVE | REVOKED
+
+
 class InjectedEnv(Contract):
     """Everything the engine would otherwise have to read from the world.
     Supplied by the caller. The engine NEVER reads a clock, db, or network."""
@@ -67,6 +81,10 @@ class InjectedEnv(Contract):
     known_counterparties: frozenset[str] = frozenset()
     # Entities inside the operator's declared scope (object refs, non-PII).
     operator_scope_entities: frozenset[str] = frozenset()
+    # CONDUIT mandate state (None when the run is not mandate-bound) and the
+    # deployment's merchant identity, for the mandate scope check.
+    mandate: Optional[MandateEnv] = None
+    merchant_id: Optional[str] = None
 
 
 class DecisionContext(Contract):

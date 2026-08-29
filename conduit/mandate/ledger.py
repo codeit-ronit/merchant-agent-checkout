@@ -52,11 +52,23 @@ class LedgerEntry:
 
 @dataclass(frozen=True)
 class Mandate:
-    """Phase 2 core: the locked envelope. Scope/expiry/revocation are Phase 3."""
+    """The consent envelope: a locked amount, for ONE merchant, until an
+    absolute non-extendable expiry, revocable instantly. The instrument is
+    bound by CONTACT (ADR-028 finding 7: `fetch_tokens` is keyed by contact,
+    not customer id — the identity model owns that mapping explicitly).
+
+    Phase 2 callers that predate scope/expiry get permissive defaults ONLY in
+    the sense that a blank scope never matches any merchant — absent scope
+    fails closed at the policy gate, not open."""
 
     mandate_id: str
     locked_minor: int
     currency: str
+    scope_merchant_id: str = ""          # "" matches no merchant: fail closed
+    expires_at_ms: int = 0               # 0 = already expired: fail closed
+    status: str = "ACTIVE"               # ACTIVE | REVOKED
+    instrument_contact: str | None = None  # synthetic contact -> fetch_tokens key
+    customer_id: str | None = None         # rail customer (minted by fetch_tokens)
 
     def __post_init__(self) -> None:
         if isinstance(self.locked_minor, bool) or not isinstance(self.locked_minor, int):
@@ -65,6 +77,10 @@ class Mandate:
             raise ValueError("locked_minor must be positive")
         if self.currency not in MINOR_UNIT_EXPONENT:
             raise ValueError(f"unknown currency '{self.currency}'")
+        if isinstance(self.expires_at_ms, bool) or not isinstance(self.expires_at_ms, int):
+            raise TypeError("expires_at_ms must be an integer epoch ms")
+        if self.status not in ("ACTIVE", "REVOKED"):
+            raise ValueError(f"unknown mandate status '{self.status}'")
 
 
 @dataclass(frozen=True)
@@ -113,7 +129,11 @@ class SqliteLedgerRepository:
             """
             CREATE TABLE IF NOT EXISTS mandates (
               mandate_id TEXT PRIMARY KEY, locked_minor INTEGER NOT NULL,
-              currency TEXT NOT NULL
+              currency TEXT NOT NULL,
+              scope_merchant_id TEXT NOT NULL DEFAULT '',
+              expires_at_ms INTEGER NOT NULL DEFAULT 0,
+              status TEXT NOT NULL DEFAULT 'ACTIVE',
+              instrument_contact TEXT, customer_id TEXT
             );
             CREATE TABLE IF NOT EXISTS drawdown_entries (
               seq INTEGER PRIMARY KEY,
@@ -142,13 +162,18 @@ class SqliteLedgerRepository:
         return row[0]
 
     def put_mandate(self, mandate: Mandate) -> None:
-        self._conn.execute("INSERT OR REPLACE INTO mandates VALUES (?,?,?)",
-                           (mandate.mandate_id, mandate.locked_minor, mandate.currency))
+        self._conn.execute(
+            "INSERT OR REPLACE INTO mandates VALUES (?,?,?,?,?,?,?,?)",
+            (mandate.mandate_id, mandate.locked_minor, mandate.currency,
+             mandate.scope_merchant_id, mandate.expires_at_ms, mandate.status,
+             mandate.instrument_contact, mandate.customer_id))
         self._conn.commit()
 
     def get_mandate(self, mandate_id: str) -> Mandate | None:
         row = self._conn.execute(
-            "SELECT mandate_id, locked_minor, currency FROM mandates WHERE mandate_id = ?",
+            "SELECT mandate_id, locked_minor, currency, scope_merchant_id,"
+            " expires_at_ms, status, instrument_contact, customer_id"
+            " FROM mandates WHERE mandate_id = ?",
             (mandate_id,)).fetchone()
         return Mandate(*row) if row else None
 
@@ -211,6 +236,16 @@ class DrawdownLedger:
             raise LedgerError("reservation amount must be a positive integer of minor units")
         with self._lock:
             mandate = self.get_mandate(mandate_id)
+            # Defence in depth: policy is the gate, but the ledger refuses to
+            # hold money against a dead envelope even if a caller skips policy.
+            if mandate.status != "ACTIVE":
+                raise LedgerError(
+                    f"mandate '{mandate_id}' is {mandate.status}: revocation is instant "
+                    f"and total; nothing further can be reserved against it.")
+            if mandate.expires_at_ms and now_ms >= mandate.expires_at_ms:
+                raise LedgerError(
+                    f"mandate '{mandate_id}' expired; it cannot be extended. "
+                    f"The user must set aside a new one.")
             bal = self.balance(mandate_id)
             if self.active_reservation(mandate_id, ref) is not None:
                 raise LedgerError(f"ref '{ref}' already holds an active reservation")
@@ -228,6 +263,14 @@ class DrawdownLedger:
 
     def confirm(self, mandate_id: str, *, ref: str, now_ms: int) -> Balance:
         with self._lock:
+            mandate = self.get_mandate(mandate_id)
+            if mandate.status != "ACTIVE":
+                # In-flight commits are denied immediately on revocation
+                # (05-MANDATE §3.3) — never allowed to finish "because it
+                # already started".
+                raise LedgerError(
+                    f"mandate '{mandate_id}' is {mandate.status}; the in-flight "
+                    f"drawdown cannot be confirmed.")
             held = self.active_reservation(mandate_id, ref)
             if held is None:
                 raise LedgerError(f"no active reservation for ref '{ref}' to confirm")
