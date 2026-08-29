@@ -169,12 +169,15 @@ tools:
   # Mutations change state but bind nothing: REVERSIBLE_WRITE, BindingRole NONE —
   # exactly the distinction the binding-role model exists for. Line names in the
   # priced view are merchant-authored → UNTRUSTED.
-  cart_create:      {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [mandate_id], provenance_map: {"lines[].name": UNTRUSTED}}
-  cart_add_item:    {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
-  cart_update_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
-  cart_remove_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED}}
-  cart_view:        {risk_class: READ, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED}}
-  cart_clear:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED}}
+  cart_create:      {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [mandate_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  cart_add_item:    {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  cart_update_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  cart_remove_item: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id, item_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  cart_view:        {risk_class: READ, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  cart_clear:       {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
+  # Explicit acceptance is the ONLY path an upsell enters a cart (06 §B2);
+  # it re-validates price/stock/mandate against the live state (ADR-037).
+  cart_accept_upsell: {risk_class: REVERSIBLE_WRITE, entity_arg_paths: [cart_id], provenance_map: {"lines[].name": UNTRUSTED, "upsell_offers[].name": UNTRUSTED}}
   # The ONE binding step (ADR-027): reversible (an unpaid order is abandonable
   # intent-to-collect) but COLLECTION-binding, so it inherits the full collection
   # governance: per-call tiers, run aggregate, currency. expected_amount_minor is

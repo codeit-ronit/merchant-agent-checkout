@@ -100,6 +100,15 @@ CART_TOOLS: list[dict[str, Any]] = [
         {"cart_id": _STR}, ["cart_id"],
     ),
     _tool(
+        "cart_accept_upsell",
+        "(modelled) Explicitly accept a merchant-authored upsell offer by its "
+        "server-issued offer_id (from cart_view's upsell_offers). Acceptance "
+        "re-validates price, availability, and mandate fit against the LIVE "
+        "cart — an offer that no longer fits is withdrawn, never silently "
+        "applied. Offers can never be invented: only server-issued ids exist.",
+        {"cart_id": _STR, "offer_id": _STR}, ["cart_id", "offer_id"],
+    ),
+    _tool(
         "cart_commit",
         "(modelled gate; the ONE binding step) Commit the cart: the server "
         "re-prices against live catalog truth, diffs against "

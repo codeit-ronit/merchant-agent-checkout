@@ -173,6 +173,10 @@ class ConduitUpstream:
     def _t_cart_clear(self, a: dict[str, Any]) -> dict[str, Any]:
         return self._cart.clear(a["cart_id"], now_ms=self._now_ms()).to_public()
 
+    def _t_cart_accept_upsell(self, a: dict[str, Any]) -> dict[str, Any]:
+        return self._cart.accept_upsell(a["cart_id"], a["offer_id"],
+                                        now_ms=self._now_ms()).to_public()
+
     def _t_cart_commit(self, a: dict[str, Any]) -> dict[str, Any]:
         # The gate returns STRUCTURED outcomes for both success and rejection —
         # a rejection (re-price diff, shortfall, stock) is a well-formed answer

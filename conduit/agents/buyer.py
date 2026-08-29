@@ -68,7 +68,7 @@ OUTPUT_SCHEMA = {
 TOOL_SCOPE = (
     "catalog_search", "catalog_get_item", "catalog_check_availability", "catalog_feed",
     "cart_create", "cart_add_item", "cart_update_item", "cart_remove_item",
-    "cart_view", "cart_clear", "cart_commit",
+    "cart_view", "cart_clear", "cart_accept_upsell", "cart_commit",
     "initiate_payment", "submit_otp",
     "fetch_order", "fetch_order_payments",
 )
@@ -111,6 +111,33 @@ def _last_tool(messages: list[dict], name: str) -> dict | None:
             except Exception:
                 return {"_unparseable": m.get("content")}
     return None
+
+
+_CART_VIEW_TOOLS = ("cart_create", "cart_add_item", "cart_update_item",
+                    "cart_remove_item", "cart_view", "cart_clear",
+                    "cart_accept_upsell")
+
+
+def _latest_cart_view(messages: list[dict]) -> dict | None:
+    """The most recent server-priced view, whichever cart tool produced it."""
+    for m in reversed(messages):
+        if m.get("role") == "tool" and m.get("name") in _CART_VIEW_TOOLS:
+            try:
+                return json.loads(m["content"])
+            except Exception:
+                return None
+    return None
+
+
+def _any_offers_seen(messages: list[dict]) -> bool:
+    for m in messages:
+        if m.get("role") == "tool" and m.get("name") in _CART_VIEW_TOOLS:
+            try:
+                if json.loads(m["content"]).get("upsell_offers"):
+                    return True
+            except Exception:
+                continue
+    return False
 
 
 def _call(name: str, args: dict) -> ProviderResponse:
@@ -180,7 +207,7 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
         return _call("cart_add_item",
                      {"cart_id": cart_id, "item_id": main["item_id"], "quantity": main_qty})
 
-    latest_view = added_main  # every mutation returns the full priced cart
+    latest_view = _latest_cart_view(messages) or added_main
     total = latest_view.get("total_minor")
 
     # 3) optionally round out the meal with bread — CHOICE arithmetic only;
@@ -193,6 +220,18 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
         qty = min(party, bread.get("max_per_order") or party)
         return _call("cart_add_item",
                      {"cart_id": cart_id, "item_id": bread["item_id"], "quantity": qty})
+
+    # 3b) merchant-authored upsell: the server only surfaces offers the
+    #     MANDATE can afford (suppression is pre-model); the agent's own
+    #     judgement here is the user's BUDGET. Accept at most one, explicitly.
+    offers = latest_view.get("upsell_offers") or []
+    upsell_offered = bool(offers) or _any_offers_seen(messages)
+    accepted_upsell = _last_tool(messages, "cart_accept_upsell")
+    if (commit is None and offers and accepted_upsell is None
+            and "no extras" not in task.lower()
+            and (budget is None or total + offers[0]["offer_total_minor"] <= budget)):
+        return _call("cart_accept_upsell",
+                     {"cart_id": cart_id, "offer_id": offers[0]["offer_id"]})
 
     if budget is not None and total > budget:
         # server total exceeds budget: shed the last added line
@@ -255,7 +294,9 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
                  f"The order is held and the cart is recoverable; retry is safe — "
                  f"the same order will be reused, never a second one."]
                 if declined else []),
-            "upsell_offered": False, "upsell_accepted": False,
+            "upsell_offered": upsell_offered,
+            "upsell_accepted": accepted_upsell is not None
+                               and "_unparseable" not in (accepted_upsell or {}),
             "order_id": commit["order_id"],
             "payment_status": status,
             "mandate_remaining_minor": commit.get("mandate_remaining_minor"),
