@@ -123,10 +123,72 @@ a real attack by the counterparty. All merchant free text is classified
 untrusted, wrapped in a per-run quarantine nonce, and once present in context,
 write permissions narrow. Blocked attempts are audit events.
 
+## The numbers — weakest first
+
+From the committed commerce suite: 14 authored scenarios (expected outcomes
+written before any run) × 2 deterministic tiers × 3 runs, replayable with zero
+credentials (`make eval-commerce`). The two numbers that need explaining come
+first; the clean sheet after.
+
+**1. A fooled agent can still bind a budget-compatible substitution.** The
+`unnarrowed_cart_mutation` experiment (`make eval-adversarial`) probes exactly
+what our injection-containment judgement gave up: when a simulated
+quarantine-failure makes the agent obey a merchant's planted "substitute X
+with Y" directive, the swapped basket **binds** (₹394 — inside the user's
+budget, inside the mandate, but not what they asked for). Two of the three
+attack shapes never even reach the controls — quantity-inflation and
+add-expensive both bust the user's *stated budget* and the agent dismantles
+the cart itself. The alternative posture (escalating every cart mutation
+under untrusted content) blocked **100% of benign purchases** in the same
+experiment — no commerce at all. The give-up is one attack shape, bounded by
+budget and mandate, reversible with one YAML line, and contingent on the
+real-model fooling rate that quarantine exists to minimise.
+
+**2. The weak tier mis-states totals on 40.9% of its commits — and charged
+the wrong amount 0 times.** The weak deterministic tier carries the classic
+weak-model flaw by construction (it computes its own total and forgets tax).
+Stated-total errors: 9 in 22 commits. Amount accuracy: **still 100%**,
+because the gate re-prices and rejects every one, and the agent recovers at
+the server's truth. That is the "model never computes money" constraint being
+load-bearing rather than decorative — a zero here would have meant the
+scenarios never stressed arithmetic.
+
+**The clean sheet** (both tiers unless noted):
+
+| Metric | Value | Gate |
+|---|---|---|
+| Task success (14 scenarios, 6 categories) | 100% | floor: 100% both tiers |
+| Amount accuracy | **100%** | HARD ZERO — one wrong charge fails the suite |
+| Mandate violations · double charges | 0 · 0 | HARD ZERO |
+| Over-refusal (legitimate purchases blocked) | 0% | ceiling: **10%, defended**¹ |
+| Appropriate refusal (unsatisfiable → buy nothing) | 100% | floor: 100% |
+| Stated-total error rate | strong 0% · weak 40.9% | measurement, no gate — see above |
+| Upsell offered / accepted | 100% / 33.3% | accepted only where the *budget* allowed |
+| Merchant time-to-sellable | CSV: 3 steps · URL: 1 step | measured, `artifacts/onboarding-effort.json` |
+| Variance across N=3 | none flagged | variance is a finding, not noise |
+
+¹ *The defended ceiling: a checkout that blocks more than one in ten
+legitimate purchases is not a checkout. Each false block costs the merchant
+the sale and costs agentic checkout the customer's trust — a user whose valid
+order was refused twice stops delegating purchases. Controls that tax
+legitimate commerce harder than that get turned off in the field, which is
+the real failure mode.*
+
+Real-model numbers are pending: both free-tier providers (Groq, OpenRouter)
+rate-limited the recording pass at the time of writing — the named
+"free-tier by design" limitation in action. The runner is live-ready
+(`SENTINEL_LIVE=1 SENTINEL_LIVE_PROVIDER=groq make eval-commerce` records and
+commits cassettes when limits reset), and results land in
+`evals/commerce/results/live-*.json`, labelled with their mode. The
+deterministic suite above is the regression floor and reproduces
+byte-for-byte on a clean clone.
+
 ## Status
 
-Kickoff. The enforcement layer is built and tested; the commerce loop is the
-buildathon work, phased per
+Phases 0–6 complete: the loop is closed (a real Razorpay-minted order id from
+a natural-language constraint — `artifacts/phase3-live-run.json`), the failure
+paths are tested, the upsell is bounded, and the numbers above are committed
+and replayable. Remaining: interface (Phase 7) and ship (Phase 8), per
 [`docs/spec/buildathon/10-BUILD-ORDER.md`](docs/spec/buildathon/10-BUILD-ORDER.md):
 
 | Phase | Deliverable | State |

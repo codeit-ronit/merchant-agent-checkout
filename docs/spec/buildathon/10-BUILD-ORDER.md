@@ -192,11 +192,12 @@ the permitting rule and audit reference is Phase 7 surface work.*
 6. Expand toward ~40
 
 **Exit:**
-- [ ] Replay reproduces committed numbers with no credentials, on a clean clone
-- [ ] Amount accuracy 100%; hard-zero gate active
-- [ ] Over-refusal measured against a defended ceiling
-- [ ] Adversarial A/B with FP rate at equal prominence
-- [ ] Merchant time-to-sellable measured
+- [x] Replay reproduces committed numbers with no credentials (`make eval-commerce`; deterministic brains + committed fixtures; Spice Route anchored by a byte-identity regeneration test)
+- [x] Amount accuracy 100%; hard-zero gate active in code — proven load-bearing: weak tier mis-states 40.9% of commits and charges wrong 0 times
+- [x] Over-refusal 0% against the 10% ceiling, defended as a product decision in `thresholds.yaml` and the README
+- [x] Adversarial A/B (`make eval-adversarial`): the named `unnarrowed_cart_mutation` group across four conditions, benign twins reported at equal prominence (narrowed control: 100% false blocks; commerce: zero)
+- [x] Merchant time-to-sellable measured (`artifacts/onboarding-effort.json`)
+- [~] Real-model recorded numbers: infrastructure ready, blocked at time of writing by free-tier rate limits on both providers (ADR-038; rerun: `SENTINEL_LIVE=1 SENTINEL_LIVE_PROVIDER=groq make eval-commerce`)
 
 ---
 
