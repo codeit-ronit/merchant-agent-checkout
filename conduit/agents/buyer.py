@@ -198,7 +198,11 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
     cart = _last_tool(messages, "cart_create")
     if cart is None:
         return _call("cart_create", {"mandate_id": constraint["mandate_id"]})
-    cart_id = cart["cart_id"]
+    cart_id = cart.get("cart_id")
+    if not cart_id:
+        # the cart could not be created (policy denial, upstream failure):
+        # decline honestly rather than flailing
+        return _decline(constraint, "the cart could not be created; nothing was bought")
 
     commit = _last_tool(messages, "cart_commit")
     added_main = _last_tool(messages, "cart_add_item")
@@ -209,6 +213,11 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
 
     latest_view = _latest_cart_view(messages) or added_main
     total = latest_view.get("total_minor")
+    if total is None:
+        # mutations are being denied (e.g. a narrowed policy under untrusted
+        # content): the purchase cannot proceed — decline, buy nothing
+        return _decline(constraint,
+                        "cart mutations were denied by policy; nothing was bought")
 
     # 3) optionally round out the meal with bread — CHOICE arithmetic only;
     #    the server's returned total remains the only number that binds.

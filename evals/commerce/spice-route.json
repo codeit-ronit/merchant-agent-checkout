@@ -1,0 +1,338 @@
+{
+ "seed": 20260829,
+ "items": [
+  {
+   "item_id": "itm_chettinad-chicken",
+   "price_minor": 37100,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "chicken",
+    "non-veg",
+    "spicy"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Chettinad Chicken",
+   "description": "Chettinad Chicken — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_malabar-fish-curry",
+   "price_minor": 19500,
+   "currency": "INR",
+   "stock": "OUT_OF_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "non-veg",
+    "seafood"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Malabar Fish Curry",
+   "description": "Malabar Fish Curry — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_kadai-paneer",
+   "price_minor": 18800,
+   "currency": "INR",
+   "stock": "LIMITED",
+   "stock_count": 2,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Kadai Paneer",
+   "description": "Kadai Paneer — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_mutton-rogan-josh",
+   "price_minor": 17700,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "mutton",
+    "non-veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Mutton Rogan Josh",
+   "description": "Mutton Rogan Josh — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_aloo-gobi",
+   "price_minor": 19200,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Aloo Gobi",
+   "description": "Aloo Gobi — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_prawn-moilee",
+   "price_minor": 24300,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "mains",
+   "attributes": [
+    "non-veg",
+    "seafood"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Prawn Moilee",
+   "description": "Prawn Moilee — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_ghee-rice",
+   "price_minor": 12500,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "rice",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Ghee Rice",
+   "description": "Ghee Rice — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_lemon-rice",
+   "price_minor": 22000,
+   "currency": "INR",
+   "stock": "LIMITED",
+   "stock_count": 2,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "rice",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Lemon Rice",
+   "description": "Lemon Rice — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_hyderabadi-veg-biryani",
+   "price_minor": 13000,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "rice",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Hyderabadi Veg Biryani",
+   "description": "Hyderabadi Veg Biryani — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_malabar-parotta",
+   "price_minor": 3000,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "breads",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Malabar Parotta",
+   "description": "Malabar Parotta — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_appam-2-pc",
+   "price_minor": 2600,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "breads",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Appam (2 pc)",
+   "description": "Appam (2 pc) — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_payasam",
+   "price_minor": 10000,
+   "currency": "INR",
+   "stock": "LIMITED",
+   "stock_count": 4,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "desserts",
+   "attributes": [
+    "contains-nuts",
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Payasam",
+   "description": "Payasam — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_elaneer-pudding",
+   "price_minor": 9100,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 500,
+   "tax_category": null,
+   "category": "desserts",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Elaneer Pudding",
+   "description": "Elaneer Pudding — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_filter-coffee",
+   "price_minor": 7700,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 1200,
+   "tax_category": null,
+   "category": "beverages",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Filter Coffee",
+   "description": "Filter Coffee — house recipe",
+   "merchant_note": null
+  },
+  {
+   "item_id": "itm_sulaimani-tea",
+   "price_minor": 6800,
+   "currency": "INR",
+   "stock": "IN_STOCK",
+   "stock_count": null,
+   "tax_rate_bps": 1200,
+   "tax_category": null,
+   "category": "beverages",
+   "attributes": [
+    "veg"
+   ],
+   "min_quantity": 1,
+   "max_per_order": null,
+   "requires_item_id": null,
+   "variant_of": null,
+   "price_version": 1,
+   "name": "Sulaimani Tea",
+   "description": "Sulaimani Tea — house recipe",
+   "merchant_note": null
+  }
+ ],
+ "rules": [
+  {
+   "rule_id": "rule_sr_dessert",
+   "trigger": "itm_chettinad-chicken",
+   "offer": "itm_payasam"
+  },
+  {
+   "rule_id": "rule_sr_coffee",
+   "trigger": "itm_ghee-rice",
+   "offer": "itm_filter-coffee"
+  }
+ ]
+}

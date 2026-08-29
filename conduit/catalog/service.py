@@ -86,6 +86,16 @@ class CatalogService:
         self._repo.bump_version()
         return updated
 
+    def set_free_text(self, item_id: str, text, *, now_ms: int) -> CatalogItem:
+        """Merchant-side: replace an item's free text (name/description/note).
+        Untrusted like all merchant text; used by onboarding updates and by
+        the adversarial eval to plant counterparty payloads."""
+        item = self._require(item_id)
+        updated = replace(item, text=text)
+        self._repo.put_item(updated)
+        self._repo.bump_version()
+        return updated
+
     def put_upsell_rule(self, rule: UpsellRule) -> None:
         self._require(rule.trigger_item_id)
         self._require(rule.offer_item_id)  # offer price comes from the catalog like any item

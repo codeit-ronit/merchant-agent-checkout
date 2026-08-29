@@ -45,6 +45,12 @@ critical: ## Run only the five load-bearing safety tests
 	$(PYTEST) -q -m critical -v
 
 .PHONY: eval
+eval-commerce: ## CONDUIT commerce suite: 14 authored scenarios, gates incl. amount-accuracy hard zero (offline, no key)
+	$(PY) -m evals.commerce.runner --check-gates
+
+eval-adversarial: ## The unnarrowed_cart_mutation experiment (ADR-035's condition): fooled-agent A/B across policy conditions
+	$(PY) -m evals.commerce.adversarial
+
 eval: ## Run the golden eval set in replay mode with regression gates (offline, no key)
 	SENTINEL_MODE=fixture SENTINEL_CASSETTE=replay $(PY) -m evals.runner
 
