@@ -104,13 +104,50 @@ export function BuyerConsole() {
     }
   }
 
+  async function runWholeDemo() {
+    setBusy(true);
+    setError(null);
+    setRunRef(null);
+    try {
+      let mid = mandates.find((m) => m.status === 'ACTIVE' && m.remaining_minor >= 80000)?.mandate_id;
+      if (!mid) {
+        const m = await createMandate(200000);
+        setMandates((prior) => [...prior, m]);
+        mid = m.mandate_id;
+      }
+      setMandateId(mid);
+      setDemo('none');
+      const res = await startPurchase({ task: DEFAULT_TASK, mandate_id: mid });
+      setRunRef(res.run_ref);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'The demo could not start.');
+    } finally {
+      setBusy(false);
+      void refreshMandates();
+    }
+  }
+
   return (
     <div className="buyer-shell">
+      <div className="demo-banner">
+        <div>
+          <strong>The live demo.</strong>{' '}
+          <span className="muted">
+            Left: the agent talks. Right: the machinery moves — same moment, same events. One
+            click does everything: sets ₹2,000 aside and asks for dinner.
+          </span>
+        </div>
+        <button className="btn btn-primary btn-big" onClick={() => void runWholeDemo()}
+          disabled={busy || status === 'streaming'}>
+          {busy || status === 'streaming' ? 'Shopping…' : '▶ Run the whole demo'}
+        </button>
+      </div>
       <section className="buyer-left" aria-label="Conversation">
         <div className="commerce-panel">
           <div className="panel-head">
+            <span className="step-tag mono">1</span>
             <h3>Set money aside</h3>
-            <span className="muted small">the one human step</span>
+            <span className="muted small">the one human step — revocable anytime</span>
           </div>
           <div className="mandate-create">
             <span className="mono mandate-rupee">₹</span>
@@ -147,7 +184,9 @@ export function BuyerConsole() {
 
         <div className="commerce-panel">
           <div className="panel-head">
+            <span className="step-tag mono">2</span>
             <h3>Ask the agent</h3>
+            <span className="muted small">plain language in; a real order out</span>
           </div>
           <textarea
             className="task-input"
@@ -187,7 +226,8 @@ export function BuyerConsole() {
 
       <section className="buyer-right" aria-label="The machinery">
         <div className="panel-head machinery-head">
-          <h3>The machinery</h3>
+          <span className="step-tag mono">3</span>
+          <h3>The machinery — live</h3>
           <ClaimChip kind="modelled" />
           <ClaimChip kind="real" />
           <span className="muted small">catalog, cart, mandate & rail are modelled; every order id is Razorpay-minted</span>

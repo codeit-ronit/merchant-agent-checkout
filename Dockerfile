@@ -17,8 +17,10 @@ WORKDIR /app
 COPY pyproject.toml requirements.txt ./
 RUN pip install --no-cache-dir -e . || pip install --no-cache-dir -r requirements.txt
 
-# application + the data the six views read (all synthetic, committed)
+# application + the data the views read (all synthetic, committed)
 COPY sentinel/ ./sentinel/
+COPY conduit/ ./conduit/
+COPY fixtures/ ./fixtures/
 COPY config/ ./config/
 COPY cassettes/evals/ ./cassettes/evals/
 COPY artifacts/ ./artifacts/

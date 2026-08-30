@@ -137,10 +137,15 @@ override a limit the user set), and a valid mandate resolves the
 money-movement floor for the purchase's payment leg only — **a dinner mandate
 can never authorise a refund** (critical test).
 
-## Quickstart — no credentials
+## Try it — hosted or local, no credentials either way
+
+**Live demo:** https://conduit-checkout.onrender.com — open "Buy — live demo"
+and press **▶ Run the whole demo**; one click sets ₹2,000 aside and buys
+dinner. *(Free-tier hosting sleeps when idle: the first hit after a quiet
+spell takes 30–60 seconds to wake. Everything after is instant.)*
 
 ```sh
-make install && make demo     # split-view buyer + merchant console + operator surface
+make install && make demo     # the same app locally: buyer + merchant + operator surface
 make test                     # 401 tests, deterministic, no model, no network
 make eval-commerce            # the numbers above, replayed byte-for-byte
 make eval-adversarial         # the unnarrowed_cart_mutation experiment

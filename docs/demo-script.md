@@ -17,8 +17,14 @@ Every claim spoken must be visible on screen. Record with a REAL model if the
 free-tier window is open (`SENTINEL_LIVE=1`); otherwise the deterministic
 brain, and say so.
 
-Setup before recording: `make demo` → open the app → Merchant view once (so
-the catalog is warm), then Buy view. Browser at 1440×900, light theme.
+Setup before recording: record against the DEPLOYED URL
+(https://conduit-checkout.onrender.com), not localhost — the URL on screen is
+part of the claim. **Hit the URL once a minute before recording** so the
+judge-visible take isn't the free-tier cold start (30–60s wake after idle).
+Open the Home view briefly (the hero establishes the framing), Merchant once
+(warm the catalog), then Buy. Browser at 1440×900, light theme. The "▶ Run
+the whole demo" button does the mandate + purchase in one click if you want
+the tightest take.
 
 ---
 

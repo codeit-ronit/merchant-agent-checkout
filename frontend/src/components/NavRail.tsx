@@ -9,7 +9,8 @@ interface NavItem {
 
 // Six views, one job each. The glyphs are simple line marks (not brand icons).
 const ITEMS: NavItem[] = [
-  { to: '/', label: 'Buy', glyph: '❯', job: 'The split view — watch a purchase' },
+  { to: '/', label: 'What is this?', glyph: '⌂', job: 'The story, in plain words' },
+  { to: '/buy', label: 'Buy — live demo', glyph: '❯', job: 'The split view — watch a purchase' },
   { to: '/merchant', label: 'Merchant', glyph: '▣', job: 'Catalog, mandates, orders' },
   { to: '/runs', label: 'Run console', glyph: '▤', job: 'Watch a run decide' },
   { to: '/approvals', label: 'Approvals', glyph: '⏱', job: 'Authorize or reject' },
@@ -30,8 +31,8 @@ export function NavRail() {
           ⬡
         </span>
         <span className="nav-wordmark">
-          SENTINEL
-          <small>control plane</small>
+          CONDUIT
+          <small>agentic checkout · on SENTINEL</small>
         </span>
       </div>
       <ul className="nav-list">

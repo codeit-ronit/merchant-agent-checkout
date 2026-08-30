@@ -437,3 +437,60 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
 .untrust-cell { background: color-mix(in srgb, var(--escalate-wash) 40%, transparent); }
 .small { font-size: 12px; }
 .muted { color: var(--muted); }
+
+/* ================= Home — the story in plain words ================= */
+.home { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+.hero { text-align: center; padding: 36px 12px 8px; }
+.hero-eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 14px; }
+.hero-title { font-family: var(--serif); font-size: clamp(30px, 4.6vw, 46px); line-height: 1.12; margin: 0 auto 14px; max-width: 21ch; text-wrap: balance; }
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-sub { font-size: 17px; color: var(--ink-soft); max-width: 58ch; margin: 0 auto 22px; }
+.hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
+.btn-big { font-size: 15px; padding: 10px 22px; }
+.hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; }
+.stat-num { display: block; font-size: 30px; font-variant-numeric: tabular-nums; color: var(--accent); }
+.stat-words { font-size: 12.5px; color: var(--muted); }
+
+.home-section h2 { font-family: var(--serif); font-size: 24px; margin: 0 0 10px; }
+.step-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 14px 0; }
+.step-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.step-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.step-glyph { font-size: 22px; color: var(--accent); }
+.step-index { color: var(--muted); font-size: 13px; }
+.step-card h3 { font-size: 15px; margin: 0 0 6px; }
+.step-card p { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+.center { text-align: center; }
+
+.rule-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.rule-card { background: var(--panel); border-left: 3px solid var(--allow); border-radius: 0 var(--radius) var(--radius) 0; box-shadow: var(--shadow); padding: 12px 16px; }
+.rule-card h3 { font-size: 15px; margin: 0 0 4px; color: var(--allow); }
+.rule-card p { font-size: 14px; margin: 0; color: var(--ink-soft); }
+
+.honesty { background: var(--accent-wash); border: 1px solid var(--accent-soft); border-radius: var(--radius); padding: 18px 20px; }
+.honesty p { margin: 0; font-size: 14.5px; line-height: 1.7; }
+
+.try-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; }
+.try-card { display: block; background: var(--panel); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; text-decoration: none; color: var(--ink); }
+.try-card:hover, .try-card:focus-visible { border-color: var(--accent); }
+.try-card h3 { font-size: 15px; margin: 0 0 6px; color: var(--deny); }
+.try-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+.home-footer { border-top: 1px solid var(--line); padding: 18px 4px 30px; color: var(--muted); font-size: 13px; }
+
+/* ================= Buy view: guided demo ================= */
+.demo-banner { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--accent-wash); border: 1px solid var(--accent-soft); border-radius: var(--radius); padding: 12px 16px; font-size: 14px; }
+.step-tag { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; }
+:root[data-theme="dark"] .step-tag { color: #14100a; }
+
+/* the live feeling: rows and lines ENTER as the stream plays — one small,
+   fast motion, honoured by reduced-motion */
+.event-row, .convo-lines li, .cart-table tbody tr, .final-card {
+  animation: commerce-enter 180ms ease-out both;
+}
+@keyframes commerce-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .event-row, .convo-lines li, .cart-table tbody tr, .final-card { animation: none; }
+}

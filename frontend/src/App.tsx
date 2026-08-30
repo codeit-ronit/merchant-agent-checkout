@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { NavRail } from './components/NavRail';
 import { Header } from './components/Header';
 import { RunConsole } from './views/RunConsole';
+import { Home } from './views/Home';
 import { BuyerConsole } from './views/BuyerConsole';
 import { MerchantConsole } from './views/MerchantConsole';
 import { ApprovalQueue } from './views/ApprovalQueue';
@@ -18,7 +19,8 @@ export default function App() {
         <Header />
         <main className="app-content" id="main-content" tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<BuyerConsole />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/buy" element={<BuyerConsole />} />
             <Route path="/merchant" element={<MerchantConsole />} />
             <Route path="/runs" element={<RunConsole />} />
             <Route path="/approvals" element={<ApprovalQueue />} />

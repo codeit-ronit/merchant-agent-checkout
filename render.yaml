@@ -1,9 +1,13 @@
-# Render Blueprint — deploy SENTINEL as a free Docker web service.
-# In the Render dashboard: New > Blueprint > point at this repo. No env vars or
+# Render Blueprint — deploy CONDUIT as a free Docker web service.
+# In the Render dashboard: New > Blueprint > point at THIS repo. No env vars or
 # credentials needed (fixture mode). Render injects $PORT; the app reads it.
+#
+# NOTE: this is a SEPARATE service from the SENTINEL demo (which deploys from
+# the SENTINEL repo). The name below becomes the URL — keep it readable; it
+# appears in the video, the README, and the submission form.
 services:
   - type: web
-    name: sentinel
+    name: conduit-checkout
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
