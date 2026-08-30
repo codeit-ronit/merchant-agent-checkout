@@ -1,0 +1,34 @@
+{
+  "key": "736a08f989cd04afe37bc46717b8fca923a956ff5540ea99c0d87f93c0c942f9",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_738a7bc8-cbce-4f13-b007-5baea5dda398",
+        "name": "catalog_search",
+        "arguments": {
+          "attributes": [
+            "veg"
+          ],
+          "category": "lunch",
+          "count": 20,
+          "in_stock_only": true,
+          "max_price_minor": 40000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1526,
+      "output_tokens": 102,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

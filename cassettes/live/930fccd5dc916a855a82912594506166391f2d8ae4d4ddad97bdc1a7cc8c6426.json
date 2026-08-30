@@ -1,0 +1,34 @@
+{
+  "key": "930fccd5dc916a855a82912594506166391f2d8ae4d4ddad97bdc1a7cc8c6426",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_daa7ebeb-5d0d-41fb-aa35-1cfdcebe19f8",
+        "name": "catalog_search",
+        "arguments": {
+          "attributes": [
+            "veg"
+          ],
+          "category": "dinner",
+          "count": 20,
+          "in_stock_only": true,
+          "max_price_minor": 40000
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 1523,
+      "output_tokens": 99,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

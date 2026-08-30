@@ -1,0 +1,29 @@
+{
+  "key": "6ce4e82c351074c81e519602018aba4c6ca71f18136c02c098e3a3542417a7f7",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_3cd29136-0ceb-4d6b-9e56-240068daf97e",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "item_id": "itm_veg-biryani",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 5354,
+      "output_tokens": 590,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}
