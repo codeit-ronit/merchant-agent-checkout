@@ -115,6 +115,19 @@ stand-in's job, deterministic and offline) and testing agent **judgement**
 (the model's job, measured in the eval) — and it is why the demo records with
 a real model while the test suite never needs one.
 
+**The accidental chaos test.** The fixture's `create_order` minted the SAME
+id for every order (a constant-seeded RNG) — Razorpay's most basic property,
+violated by our own test double. Three demo purchases collided onto one
+order, and every control behaved correctly against the lie: the paid-order
+guard refused the extra payment, the buyer reconciled via
+`fetch_order_payments` and honestly reported the capture it found. We ran a
+chaos test by accident and passed it. The interesting part is WHY it took
+until Phase 7: five phases of test worlds were all single-purchase by
+construction, and a single-purchase world structurally cannot produce an id
+collision. The lesson is about test-world SHAPE, not test coverage — a suite
+can be green forever on worlds too small to contain the bug class. The first
+multi-purchase world (the demo API) surfaced it in minutes.
+
 The strongest pattern of all, seven instances deep: **a control measuring
 something adjacent to what you assumed.** Risk class vs binding role (the QR
 bypass). Boundary verdict vs commerce outcome (ALLOW for a refused commit).
