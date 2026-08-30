@@ -76,59 +76,108 @@ export function MandateMeter({ mandate }: { mandate: MandateView | null }) {
   );
 }
 
-// ---------------------------------------------------------------- the cart
-export function CartPanel({ cart }: { cart: CartView | null }) {
+// ---------------------------------------------------------------- veg mark
+// The FSSAI-style square: green dot = veg, red triangle = non-veg. The mark
+// every Indian food app carries — instantly readable, no words needed.
+export function VegMark({ veg }: { veg: boolean }) {
+  return (
+    <span className={veg ? 'veg-mark' : 'nonveg-mark'} role="img"
+      aria-label={veg ? 'vegetarian' : 'non-vegetarian'} title={veg ? 'veg' : 'non-veg'} />
+  );
+}
+
+// ---------------------------------------------------------------- the bill
+// The cart as a food-app bill: lines with veg marks, then Item total / GST /
+// To Pay. Every number is server-computed; the panel says so on its face.
+export function BillPanel({ cart, vegOf }: {
+  cart: CartView | null;
+  vegOf: (itemId: string) => boolean | undefined;
+}) {
   if (!cart || cart.lines.length === 0) {
     return (
-      <div className="commerce-panel">
+      <div className="commerce-panel bill-panel">
         <div className="panel-head">
-          <h3>Cart</h3>
+          <h3>Your order</h3>
           <ClaimChip kind="modelled" />
         </div>
-        <p className="muted">Empty — the agent adds items as it shops. Every price is server-computed.</p>
+        <p className="muted">🛒 Empty — the agent fills this live as it shops. Every price is server-computed; the agent can’t write one.</p>
       </div>
     );
   }
   return (
-    <div className="commerce-panel">
+    <div className="commerce-panel bill-panel">
       <div className="panel-head">
-        <h3>Cart <span className="mono muted">{cart.cart_id}</span></h3>
-        <span className="muted small">server-priced · catalog v{cart.catalog_version}</span>
+        <h3>Your order</h3>
+        <span className="muted small mono">{cart.cart_id}</span>
         <ClaimChip kind="modelled" />
       </div>
-      <table className="cart-table">
-        <tbody>
-          {cart.lines.map((ln) => (
-            <tr key={ln.item_id}>
-              <td>
+      <ul className="bill-lines">
+        {cart.lines.map((ln) => {
+          const veg = vegOf(ln.item_id);
+          return (
+            <li key={ln.item_id} className="bill-line">
+              {veg !== undefined && <VegMark veg={veg} />}
+              <span className="bill-name">
                 {ln.name}
                 {ln.upsell_rule_id && (
                   <span className="upsell-mark" title={`Offered by merchant rule ${ln.upsell_rule_id}, explicitly accepted`}>
                     ↖ merchant offer
                   </span>
                 )}
-              </td>
-              <td className="mono">×{ln.quantity}</td>
-              <td className="mono">{formatMoney(ln.line_total_minor)}</td>
-              <td className="mono muted">+{formatMoney(ln.tax_minor)} tax</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td>Total</td>
-            <td />
-            <td className="mono cart-total" colSpan={2}>{formatMoney(cart.total_minor)}</td>
-          </tr>
-        </tfoot>
-      </table>
+              </span>
+              <span className="mono muted bill-qty">×{ln.quantity}</span>
+              <span className="mono bill-amt">{formatMoney(ln.line_total_minor)}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="bill-details">
+        <div className="bill-row"><span>Item total</span><span className="mono">{formatMoney(cart.subtotal_minor)}</span></div>
+        <div className="bill-row"><span>GST</span><span className="mono">{formatMoney(cart.tax_total_minor)}</span></div>
+        <div className="bill-row bill-topay"><span>To pay</span><span className="mono">{formatMoney(cart.total_minor)}</span></div>
+      </div>
+      <p className="muted small bill-foot">server-priced · catalog v{cart.catalog_version} — the agent never computes a price</p>
       {cart.upsell_offers.length > 0 && (
-        <p className="muted small">
-          Merchant offer available: {cart.upsell_offers[0].name ?? cart.upsell_offers[0].item_id} at{' '}
-          <span className="mono">{formatMoney(cart.upsell_offers[0].offer_total_minor)}</span> — the agent
-          decides against your budget; it is never added silently.
-        </p>
+        <div className="offer-card">
+          <span className="offer-tag">Complete your meal</span>
+          <span>{cart.upsell_offers[0].name ?? cart.upsell_offers[0].item_id}</span>
+          <span className="mono">{formatMoney(cart.upsell_offers[0].offer_total_minor)}</span>
+          <span className="muted small">the agent decides against your budget — never added silently</span>
+        </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- journey
+// The pipeline, made visible: five stages that light up from the SAME event
+// stream that drives everything else. No stage is ever inferred from time —
+// each one flips on the event that actually happened.
+export type JourneyState = 'pending' | 'active' | 'done' | 'warn' | 'fail';
+export interface JourneyStage {
+  key: string;
+  label: string;
+  sub: string;
+  state: JourneyState;
+  real?: boolean; // ◆ Razorpay·test provenance on the order stage
+}
+
+const J_GLYPH: Record<JourneyState, string> = {
+  pending: '·', active: '◔', done: '✓', warn: '!', fail: '✕',
+};
+
+export function JourneyTracker({ stages }: { stages: JourneyStage[] }) {
+  return (
+    <div className="journey" role="list" aria-label="Order journey — the pipeline, live">
+      {stages.map((s, i) => (
+        <div key={s.key} role="listitem"
+          className={`j-node j-${s.state}`} aria-current={s.state === 'active' ? 'step' : undefined}>
+          {i > 0 && <span className={`j-bar ${stages[i - 1].state === 'done' ? 'j-bar-done' : ''}`} aria-hidden="true" />}
+          <span className="j-dot" aria-hidden="true">{J_GLYPH[s.state]}</span>
+          <span className="j-label">{s.label}{s.real && s.state === 'done' && <span className="j-real" title="A real Razorpay test-mode entity"> ◆</span>}</span>
+          <span className="j-sub mono">{s.sub}</span>
+        </div>
+      ))}
     </div>
   );
 }
