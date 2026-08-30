@@ -21,7 +21,7 @@ export function Header() {
         <span>
           <strong>Test mode only</strong>
           <span className="notice-sep"> · </span>
-          not affiliated with Razorpay
+          independent Buildathon submission
         </span>
       </div>
       <div className="header-actions">
