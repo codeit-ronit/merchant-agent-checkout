@@ -1974,3 +1974,60 @@ pacing is what makes the demo readable.
 A real-model live demo needs mid-run streaming (runs take seconds, not
 milliseconds) — the sink already captures events incrementally; the endpoint
 would switch from replay to tail.
+
+---
+
+## ADR-040 — Phase 8: the presentation is part of the system
+Date: 2026-08-30    Phase: 8    Status: Accepted
+
+### Context
+The build was done; Phase 8 is where a good project loses to a worse one
+that communicated better. Three rules governed it: the README's job is
+thirty seconds; the video's order is fixed (purchase → decline → injection)
+with the claim guard verbatim at every settlement mention; weakest-first
+everywhere, hardest of all in the first thing a judge reads.
+
+### Decisions
+
+**1. The README leads with the earned measurement, and nothing sits above
+it.** "Nine arithmetic failures. Zero wrong charges." opens the page; the
+architecture diagram comes SIXTH, after the problem, the video slot, the
+weakest-first numbers (the fooled-swap residual and the 40.9% before the
+clean sheet), and the committed purchase trace — shown with the real
+Razorpay-minted id (`order_TVWCd7DHE9KzQh`) and its notes echo, because a
+mock cannot mint that id and the echo ties the rail's object back to cart,
+mandate, and catalog version.
+
+**2. The video script (`docs/demo-script.md`) adds the two-verdict beat.**
+Twenty seconds on one frame during the reprice — "policy allowed the call;
+commerce refused the outcome; both true, side by side" — because it is the
+clearest single frame of what the project is. The claim guard is scripted
+verbatim at every settlement appearance, and the cutting-room rule protects
+exactly two things: that frame and that sentence.
+
+**3. The accidental chaos test is its own 2AM entry**, distinct from the
+seven-instance pattern: every control behaved correctly against a lie in the
+world, and the reason it took until Phase 7 is a lesson about test-world
+SHAPE — five phases of single-purchase worlds structurally could not produce
+an id collision. A suite can be green forever on worlds too small to contain
+the bug class.
+
+**4. Verified, not asserted:** a fresh clone with zero credentials installs,
+passes all 401 tests, replays both eval suites through their gates, and
+boots the server (health + a commerce mandate over HTTP). History audit:
+the only `rzp_live` strings in the entire git history are the refusal
+guard's own test fixtures (`rzp_live_abc123`, `rzp_live_x` — dummies that
+exist to prove the guard raises); zero provider-key patterns; secret scan
+clean over tree and history.
+
+### Pending user actions (named, not hidden)
+The video recording itself, and the live real-model recording pass when a
+free-tier window opens (`SENTINEL_LIVE=1 SENTINEL_LIVE_PROVIDER=groq make
+eval-commerce`) — the operator will trigger it. An S2S enablement request to
+Razorpay support remains worth sending; the modelled rail drops out behind
+the same seam if granted.
+
+### Trade-off accepted
+The README quotes exact committed numbers (40.9%, ₹394, 100%); a future
+re-run that shifts them must update the prose — accepted, because specific
+beats vague and the numbers are replayed from committed cassettes anyway.

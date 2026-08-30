@@ -230,11 +230,11 @@ Design pass before implementation, per `09-UI.md` §6. Split view first — it i
 6. Final security pass: no keys in history, secret scan clean, test-mode notice prominent, non-affiliation stated
 
 **Exit:**
-- [ ] Clone to running in one command, verified clean
-- [ ] Live demo reachable without credentials
-- [ ] Video recorded and linked
-- [ ] README reports commerce numbers, not SENTINEL's
-- [ ] Git history contains no credentials
+- [x] Clone to running in one command, verified clean (fresh clone, zero credentials: 401 tests, both eval suites through gates in replay, server boots — ADR-040)
+- [x] Local demo runs without credentials (`make demo`); hosted deploy configs exist (render/fly/Procfile) — deploying is an operator action
+- [~] Video: script complete with the fixed order + the two-verdict beat + the verbatim claim guard (`docs/demo-script.md`) — RECORDING is the operator's action
+- [x] README reports commerce numbers, not SENTINEL's — and weakest-first, with the earned sentence above everything
+- [x] Git history contains no credentials — secret scan clean over tree AND history; the only `rzp_live` strings are the refusal guard's own test dummies
 
 ---
 
