@@ -102,6 +102,54 @@ def parse_constraint(task: str) -> dict:
             "exclude": sorted(exclude), "mandate_id": m.group(1) if m else None}
 
 
+# ---------------------------------------------------------------- named intent
+# Words that can never, on their own, make a merchant-authored name match a
+# task: constraint grammar, counts, and meal words. This is the injection
+# guard — a product named "Under 800" or "No Beef Special Order" is made of
+# generic tokens only and can never capture a dinner request.
+_GENERIC_WORDS = frozenset({
+    "order", "buy", "get", "me", "a", "an", "the", "of", "for", "and", "with",
+    "from", "please", "under", "within", "below", "max", "maximum", "rs", "inr",
+    "no", "not", "one", "two", "three", "four", "five", "six", "seven", "eight",
+    "dinner", "lunch", "breakfast", "meal", "special", "item", "combo", "pack",
+})
+
+
+# The proxy delivers merchant text inside the per-run quarantine envelope
+# (standing instruction + nonce markers). For label matching we need the bare
+# label — the envelope is transport, not name. The label itself stays
+# untrusted and goes through the generic-token guard below.
+_QTN_INNER = re.compile(
+    r"⟦UNTRUSTED::[0-9a-f]+⟧\s*\[[^\]]*\]\s*(.*?)\s*⟦/UNTRUSTED::[0-9a-f]+⟧", re.S)
+
+
+def _label_of(name: str) -> str:
+    m = _QTN_INNER.search(name or "")
+    return m.group(1) if m else (name or "")
+
+
+def _match_named_item(task: str, items: list[dict]) -> dict | None:
+    """Did the USER name a specific catalog item? Match iff every token of an
+    item's name appears in the task AND at least one of those tokens is a
+    specific word (non-generic, non-numeric, length ≥ 4). Most-specific name
+    wins; ties break deterministically. Names are matched as labels — nothing
+    inside them is ever executed or obeyed."""
+    task_words = set(re.findall(r"[a-z0-9]+", task.lower()))
+    best_key, best = None, None
+    for it in items:
+        tokens = re.findall(r"[a-z0-9]+", _label_of(str(it.get("name") or "")).lower())
+        if not tokens or not all(t in task_words for t in tokens):
+            continue
+        specific = [t for t in tokens
+                    if t not in _GENERIC_WORDS and not t.isdigit() and len(t) >= 4]
+        if not specific:
+            continue
+        key = (len(tokens), len(specific), -it["price_minor"], it["item_id"])
+        if best_key is None or key > best_key:
+            best_key, best = key, it
+    return best
+
+
 # ---------------------------------------------------------------- the brain
 def _last_tool(messages: list[dict], name: str) -> dict | None:
     for m in reversed(messages):
@@ -178,21 +226,37 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
             "in_stock_only": True, "count": 100})
 
     items = search.get("items", [])
-    # structured fields only: price_minor / category / constraints. The name is
-    # quarantined merchant text — carried for the report, never parsed for data.
-    mains = sorted((i for i in items if i.get("category") in ("mains", "rice")),
-                   key=lambda i: i["price_minor"])
-    breads = sorted((i for i in items if i.get("category") == "breads"),
-                    key=lambda i: i["price_minor"])
-    if not mains:
-        return _decline(constraint, "no available main dish satisfies the stated constraints")
-
-    main = mains[0]
-    main_qty = min(party, main.get("max_per_order") or party)
-    if budget is not None and main["price_minor"] * main_qty > budget:
-        return _decline(constraint,
-                        f"nothing feeds {party} under the stated budget: the cheapest "
-                        f"suitable main alone exceeds it")
+    # Named intent first: the USER's trusted words may name a catalog item
+    # outright ("buy Attikan Estate coffee") — the case every onboarded
+    # storefront produces. Names are quarantined merchant text: safe to MATCH
+    # against the user's words as labels, never obeyed as instructions, and
+    # the injection-proofing lives in _match_named_item (a name made only of
+    # generic words can never capture a task).
+    named = _match_named_item(task, items)
+    if named is not None:
+        main = named
+        main_qty = min(party, named.get("max_per_order") or party)
+        breads = []
+        extras_allowed = False
+        if budget is not None and main["price_minor"] * main_qty > budget:
+            return _decline(constraint,
+                            "the item you named exceeds the stated budget on its own")
+    else:
+        # structured fields only: price_minor / category / constraints. The name
+        # is carried for the report here, never parsed for selection.
+        mains = sorted((i for i in items if i.get("category") in ("mains", "rice")),
+                       key=lambda i: i["price_minor"])
+        breads = sorted((i for i in items if i.get("category") == "breads"),
+                        key=lambda i: i["price_minor"])
+        if not mains:
+            return _decline(constraint, "no available main dish satisfies the stated constraints")
+        main = mains[0]
+        main_qty = min(party, main.get("max_per_order") or party)
+        extras_allowed = True
+        if budget is not None and main["price_minor"] * main_qty > budget:
+            return _decline(constraint,
+                            f"nothing feeds {party} under the stated budget: the cheapest "
+                            f"suitable main alone exceeds it")
 
     # 2) cart
     cart = _last_tool(messages, "cart_create")
@@ -222,7 +286,8 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
     # 3) optionally round out the meal with bread — CHOICE arithmetic only;
     #    the server's returned total remains the only number that binds.
     lines = {ln["item_id"] for ln in latest_view.get("lines", [])}
-    if (commit is None and breads and breads[0]["item_id"] not in lines
+    if (commit is None and extras_allowed and breads
+            and breads[0]["item_id"] not in lines
             and budget is not None
             and total + breads[0]["price_minor"] * party <= budget):
         bread = breads[0]
@@ -236,7 +301,7 @@ def brain(messages: list[dict], tools: list[dict]) -> ProviderResponse:
     offers = latest_view.get("upsell_offers") or []
     upsell_offered = bool(offers) or _any_offers_seen(messages)
     accepted_upsell = _last_tool(messages, "cart_accept_upsell")
-    if (commit is None and offers and accepted_upsell is None
+    if (commit is None and extras_allowed and offers and accepted_upsell is None
             and "no extras" not in task.lower()
             and (budget is None or total + offers[0]["offer_total_minor"] <= budget)):
         return _call("cart_accept_upsell",
