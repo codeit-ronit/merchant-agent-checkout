@@ -3,7 +3,15 @@
 // (frontend/DESIGN.md §7; other merchant views are sanctioned Phase-8 cuts).
 
 import { useCallback, useEffect, useState } from 'react';
-import { getCommerceCatalog, listCommerceOrders, listMandates, revokeMandate } from '../api';
+import {
+  getAgentRevenue,
+  getCommerceCatalog,
+  listCommerceOrders,
+  listMandates,
+  onboardStorefront,
+  revokeMandate,
+} from '../api';
+import type { OnboardResult, RevenueView } from '../api';
 import { formatMoney } from '../format';
 import type { CatalogItemView, CommerceOrder, MandateView } from '../types';
 import { ClaimChip, StateStamp } from '../components/commerce';
@@ -14,25 +22,47 @@ export function MerchantConsole() {
   const [version, setVersion] = useState(0);
   const [mandates, setMandates] = useState<MandateView[]>([]);
   const [orders, setOrders] = useState<CommerceOrder[]>([]);
+  const [revenue, setRevenue] = useState<RevenueView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shopUrl, setShopUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<OnboardResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const [cat, mds, ords] = await Promise.all([
+      const [cat, mds, ords, rev] = await Promise.all([
         getCommerceCatalog(),
         listMandates(),
         listCommerceOrders(),
+        getAgentRevenue(),
       ]);
       setItems(cat.items);
       setMerchantName(cat.merchant.display_name);
       setVersion(cat.catalog_version);
       setMandates(mds);
       setOrders(ords);
+      setRevenue(rev);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load the merchant view.');
     }
   }, []);
+
+  async function importStore() {
+    setImporting(true);
+    setImportError(null);
+    setImportResult(null);
+    try {
+      const res = await onboardStorefront(shopUrl);
+      setImportResult(res);
+      await refresh();
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'The import could not run.');
+    } finally {
+      setImporting(false);
+    }
+  }
 
   useEffect(() => {
     void refresh();
@@ -56,6 +86,85 @@ export function MerchantConsole() {
           buyers have granted you, and every order with its receipt.
         </p>
       </div>
+
+      {revenue && (
+        <div className="rev-band" role="group" aria-label="The agent channel, in revenue terms">
+          <div className="rev-stat">
+            <span className="rev-num mono">{formatMoney(revenue.gross_captured_minor)}</span>
+            <span className="rev-words">captured via the agent channel</span>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-num mono">{formatMoney(revenue.upsell_attributed_minor)}</span>
+            <span className="rev-words">of it from accepted upsells (pre-tax)</span>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-num mono">{revenue.orders_captured}/{revenue.orders_placed}</span>
+            <span className="rev-words">orders captured / placed</span>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-num mono">{revenue.payments_declined}</span>
+            <span className="rev-words">declines — money returned, zero double charges</span>
+          </div>
+        </div>
+      )}
+
+      <div className="commerce-panel onboard-panel">
+        <div className="panel-head">
+          <h3>Make your own store agent-sellable</h3>
+          <span className="muted small">paste a product or collection page URL</span>
+        </div>
+        <p className="muted small">
+          If the page carries standard product markup (schema.org JSON-LD, microdata, or Open
+          Graph — what mainstream store platforms emit), its items land in this catalog and become
+          orderable on the <strong>Order</strong> page immediately. Structure only, never prose;
+          INR only in this demo; imports never overwrite existing prices.
+        </p>
+        <div className="onboard-row">
+          <input
+            className="onboard-input mono"
+            value={shopUrl}
+            onChange={(e) => setShopUrl(e.target.value)}
+            placeholder="https://your-store.example/products/…"
+            aria-label="Storefront URL"
+          />
+          <button className="btn-cta onboard-btn" onClick={() => void importStore()}
+            disabled={importing || !shopUrl.trim()}>
+            {importing ? 'Reading…' : 'Import products'}
+          </button>
+        </div>
+        {importError && <p className="error-words" role="alert">{importError}</p>}
+        {importResult && (
+          <div className="onboard-result">
+            <p>
+              <strong>{importResult.imported}</strong> item{importResult.imported === 1 ? '' : 's'}{' '}
+              imported from <span className="mono">{importResult.source}</span> markup · catalog is
+              now <span className="mono">v{importResult.catalog_version}</span>
+              {importResult.imported > 0 && ' — try ordering one on the Order page'}
+            </p>
+            {importResult.items.length > 0 && (
+              <ul className="onboard-items">
+                {importResult.items.map((it) => (
+                  <li key={it.item_id}>
+                    <span className="mono small">{it.item_id}</span> {it.name}{' '}
+                    <span className="mono">{formatMoney(it.price_minor)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {importResult.skipped.length > 0 && (
+              <details className="onboard-skips">
+                <summary className="muted small">
+                  {importResult.skipped.length} skipped — every skip has a reason
+                </summary>
+                <ul className="muted small">
+                  {importResult.skipped.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="commerce-panel">
         <div className="panel-head">
           <h3>Catalog — {merchantName}</h3>

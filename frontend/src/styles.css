@@ -872,3 +872,21 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
   .j-active .j-dot::after, .agent-dot-on, .typing span { animation: none !important; }
   .btn-cta:hover, .btn-ghost:hover, .twist-card:hover { transform: none; }
 }
+
+/* ---- merchant: the agent channel + onboarding ---- */
+.rev-band { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px; }
+.rev-stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px; }
+.rev-num { font-size: 22px; font-weight: 750; }
+.rev-words { font-size: 12.5px; color: var(--muted); }
+.onboard-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.onboard-input { flex: 1; min-width: 260px; font-size: 14px; padding: 11px 14px;
+  border-radius: 10px; border: 1.5px solid var(--line-strong); background: var(--panel-2);
+  color: var(--ink); }
+.onboard-input:focus { outline: none; border-color: var(--cta); }
+.onboard-btn { padding: 11px 20px; font-size: 14.5px; }
+.onboard-result { margin-top: 12px; border-top: 1px dashed var(--line-strong); padding-top: 10px; }
+.onboard-items { list-style: none; margin: 6px 0; padding: 0; display: flex;
+  flex-direction: column; gap: 4px; font-size: 13.5px; }
+.onboard-skips summary { cursor: pointer; }

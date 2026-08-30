@@ -154,3 +154,47 @@ export function purchaseStreamUrl(runRef: string): string {
 export function listCommerceOrders(): Promise<CommerceOrder[]> {
   return request('/commerce/orders');
 }
+
+export interface OnboardResult {
+  imported: number;
+  source: string;
+  skipped: string[];
+  catalog_version: number;
+  items: { item_id: string; name: string; price_minor: number }[];
+}
+
+// Not routed through request(): the server's error strings are actionable
+// ("looked for JSON-LD/microdata/OG; the CSV path works regardless") and the
+// merchant must see them verbatim, not a generic status line.
+export async function onboardStorefront(url: string): Promise<OnboardResult> {
+  let res: Response;
+  try {
+    res = await fetch('/api/commerce/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+  } catch {
+    throw new ApiError('network', UNREACHABLE_HINT);
+  }
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new ApiError('http', (body as { error?: string } | null)?.error
+      ?? `Request failed (${res.status})`, res.status);
+  }
+  return body as OnboardResult;
+}
+
+export interface RevenueView {
+  orders_placed: number;
+  orders_captured: number;
+  payments_declined: number;
+  gross_captured_minor: number;
+  upsell_attributed_minor: number;
+  aov_minor: number;
+  note: string;
+}
+
+export function getAgentRevenue(): Promise<RevenueView> {
+  return request('/commerce/revenue');
+}
