@@ -151,6 +151,22 @@ make eval-commerce            # the numbers above, replayed byte-for-byte
 make eval-adversarial         # the unnarrowed_cart_mutation experiment
 ```
 
+## The track, item by item
+
+Track 01's brief, mapped to what is actually built (nothing here is aspirational):
+
+| The brief asks | Where it lives |
+| --- | --- |
+| *"Makes a merchant transactable by an AI buyer end to end"* | The core loop: natural language → catalog → cart → commit gate → **real Razorpay test-mode order** → settlement → auditable receipt |
+| *"Grow the merchant's revenue"* | The bounded upsell engine (offered 100% when affordable, accepted 33.3% in eval, never past budget) + the merchant's **agent-channel revenue view** with upsell attribution |
+| *"Agent-readable catalog"* | Machine truth split from untrusted merchant prose, plus onboarding for any merchant: CSV upload or **paste a storefront URL** — schema.org/Product JSON-LD, microdata, or Open Graph parse in seconds (verified against a live Shopify store), and the agent can buy the imported item by name immediately |
+| *"Conversational in-app checkout"* | The Order page: plain language in, a real order out, every step streamed |
+| *"Upsell & cross-sell agent"* | Server-computed offers, suppressed before the model ever sees the unaffordable, re-validated at acceptance (TOCTOU-safe), marked on the receipt |
+| *"Campaign orchestrator"* | **Not built** — the one example direction we skipped, named in LIMITATIONS rather than half-shipped |
+| *"Every money action explainable, bounded and gated"* | The thesis: reason code + plain-language explanation + next step on every decision; mandate bounds; ten-step commit gate; class floors no one can approve past |
+| *"Show the audit trail"* | Hash-chained ledger (`make verify-audit`), the Decisions drawer on every run, both commit verdicts side by side |
+| *"One failure handled gracefully"* | Three, one-click: decline (money visibly returns), re-price (refused with an itemised diff), timeout (reconcile, never blind-retry) |
+
 ## Real versus modelled — never blurred
 
 | Layer | Claim level |
@@ -207,6 +223,9 @@ plus every schema in it.
 - **Single-operator, in-process state** — the drawdown ledger's atomicity is
   a process-level lock over a repository seam; multi-process needs a database
   transaction (seam exists, work not done).
+
+- **No campaign orchestrator** — the one example direction not attempted;
+  the seams it would need (catalog, offers, audit) exist.
 
 The unflinching list: [`LIMITATIONS.md`](LIMITATIONS.md).
 

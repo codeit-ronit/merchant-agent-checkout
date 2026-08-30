@@ -2042,3 +2042,40 @@ account is workspace-managed or region-flagged; a key minted from a personal
 Gmail under "create API key in new project" is the next thing to try. The
 provider block stays in providers.yaml, out of failover_order, fail-safe at
 the probe. Source: live probe output, this date.
+
+## ADR-041 (2026-08-30) — the onboarding loop closed: URL → catalog → named purchase → revenue
+
+**Context.** The track-brief audit found the strongest "any merchant" capability
+(storefront-URL onboarding, built in Phase 1) existed only as a library — no
+endpoint, no UI — and the deterministic demo brain was dinner-tuned: asked for
+an imported item by name, it bought rice. A judge who imported their own store
+would watch the agent buy someone else's dinner.
+
+**Decision.** Three additions, all inside existing seams:
+1. `POST /api/commerce/onboard` + a merchant-page card. SSRF-guarded because it
+   runs on a public box: scheme allow-list, private/loopback/link-local/reserved
+   address refusal re-checked on EVERY redirect hop, 2 MB response cap.
+   Imports are merge-only — an import can never overwrite an existing price.
+   Non-INR items are skipped with the reason named (this demo binds INR only).
+2. Named intent in the buyer brain: if every token of a catalog item's name
+   appears in the USER'S OWN words, buy exactly that item, no extras. The
+   injection guard is structural: a name made only of generic constraint words
+   ("Dinner Under 800") can never capture a task — matching requires a specific
+   token (non-generic, non-numeric, ≥4 chars). Names are matched as labels
+   after unwrapping the quarantine envelope; nothing inside one is ever obeyed.
+   Proven with a trap-product test.
+3. `GET /api/commerce/revenue` + the merchant revenue band: captured-only
+   accounting, upsell attribution at commit-time prices (pre-tax), declines
+   counted but never revenue.
+
+**Verified end to end against a live store:** bluetokaicoffee.com/products/
+attikan-estate → 1 item imported from json-ld (₹700.00) → "Buy one Attikan
+Estate coffee under ₹900" → purchased exactly that item → revenue shows ₹700
+captured via the agent channel. 417 tests green (401 + 16 new).
+
+**Trade-offs named.** INR-only import is a demo boundary, not a design limit.
+Merge-only means re-importing a changed price does nothing — deliberate: price
+changes must flow through `set_price` so the re-price diff can name them.
+The named-intent matcher is deterministic and humble: it matches exact naming,
+not paraphrase — paraphrase is the live model's job, and the scripted brain
+must never pretend otherwise.
