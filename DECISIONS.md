@@ -2031,3 +2031,14 @@ the same seam if granted.
 The README quotes exact committed numbers (40.9%, ₹394, 100%); a future
 re-run that shifts them must update the prose — accepted, because specific
 beats vague and the numbers are replayed from committed cassettes anyway.
+
+## ADR-002c addendum (2026-08-30) — second Gemini key, same denial
+
+A fresh AI Studio key (different from the 2026-08-21 key) fails the startup
+probe with the identical `PERMISSION_DENIED: "Your project has been denied
+access"` on `generateContent`. Auth parses — the denial is at the Google
+account/project level, not the key level. Working hypothesis: the source
+account is workspace-managed or region-flagged; a key minted from a personal
+Gmail under "create API key in new project" is the next thing to try. The
+provider block stays in providers.yaml, out of failover_order, fail-safe at
+the probe. Source: live probe output, this date.
