@@ -52,7 +52,13 @@ function dishGlyph(name: string): string {
   for (const [re, g] of DISH_GLYPHS) if (re.test(name)) return g;
   return '🍽️';
 }
-const isVeg = (item: CatalogItemView) => item.attributes.includes('veg');
+// veg / non-veg only when the catalog actually declares it — an onboarded
+// item with no attributes gets NO mark, never a guessed one.
+function vegStatus(item: CatalogItemView): boolean | undefined {
+  if (item.attributes.includes('veg')) return true;
+  if (item.attributes.some((a) => a === 'non-veg' || a === 'beef' || a === 'chicken')) return false;
+  return undefined;
+}
 
 // ---------------------------------------------------------------- journey
 // Pure function of the stream — stages flip on events, never on timers.
@@ -161,7 +167,9 @@ function MenuShelf({ items, merchantName, cart }: {
               className={`shelf-card${line ? ' shelf-picked' : ''}${soldOut ? ' shelf-out' : ''}`}>
               <span className="shelf-tile" aria-hidden="true">{dishGlyph(it.name)}</span>
               <div className="shelf-info">
-                <span className="shelf-name"><VegMark veg={isVeg(it)} /> {it.name}</span>
+                <span className="shelf-name">
+                {vegStatus(it) !== undefined && <VegMark veg={vegStatus(it)!} />} {it.name}
+              </span>
                 <span className="mono shelf-price">{formatMoney(it.price_minor)}</span>
               </div>
               {line && <span className="shelf-badge">×{line.quantity} in cart</span>}
@@ -217,7 +225,7 @@ export function BuyerConsole() {
     () => deriveJourney(events, result, status === 'streaming', liveMandate, liveCart),
     [events, result, status, liveMandate, liveCart]);
 
-  const vegByItem = useMemo(() => new Map(menu.map((it) => [it.item_id, isVeg(it)])), [menu]);
+  const vegByItem = useMemo(() => new Map(menu.map((it) => [it.item_id, vegStatus(it)])), [menu]);
 
   const narration = useMemo(() => {
     const lines: string[] = [];
