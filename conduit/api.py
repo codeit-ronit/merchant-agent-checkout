@@ -13,9 +13,12 @@ shape: SENTINEL untouched beyond the mount line).
 
 from __future__ import annotations
 
+import ipaddress
+import socket
 import threading
 import time
 import uuid
+from urllib.parse import urlparse
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -26,6 +29,7 @@ from conduit.cart.service import CartService
 from conduit.cart.store import InMemoryCartRepository
 from conduit.catalog.seed import MERCHANT, seed_catalog
 from conduit.catalog.service import CatalogService
+from conduit.catalog.web_onboard import NoStructuredMarkup, parse_storefront_html
 from conduit.catalog.store import InMemoryCatalogRepository
 from conduit.mandate.ledger import DrawdownLedger, InMemoryLedgerRepository
 from conduit.mandate.service import MandateService
@@ -277,6 +281,148 @@ async def purchase_stream(run_ref: str):
         yield {"event": "done", "data": _json.dumps(run["result"], default=str)}
 
     return EventSourceResponse(gen())
+
+
+# ---------------------------------------------------------------- onboarding
+# The "any merchant" claim, made pressable: paste a storefront URL, and if the
+# page carries standard product markup (schema.org JSON-LD / microdata / Open
+# Graph — what mainstream store platforms emit), its items become agent-
+# sellable in this world. Structure only, never prose; every skip has a reason.
+
+class OnboardBlocked(Exception):
+    """The fetch was refused before any network read (or mid-redirect)."""
+
+
+_MAX_STOREFRONT_BYTES = 2_000_000
+
+
+def _storefront_url_error(url: str) -> str | None:
+    """SSRF guard: this endpoint runs on a public demo box, so it must never
+    be usable to read private address space. Fail closed on anything odd."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return "Only http(s) storefront URLs are supported."
+    host = parsed.hostname
+    if not host:
+        return "That URL has no host."
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except OSError:
+        return f"Could not resolve '{host}'."
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return "That address points inside a private network — public storefronts only."
+    return None
+
+
+def _fetch_storefront_guarded(url: str, *, timeout_s: int = 10) -> str:
+    """Fetch with the guard re-applied on every redirect hop and a hard size
+    cap — urlopen follows redirects, and a public URL redirecting into
+    private address space is the classic SSRF second act."""
+    from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+    class _GuardedRedirect(HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: N803
+            err = _storefront_url_error(newurl)
+            if err:
+                raise OnboardBlocked(f"A redirect was blocked: {err}")
+            return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+    opener = build_opener(_GuardedRedirect())
+    req = Request(url, headers={"User-Agent": "conduit-catalog-onboarding/1.0"})
+    with opener.open(req, timeout=timeout_s) as resp:  # noqa: S310 — guarded above
+        raw = resp.read(_MAX_STOREFRONT_BYTES + 1)
+    if len(raw) > _MAX_STOREFRONT_BYTES:
+        raise OnboardBlocked("That page is larger than 2 MB — point at a product or collection page.")
+    return raw.decode("utf-8", errors="replace")
+
+
+# module-level indirection so tests can swap the fetch without any network
+_fetch_storefront = _fetch_storefront_guarded
+
+
+class OnboardReq(BaseModel):
+    url: str
+
+
+@router.post("/onboard")
+def onboard_storefront(req: OnboardReq):
+    url = req.url.strip()
+    err = _storefront_url_error(url)
+    if err:
+        return JSONResponse({"error": err}, status_code=400)
+    try:
+        html = _fetch_storefront(url)
+        result = parse_storefront_html(html)
+    except OnboardBlocked as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    except NoStructuredMarkup as exc:
+        # the parser's message already names what was looked for and the way out
+        return JSONResponse({"error": str(exc)}, status_code=422)
+    except OSError as exc:
+        return JSONResponse({"error": f"Could not fetch the page: {exc}"}, status_code=502)
+
+    existing = {it["item_id"] for it in state.catalog.bulk_feed()["items"]}
+    kept, skipped = [], list(result.skipped)
+    for item in result.items:
+        if item.currency != "INR":
+            skipped.append(f"'{item.text.name}': priced in {item.currency} — this demo binds INR only")
+            continue
+        if item.item_id in existing:
+            skipped.append(f"'{item.text.name}': id '{item.item_id}' already in the catalog — "
+                           "skipped; imports never overwrite existing prices")
+            continue
+        kept.append(item)
+    if kept:
+        state.catalog.upsert_items(kept, now_ms=state._now_ms())
+    return {
+        "imported": len(kept),
+        "source": result.source,
+        "skipped": skipped,
+        "catalog_version": state.catalog.catalog_version(),
+        "items": [{"item_id": i.item_id, "name": i.text.name, "price_minor": i.price_minor}
+                  for i in kept],
+        "claim": {"catalog": "modelled", "orders": "razorpay-test-mode"},
+    }
+
+
+# ---------------------------------------------------------------- revenue
+@router.get("/revenue")
+def revenue():
+    """The agent channel, in the merchant's terms. Honest accounting: revenue
+    counts captured payments only; upsell attribution uses the commit-time
+    price snapshot (pre-tax) — the exact figures the gate verified."""
+    placed = captured = declined = 0
+    gross_minor = upsell_minor = 0
+    for record in getattr(state.cart_repo, "_carts", {}).values():
+        if not record.committed_order_id:
+            continue
+        placed += 1
+        payments = state.rail.fetch_order_payments(record.committed_order_id)
+        last = payments["items"][-1] if payments["count"] else None
+        status = (last or {}).get("status")
+        if status == "captured":
+            captured += 1
+            gross_minor += record.committed_amount_minor or 0
+            for item_id in (record.accepted_upsells or {}):
+                priced = record.last_priced.get(item_id)
+                qty = record.lines.get(item_id, 0)
+                if priced and qty:
+                    upsell_minor += priced[0] * qty
+        elif status == "failed":
+            declined += 1
+    return {
+        "orders_placed": placed,
+        "orders_captured": captured,
+        "payments_declined": declined,
+        "gross_captured_minor": gross_minor,
+        "upsell_attributed_minor": upsell_minor,
+        "aov_minor": gross_minor // captured if captured else 0,
+        "note": "captured payments only; upsell attribution is pre-tax at commit-time prices",
+        "claim": {"orders": "razorpay-test-mode", "settlement": "modelled"},
+    }
 
 
 @router.get("/orders")
