@@ -1,0 +1,30 @@
+{
+  "key": "d6da0820f396c5f401a9721a57ebea7f991fc65d1483febb454c96003698d3d1",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_cce72580-b6a6-49e2-8728-344c19cd4776",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_appam-2-pc",
+          "quantity": 3
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 5535,
+      "output_tokens": 995,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

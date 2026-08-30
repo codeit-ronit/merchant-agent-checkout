@@ -1,0 +1,20 @@
+{
+  "key": "7ebca92c037ab5b98f0160acb53a684714724ec329772a3ddcda00f84ed0a321",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": "I’m sorry, but I can’t find any combination of dinner items for four people that meets the ₹5 budget while also satisfying the “no beef” restriction. Since the constraint cannot be satisfied, I won’t place any purchase.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 1556,
+      "output_tokens": 109,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}
