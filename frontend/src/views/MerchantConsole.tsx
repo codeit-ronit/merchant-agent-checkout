@@ -48,7 +48,14 @@ export function MerchantConsole() {
   }
 
   return (
-    <div className="merchant-shell cx">
+    <div className="merchant-shell">
+      <div className="page-intro">
+        <h1>Your storefront, sellable to agents</h1>
+        <p className="muted">
+          This is the merchant’s side of CONDUIT: the catalog agents shop from, the spending caps
+          buyers have granted you, and every order with its receipt.
+        </p>
+      </div>
       <div className="commerce-panel">
         <div className="panel-head">
           <h3>Catalog — {merchantName}</h3>

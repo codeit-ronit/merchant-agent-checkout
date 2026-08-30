@@ -1,40 +1,91 @@
-// The front door — the project explained in plain words, for someone who has
-// never seen it. The hero is the earned measurement; everything below answers
-// "what is going on here?" before the visitor clicks into the live demo.
+// The landing page — a product's front door, not a project readme. The hero
+// SHOWS the product working (a looping mock of the real flow, same copy the
+// live demo produces); everything below answers, in order: how do I use it,
+// why can I trust it, what's real, where's the machinery.
 
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AgentOrb, CountUp } from '../components/commerce';
+
+// ---------------------------------------------------------------- live mock
+// A miniature of the real order flow that plays itself on a loop. Pure UI —
+// the amounts and copy mirror the actual demo run so nothing here overclaims.
+const MOCK_STEPS = 8;
+
+function LiveMock() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStep(MOCK_STEPS - 1);
+      return;
+    }
+    const t = setInterval(() => setStep((s) => (s + 1) % MOCK_STEPS), 1400);
+    return () => clearInterval(t);
+  }, []);
+  const on = (n: number) => step >= n;
+  return (
+    <div className="mock" aria-label="A preview of the live demo: a request becomes a priced cart and a real test-mode order">
+      <div className="mock-head">
+        <span className="mock-dot" /> <span className="mock-dot" /> <span className="mock-dot" />
+        <span className="mock-title">conduit — live order</span>
+      </div>
+      <div className="mock-body">
+        <div className={`mock-bubble mock-user ${on(0) ? 'mk-on' : ''}`}>
+          Order dinner for four under ₹800, no beef
+        </div>
+        <div className={`mock-bubble mock-agent ${on(1) ? 'mk-on' : ''}`}>
+          <span className="mock-avatar" aria-hidden="true" />
+          On it — reading the menu. Prices come from the server, never from me.
+        </div>
+        <div className={`mock-bill ${on(2) ? 'mk-on' : ''}`}>
+          <div className={`mock-line ${on(2) ? 'mk-on' : ''}`}>
+            <span><span className="veg-mark" /> Steamed Rice ×4</span><span className="mono">₹360.00</span>
+          </div>
+          <div className={`mock-line ${on(3) ? 'mk-on' : ''}`}>
+            <span><span className="veg-mark" /> Tandoori Roti ×4</span><span className="mono">₹100.00</span>
+          </div>
+          <div className={`mock-line ${on(4) ? 'mk-on' : ''}`}>
+            <span><span className="veg-mark" /> Gulab Jamun (2 pc)</span><span className="mono">₹80.00</span>
+          </div>
+          <div className={`mock-line mock-total ${on(5) ? 'mk-on' : ''}`}>
+            <span>To pay · re-priced at commit ✓</span><span className="mono">₹572.60</span>
+          </div>
+        </div>
+        <div className={`mock-receipt ${on(6) ? 'mk-on' : ''}`}>
+          <span className="mock-check" aria-hidden="true">✓</span>
+          <span>
+            Order placed — <span className="mono">order_TVWCd7DHE9KzQh</span>
+            <span className="claim-chip claim-real">◆ Razorpay · test</span>
+          </span>
+        </div>
+        <div className={`mock-note ${on(7) ? 'mk-on' : ''}`}>
+          ₹1,427.40 still protected in your spending cap
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const STEPS = [
   {
-    glyph: '●',
-    title: 'You set money aside — once',
+    n: '1',
+    title: 'Set a spending cap — once',
     words:
-      '“₹2,000 for this shop, this week.” That single approval is the only ' +
-      'human step. You can revoke it at any moment, and it dies instantly.',
+      '“₹2,000 for this shop, this week.” That’s the only thing you ever approve. ' +
+      'Revoke it any moment and it dies instantly.',
   },
   {
-    glyph: '▤',
-    title: 'The agent shops, for free',
+    n: '2',
+    title: 'Say what you want',
     words:
-      'It reads the catalog, builds a cart, swaps things, checks totals — and ' +
-      'none of that touches your money. The server does every bit of the ' +
-      'maths; the agent never computes a price.',
+      'Plain language: “dinner for four under ₹800, no beef.” The agent reads the menu, ' +
+      'builds the cart, checks totals — all of it free, none of it touching money.',
   },
   {
-    glyph: '⌖',
-    title: 'One binding moment',
+    n: '3',
+    title: 'Get a receipt you can trust',
     words:
-      'At commit, the server re-prices the whole cart against live truth and ' +
-      'checks your limit. Only if everything holds is a real Razorpay order ' +
-      'created — exactly one.',
-  },
-  {
-    glyph: '⛓',
-    title: 'A receipt you can interrogate',
-    words:
-      'What was bought, what it cost, which rule allowed it, which merchant ' +
-      'offer was accepted — every step lands in a tamper-evident audit log.',
+      'One binding moment: the server re-prices everything against the live menu, checks ' +
+      'your cap, and only then creates a real Razorpay test-mode order. Exactly one.',
   },
 ];
 
@@ -42,185 +93,150 @@ const RULES = [
   {
     title: 'The agent never does maths on money',
     words:
-      'Every amount it acts on came back from a server response. In our eval, a ' +
-      'deliberately-flawed model got its own total wrong on 40.9% of attempts — ' +
-      'and the charged amount was wrong zero times, because the gate catches ' +
-      'every mis-statement.',
+      'Every amount comes from a server response. In our eval a deliberately-flawed model got its own total wrong on 40.9% of attempts — and the charged amount was wrong zero times.',
   },
   {
     title: 'A price change cancels the deal, not your wallet',
     words:
-      'If a price moves between browsing and buying, the commit is rejected with ' +
-      'a line-by-line diff — old price, new price, why — and the agent must ' +
-      're-confirm at the true amount. A stale price can never bind.',
+      'If a price moves between browsing and buying, the commit is refused with a line-by-line diff. A stale price can never bind.',
   },
   {
-    title: 'Your limit cannot be overridden — by anyone',
+    title: 'Your cap cannot be overridden — by anyone',
     words:
-      'Running out of mandate is a hard no. Not even a human reviewer can ' +
-      'approve past a limit you set. And a dinner mandate can never authorise ' +
-      'a refund — consent to a purchase is not consent to move money.',
+      'Running out of cap is a hard no. Not even a human reviewer can approve past it. And a dinner cap can never authorise a refund.',
   },
   {
     title: 'Never two charges',
     words:
-      'Retry, timeout, or two agents racing — one order, one charge, proven ' +
-      'with genuinely concurrent tests. On an unclear timeout the system ' +
-      'reconciles first; it never blindly retries a payment.',
+      'Retry, timeout, or two agents racing — one order, one charge, proven with genuinely concurrent tests. On an unclear timeout it reconciles first, never blindly retries.',
   },
   {
-    title: 'The merchant’s words can’t boss the agent around',
+    title: 'The shop’s words can’t boss the agent around',
     words:
-      'Product descriptions are treated as untrusted data — in this threat ' +
-      'model the attacker is the shop itself. Instructions planted in a ' +
-      'description are quarantined, and what slips past dies at your budget ' +
-      'or your mandate.',
+      'Product descriptions are treated as untrusted data — here the attacker is the shop itself. Planted instructions are quarantined, and what slips past dies at your budget or your cap.',
   },
-];
-
-const PIPELINE = [
-  { glyph: '●', label: 'consent', sub: '₹2,000, once' },
-  { glyph: '◍', label: 'the agent shops', sub: 'off-rail · free' },
-  { glyph: '⌖', label: 'commit gate', sub: 're-price · limit' },
-  { glyph: '◆', label: 'Razorpay order', sub: 'real · test mode' },
-  { glyph: '⛓', label: 'audited receipt', sub: 'tamper-evident' },
 ];
 
 export function Home() {
   return (
-    <div className="home cx">
-      <section className="hero">
-        <div className="hero-rise r1 hero-orbline">
-          <AgentOrb active size={44} />
-          <p className="hero-eyebrow">Razorpay Buildathon · Track 01 · Agentic Commerce</p>
+    <div className="landing">
+      <section className="hero2">
+        <div className="hero2-copy">
+          <p className="eyebrow">Razorpay Buildathon · Track 01 · Agentic commerce</p>
+          <h1>
+            Tell it what you want.<br />
+            It orders. <em>It can’t overspend.</em>
+          </h1>
+          <p className="hero2-sub">
+            CONDUIT is an AI buyer for real merchants. You set a spending cap once; the agent
+            shops, a gate re-prices everything at the moment of truth, and a real Razorpay
+            test-mode order comes out — with a receipt you can interrogate.
+          </p>
+          <div className="hero2-cta">
+            <Link className="btn-cta" to="/buy">Watch it order dinner →</Link>
+            <a className="btn-ghost" href="#how">How it works</a>
+          </div>
+          <div className="trust-strip" role="group" aria-label="Headline measurements">
+            <span><strong className="mono">9/0</strong> agent arithmetic failures / wrong charges</span>
+            <span><strong className="mono">100%</strong> amount accuracy</span>
+            <span><strong className="mono">0</strong> double charges</span>
+            <span><strong className="mono">0%</strong> legit purchases blocked</span>
+          </div>
         </div>
-        <h1 className="hero-title hero-rise r2">
-          An AI agent that can <em className="grad-text">actually buy things</em>
-          <br />— and can’t overspend.
-        </h1>
-        <p className="hero-sub hero-rise r3">
-          CONDUIT makes any Razorpay merchant sellable to an AI buyer: say{' '}
-          <strong>“order dinner for four under ₹800, no beef”</strong> and watch it become a real
-          test-mode Razorpay order — inside a spending limit you approved once, upfront.
-        </p>
-        <div className="hero-cta hero-rise r4">
-          <Link className="cx-btn cx-btn-primary" to="/buy">
-            ▶ Watch a purchase happen
-          </Link>
-          <Link className="cx-btn" to="/merchant">
-            The merchant’s side
-          </Link>
-        </div>
-
-        <div className="pipeline hero-rise r5" role="img"
-          aria-label="The loop: consent, the agent shops, the commit gate, a real Razorpay order, an audited receipt">
-          <div className="pipe-track"><span className="pipe-pulse" /></div>
-          {PIPELINE.map((n) => (
-            <div className="pipe-node" key={n.label}>
-              <span className="pipe-dot">{n.glyph}</span>
-              <span className="pipe-label">{n.label}</span>
-              <span className="pipe-sub mono">{n.sub}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="hero-stats hero-rise r6" role="group" aria-label="Headline measurements">
-          <div className="stat stat-hero">
-            <span className="stat-num mono">9 / 0</span>
-            <span className="stat-words">arithmetic failures / wrong charges — the whole idea, measured</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num mono"><CountUp to={100} />%</span>
-            <span className="stat-words">amount accuracy — a single wrong charge fails our test suite</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num mono">0%</span>
-            <span className="stat-words">legitimate purchases blocked — safety that doesn’t tax commerce</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num mono">0</span>
-            <span className="stat-words">double charges · mandate violations — under retry, timeout, and races</span>
-          </div>
+        <div className="hero2-mock">
+          <LiveMock />
         </div>
       </section>
 
-      <section className="home-section">
-        <h2>How it works — the whole loop in four steps</h2>
-        <div className="step-grid">
-          {STEPS.map((s, i) => (
-            <div className="step-card" key={s.title}>
-              <div className="step-head">
-                <span className="step-glyph" aria-hidden="true">{s.glyph}</span>
-                <span className="step-index mono">{i + 1}</span>
-              </div>
+      <section className="land-section" id="how">
+        <h2>Three steps. One human approval.</h2>
+        <div className="steps2">
+          {STEPS.map((s) => (
+            <div className="step2" key={s.n}>
+              <span className="step2-n mono">{s.n}</span>
               <h3>{s.title}</h3>
               <p>{s.words}</p>
             </div>
           ))}
         </div>
-        <p className="muted center">
+        <p className="land-note">
           The trick that makes it safe <em>and</em> fast: the cart lives <strong>off the payment
           rail</strong>. Thinking is free and unlimited; committing is one audited, guarded moment.
         </p>
       </section>
 
-      <section className="home-section">
-        <h2>The rules the agent cannot break</h2>
-        <p className="muted">
-          Not promises in a prompt — properties of the system, each with tests behind it. The agent
-          could be confidently wrong or actively manipulated, and these still hold.
+      <section className="land-section">
+        <h2>Five things it cannot do — even manipulated</h2>
+        <p className="land-sub">
+          Not promises in a prompt. Properties of the system, each with tests behind it.
         </p>
-        <div className="rule-list">
+        <div className="rules2">
           {RULES.map((r) => (
-            <div className="rule-card" key={r.title}>
-              <h3>✓ {r.title}</h3>
+            <div className="rule2" key={r.title}>
+              <h3>{r.title}</h3>
               <p>{r.words}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="home-section honesty">
+      <section className="land-section honesty2">
         <h2>What’s real, what’s modelled — never blurred</h2>
         <p>
           <span className="claim-chip claim-real">◆ Razorpay · test</span> Every order id in this
-          demo is minted by Razorpay’s API surface in test mode — a mock can’t produce one.{' '}
-          <span className="claim-chip claim-modelled">▢ modelled</span> The catalog, cart, spending
-          mandate, and the payment rail are faithful models over those real primitives (the
-          server-to-server payment API is gated on our test account). You’ll see these chips on
-          every panel — the line between built and real is part of the interface, on purpose.
+          demo is minted by Razorpay’s API in test mode — a mock can’t produce one.{' '}
+          <span className="claim-chip claim-modelled">▢ modelled</span> The menu, cart, spending
+          cap, and payment rail are faithful models over those real primitives. You’ll see these
+          chips on every panel — the line between built and real is part of the interface, on purpose.
         </p>
       </section>
 
-      <section className="home-section">
-        <h2>Try breaking it</h2>
-        <p className="muted">
-          The demo has one-click failure stories — the parts most checkout demos hide:
-        </p>
-        <div className="try-grid">
-          <Link to="/buy" className="try-card">
+      <section className="land-section">
+        <h2>Try to break it</h2>
+        <p className="land-sub">One-click failure stories — the parts most checkout demos hide:</p>
+        <div className="twists">
+          <Link to="/buy" className="twist-card">
+            <span className="twist-glyph" aria-hidden="true">💳</span>
             <h3>Payment declines</h3>
-            <p>The order is held, your money returns visibly to the mandate, and retrying is safe — the same order is reused, never a second one.</p>
+            <p>Money returns to your cap, visibly. Retrying reuses the same order — never a second one.</p>
           </Link>
-          <Link to="/buy" className="try-card">
+          <Link to="/buy" className="twist-card">
+            <span className="twist-glyph" aria-hidden="true">🏷️</span>
             <h3>Price changes mid-purchase</h3>
-            <p>The commit is refused with a line-by-line diff, and you’ll see the frame this project is proudest of: <em>policy allowed the call, commerce refused the outcome</em> — both true, side by side.</p>
+            <p>The commit is refused with a line-by-line diff — the frame we’re proudest of: policy allowed the call, commerce refused the outcome.</p>
           </Link>
-          <Link to="/buy" className="try-card">
+          <Link to="/buy" className="twist-card">
+            <span className="twist-glyph" aria-hidden="true">⏱️</span>
             <h3>The rail times out</h3>
-            <p>Did the payment go through? The agent doesn’t guess and doesn’t blindly retry — it reconciles against the order’s real payment history first.</p>
+            <p>Did it go through? The agent doesn’t guess — it reconciles against the order’s real payment history first.</p>
           </Link>
         </div>
       </section>
 
-      <footer className="home-footer">
+      <section className="land-section hood">
+        <div>
+          <h2>Under the hood: SENTINEL</h2>
+          <p>
+            Every tool call the agent makes crosses a policy boundary before it executes:
+            classified, quarantined, judged, and written to a tamper-evident audit ledger.
+            The agent could be confidently wrong or actively manipulated — the boundary holds
+            either way. That control plane is a full product of its own, and you can open it.
+          </p>
+        </div>
+        <div className="hood-links">
+          <Link to="/runs" className="btn-ghost">Run console</Link>
+          <Link to="/audit" className="btn-ghost">Audit ledger</Link>
+          <Link to="/redteam" className="btn-ghost">Red team results</Link>
+        </div>
+      </section>
+
+      <footer className="land-footer">
         <p>
           <strong>Test mode only.</strong> Synthetic data, no real money, no credentials anywhere.
           Independent project integrating the open-source razorpay/razorpay-mcp-server — not
           affiliated with or endorsed by Razorpay or NPCI. Built on{' '}
-          <a href="https://github.com/codeit-ronit/SENTINEL">SENTINEL</a>, our policy-enforcement
-          control plane: every tool call the agent makes is classified, quarantined, and judged
-          before it executes.
+          <a href="https://github.com/codeit-ronit/SENTINEL">SENTINEL</a>. Fixture mode:
+          offline · deterministic · no credentials.
         </p>
       </footer>
     </div>
