@@ -3,6 +3,7 @@
 // "what is going on here?" before the visitor clicks into the live demo.
 
 import { Link } from 'react-router-dom';
+import { AgentOrb, CountUp } from '../components/commerce';
 
 const STEPS = [
   {
@@ -77,34 +78,59 @@ const RULES = [
   },
 ];
 
+const PIPELINE = [
+  { glyph: '●', label: 'consent', sub: '₹2,000, once' },
+  { glyph: '◍', label: 'the agent shops', sub: 'off-rail · free' },
+  { glyph: '⌖', label: 'commit gate', sub: 're-price · limit' },
+  { glyph: '◆', label: 'Razorpay order', sub: 'real · test mode' },
+  { glyph: '⛓', label: 'audited receipt', sub: 'tamper-evident' },
+];
+
 export function Home() {
   return (
-    <div className="home">
+    <div className="home cx">
       <section className="hero">
-        <p className="hero-eyebrow">Razorpay Buildathon · Track 01 · Agentic Commerce</p>
-        <h1 className="hero-title">
-          An AI agent that can <em>actually buy things</em> — and can’t overspend.
+        <div className="hero-rise r1 hero-orbline">
+          <AgentOrb active size={44} />
+          <p className="hero-eyebrow">Razorpay Buildathon · Track 01 · Agentic Commerce</p>
+        </div>
+        <h1 className="hero-title hero-rise r2">
+          An AI agent that can <em className="grad-text">actually buy things</em>
+          <br />— and can’t overspend.
         </h1>
-        <p className="hero-sub">
+        <p className="hero-sub hero-rise r3">
           CONDUIT makes any Razorpay merchant sellable to an AI buyer: say{' '}
           <strong>“order dinner for four under ₹800, no beef”</strong> and watch it become a real
           test-mode Razorpay order — inside a spending limit you approved once, upfront.
         </p>
-        <div className="hero-cta">
-          <Link className="btn btn-primary btn-big" to="/buy">
+        <div className="hero-cta hero-rise r4">
+          <Link className="cx-btn cx-btn-primary" to="/buy">
             ▶ Watch a purchase happen
           </Link>
-          <Link className="btn btn-big" to="/merchant">
+          <Link className="cx-btn" to="/merchant">
             The merchant’s side
           </Link>
         </div>
-        <div className="hero-stats" role="group" aria-label="Headline measurements">
-          <div className="stat">
+
+        <div className="pipeline hero-rise r5" role="img"
+          aria-label="The loop: consent, the agent shops, the commit gate, a real Razorpay order, an audited receipt">
+          <div className="pipe-track"><span className="pipe-pulse" /></div>
+          {PIPELINE.map((n) => (
+            <div className="pipe-node" key={n.label}>
+              <span className="pipe-dot">{n.glyph}</span>
+              <span className="pipe-label">{n.label}</span>
+              <span className="pipe-sub mono">{n.sub}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="hero-stats hero-rise r6" role="group" aria-label="Headline measurements">
+          <div className="stat stat-hero">
             <span className="stat-num mono">9 / 0</span>
             <span className="stat-words">arithmetic failures / wrong charges — the whole idea, measured</span>
           </div>
           <div className="stat">
-            <span className="stat-num mono">100%</span>
+            <span className="stat-num mono"><CountUp to={100} />%</span>
             <span className="stat-words">amount accuracy — a single wrong charge fails our test suite</span>
           </div>
           <div className="stat">

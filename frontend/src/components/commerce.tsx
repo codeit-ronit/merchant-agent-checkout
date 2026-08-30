@@ -265,3 +265,47 @@ export function useCommerceStream(runRef: string | null): {
 
   return { events, result, status };
 }
+
+// ---------------------------------------------------------------- cx bits
+// The demo skin's living pieces: the agent's presence, counted-up stats,
+// and the thinking indicator. All honour prefers-reduced-motion.
+
+export function AgentOrb({ active = false, size = 34 }: { active?: boolean; size?: number }) {
+  return (
+    <span className={`agent-orb${active ? ' orb-active' : ''}`}
+      style={{ width: size, height: size }} aria-hidden="true">
+      <span className="orb-core" />
+    </span>
+  );
+}
+
+export function Typing() {
+  return (
+    <span className="typing" aria-label="the agent is working">
+      <span /><span /><span />
+    </span>
+  );
+}
+
+export function CountUp({ to, duration = 1100, format }: {
+  to: number; duration?: number; format?: (n: number) => string;
+}) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setValue(to);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(Math.round(to * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, duration]);
+  return <>{format ? format(value) : value}</>;
+}

@@ -494,3 +494,201 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
 @media (prefers-reduced-motion: reduce) {
   .event-row, .convo-lines li, .cart-table tbody tr, .final-card { animation: none; }
 }
+
+/* ====================================================================
+   CX — the CONDUIT demo skin. Dark-first "glass terminal": ambient depth,
+   translucent panels, an agent presence in violet→cyan (used narrowly),
+   money and state doing the semantic work. The under-the-hood operator
+   views never get .cx-mode and keep the control-room look.
+   ==================================================================== */
+
+.cx-mode {
+  /* token override = instant reskin of every component that uses them */
+  --bg: #0b1020; --bg-sunk: #080d19; --panel: rgba(255,255,255,.045);
+  --panel-2: rgba(255,255,255,.03);
+  --ink: #e9ecf8; --ink-soft: #c3c9e0; --muted: #8b93b4;
+  --line: rgba(255,255,255,.08); --line-strong: rgba(255,255,255,.16);
+  --accent: #d4a94f; --accent-soft: #b98f45; --accent-wash: rgba(212,169,79,.10);
+  --allow: #34d399; --allow-wash: rgba(52,211,153,.12);
+  --deny: #f87171; --deny-wash: rgba(248,113,113,.12);
+  --escalate: #fbbf24; --escalate-wash: rgba(251,191,36,.12);
+  --await: #60a5fa; --await-wash: rgba(96,165,250,.12);
+  --agent-a: #7c6cff; --agent-b: #22d3ee;
+  --radius: 16px;
+  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 12px 40px rgba(3,6,18,.5);
+  background: var(--bg);
+  color: var(--ink);
+}
+:root[data-theme="light"] .cx-mode {
+  --bg: #f3f5fc; --bg-sunk: #e9ecf6; --panel: rgba(255,255,255,.72);
+  --panel-2: rgba(255,255,255,.55);
+  --ink: #171b2e; --ink-soft: #3c445f; --muted: #6b7392;
+  --line: rgba(23,27,46,.08); --line-strong: rgba(23,27,46,.18);
+  --accent: #8a6626; --accent-wash: rgba(184,143,69,.12);
+  --allow: #0e9f6e; --allow-wash: rgba(14,159,110,.10);
+  --deny: #dc2626; --deny-wash: rgba(220,38,38,.09);
+  --escalate: #b45309; --escalate-wash: rgba(180,83,9,.10);
+  --await: #2563eb; --await-wash: rgba(37,99,235,.10);
+  --agent-a: #6553f0; --agent-b: #0e9db8;
+  --shadow: 0 1px 2px rgba(23,27,46,.05), 0 14px 40px rgba(23,27,46,.08);
+}
+
+/* ---- ambient: drifting glows + a faint grid, fixed behind everything ---- */
+.cx-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.cx-glow { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .5; }
+.cx-glow-a { width: 620px; height: 620px; left: -160px; top: -180px;
+  background: radial-gradient(circle, var(--agent-a), transparent 65%);
+  animation: drift-a 34s ease-in-out infinite alternate; }
+.cx-glow-b { width: 560px; height: 560px; right: -140px; top: 12%;
+  background: radial-gradient(circle, var(--agent-b), transparent 65%); opacity: .32;
+  animation: drift-b 42s ease-in-out infinite alternate; }
+.cx-glow-c { width: 700px; height: 700px; left: 28%; bottom: -320px;
+  background: radial-gradient(circle, #d4a94f, transparent 62%); opacity: .16;
+  animation: drift-c 50s ease-in-out infinite alternate; }
+:root[data-theme="light"] .cx-mode .cx-glow { opacity: .22; }
+:root[data-theme="light"] .cx-mode .cx-glow-b { opacity: .16; }
+:root[data-theme="light"] .cx-mode .cx-glow-c { opacity: .10; }
+@keyframes drift-a { to { transform: translate(90px, 60px) scale(1.12); } }
+@keyframes drift-b { to { transform: translate(-70px, 90px) scale(.94); } }
+@keyframes drift-c { to { transform: translate(-60px, -70px) scale(1.08); } }
+.cx-grid { position: absolute; inset: 0; opacity: .5;
+  background-image:
+    linear-gradient(rgba(127,140,200,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,140,200,.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
+}
+.cx-mode .app-main, .cx-mode .nav-rail { position: relative; z-index: 1; }
+
+/* ---- chrome: glass rail + glass panels everywhere in cx ---- */
+.cx-mode .commerce-panel, .cx-mode .mandate-meter, .cx-mode .stat,
+.cx-mode .step-card, .cx-mode .rule-card, .cx-mode .try-card,
+.cx-mode .final-card, .cx-mode .demo-banner, .cx-mode .honesty {
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.cx-mode .step-card, .cx-mode .try-card, .cx-mode .stat {
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+@media (hover: hover) {
+  .cx-mode .step-card:hover, .cx-mode .try-card:hover, .cx-mode .stat:hover {
+    transform: translateY(-4px); border-color: var(--line-strong);
+  }
+}
+
+/* ---- the agent's presence: the orb ---- */
+.agent-orb { position: relative; display: inline-flex; align-items: center;
+  justify-content: center; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 32% 30%, var(--agent-b), var(--agent-a) 70%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--agent-a) 55%, transparent); }
+.orb-core { width: 34%; height: 34%; border-radius: 50%; background: rgba(255,255,255,.92);
+  filter: blur(1px); }
+.orb-active::after { content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--agent-b) 60%, transparent);
+  animation: orb-ping 1.6s ease-out infinite; }
+@keyframes orb-ping { from { transform: scale(.7); opacity: .9; } to { transform: scale(1.25); opacity: 0; } }
+
+/* thinking dots */
+.typing { display: inline-flex; gap: 5px; padding: 4px 2px; }
+.typing span { width: 7px; height: 7px; border-radius: 50%;
+  background: color-mix(in srgb, var(--agent-a) 75%, var(--ink));
+  animation: typing-bounce 1.1s ease-in-out infinite; }
+.typing span:nth-child(2) { animation-delay: .15s; }
+.typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes typing-bounce { 0%, 60%, 100% { transform: none; opacity: .4; }
+  30% { transform: translateY(-5px); opacity: 1; } }
+.typing-line { background: none !important; border: none !important; padding: 2px 12px !important; }
+
+/* ---- hero ---- */
+.cx .hero { padding-top: 46px; }
+.hero-orbline { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 16px; }
+.hero-orbline .hero-eyebrow { margin: 0; }
+.cx .grad-text, .grad-text { background: linear-gradient(92deg, var(--agent-a), var(--agent-b));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-style: normal; }
+.hero-rise { animation: hero-rise 640ms cubic-bezier(.2,.7,.2,1) both; }
+.r1 { animation-delay: 40ms; } .r2 { animation-delay: 140ms; } .r3 { animation-delay: 260ms; }
+.r4 { animation-delay: 380ms; } .r5 { animation-delay: 520ms; } .r6 { animation-delay: 660ms; }
+@keyframes hero-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* ---- cx buttons ---- */
+.cx-btn { display: inline-flex; align-items: center; gap: 8px; font: inherit;
+  font-size: 15px; font-weight: 650; padding: 12px 26px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--panel); color: var(--ink);
+  text-decoration: none; cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+.cx-btn:hover, .cx-btn:focus-visible { transform: translateY(-2px); border-color: var(--agent-b); }
+.cx-btn:disabled { opacity: .6; cursor: default; transform: none; }
+.cx-btn-primary { border: none; color: #fff;
+  background: linear-gradient(92deg, var(--agent-a), var(--agent-b));
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--agent-a) 45%, transparent); }
+.cx-btn-primary:hover { box-shadow: 0 12px 38px color-mix(in srgb, var(--agent-a) 60%, transparent); }
+
+/* ---- the pipeline: five nodes, one traveling pulse ---- */
+.pipeline { position: relative; display: flex; justify-content: space-between; gap: 8px;
+  margin: 34px auto 30px; max-width: 860px; padding: 0 8px; }
+.pipe-track { position: absolute; left: 40px; right: 40px; top: 21px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent); }
+.pipe-pulse { position: absolute; top: -4px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--agent-b);
+  box-shadow: 0 0 14px var(--agent-b), 0 0 4px var(--agent-b);
+  animation: pipe-travel 4.8s cubic-bezier(.45,.05,.55,.95) infinite; }
+@keyframes pipe-travel { 0% { left: 0%; opacity: 0; } 6% { opacity: 1; }
+  94% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
+.pipe-node { position: relative; z-index: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 5px; min-width: 84px; }
+.pipe-dot { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line-strong);
+  backdrop-filter: blur(10px); box-shadow: var(--shadow); }
+.pipe-node:nth-child(5) .pipe-dot { color: var(--accent); border-color: var(--accent-soft); }
+.pipe-label { font-size: 12.5px; font-weight: 650; }
+.pipe-sub { font-size: 10.5px; color: var(--muted); }
+@media (max-width: 720px) {
+  .pipeline { flex-wrap: wrap; justify-content: center; gap: 18px; }
+  .pipe-track { display: none; }
+}
+
+/* ---- stats ---- */
+.cx .stat-num { background: linear-gradient(92deg, var(--agent-a), var(--agent-b));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat-hero { border: 1px solid transparent;
+  background: linear-gradient(var(--bg-sunk), var(--bg-sunk)) padding-box,
+              linear-gradient(120deg, var(--agent-a), var(--agent-b)) border-box; }
+:root[data-theme="light"] .cx-mode .stat-hero {
+  background: linear-gradient(#fff, #fff) padding-box,
+              linear-gradient(120deg, var(--agent-a), var(--agent-b)) border-box; }
+
+/* ---- buy view accents ---- */
+.cx-mode .mandate-fill { background: linear-gradient(90deg, var(--await), var(--agent-a));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--agent-a) 45%, transparent); }
+.cx-mode .final-ok { animation: receipt-pop 420ms cubic-bezier(.2,.8,.3,1.2) both;
+  box-shadow: 0 0 0 1px var(--allow), 0 10px 44px color-mix(in srgb, var(--allow) 25%, transparent); }
+@keyframes receipt-pop { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: none; } }
+.cx-mode .two-verdicts { border: 1px solid transparent;
+  background: linear-gradient(var(--bg-sunk), var(--bg-sunk)) padding-box,
+              linear-gradient(110deg, var(--allow), var(--deny)) border-box; }
+:root[data-theme="light"] .cx-mode .two-verdicts {
+  background: linear-gradient(#fff, #fff) padding-box,
+              linear-gradient(110deg, var(--allow), var(--deny)) border-box; }
+.cx-mode .event-row { background: var(--panel-2); }
+.cx-mode .convo-lines li { border-left: 2px solid color-mix(in srgb, var(--agent-a) 55%, transparent); }
+
+/* ---- honesty + footer on glass ---- */
+.cx-mode .honesty { border-color: var(--accent-soft); }
+.cx-mode .home-footer { color: var(--muted); }
+
+/* ---- header / rail polish in cx ---- */
+.cx-mode .app-header { background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line); }
+.cx-mode .nav-rail { background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(14px); border-right: 1px solid var(--line); }
+.cx-mode .nav-seal { color: var(--agent-a); border-color: var(--agent-a); }
+
+/* ---- reduced motion: everything settles instantly, nothing pulses ---- */
+@media (prefers-reduced-motion: reduce) {
+  .cx-glow, .pipe-pulse, .orb-active::after, .typing span { animation: none !important; }
+  .hero-rise { animation: none; }
+  .cx-mode .final-ok { animation: none; }
+  .cx-mode .step-card:hover, .cx-mode .try-card:hover, .cx-mode .stat:hover { transform: none; }
+}

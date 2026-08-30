@@ -8,11 +8,13 @@ import { createMandate, listMandates, startPurchase } from '../api';
 import { formatMoney } from '../format';
 import type { BuyerReport, CommerceSnapshot, MandateView } from '../types';
 import {
+  AgentOrb,
   CartPanel,
   ClaimChip,
   EventRow,
   MandateMeter,
   StateStamp,
+  Typing,
   narrate,
   useCommerceStream,
 } from '../components/commerce';
@@ -128,7 +130,7 @@ export function BuyerConsole() {
   }
 
   return (
-    <div className="buyer-shell">
+    <div className="buyer-shell cx">
       <div className="demo-banner">
         <div>
           <strong>The live demo.</strong>{' '}
@@ -137,7 +139,7 @@ export function BuyerConsole() {
             click does everything: sets ₹2,000 aside and asks for dinner.
           </span>
         </div>
-        <button className="btn btn-primary btn-big" onClick={() => void runWholeDemo()}
+        <button className="cx-btn cx-btn-primary" onClick={() => void runWholeDemo()}
           disabled={busy || status === 'streaming'}>
           {busy || status === 'streaming' ? 'Shopping…' : '▶ Run the whole demo'}
         </button>
@@ -211,7 +213,11 @@ export function BuyerConsole() {
         </div>
 
         <div className="commerce-panel convo" aria-live="polite">
-          <div className="panel-head"><h3>The agent</h3></div>
+          <div className="panel-head">
+            <AgentOrb active={status === 'streaming'} size={26} />
+            <h3>The agent</h3>
+            {status === 'streaming' && <span className="muted small">working…</span>}
+          </div>
           {narration.length === 0 && status !== 'streaming' && (
             <p className="muted">Nothing yet — send a request. The agent narrates here while the machinery moves on the right.</p>
           )}
@@ -219,6 +225,9 @@ export function BuyerConsole() {
             {narration.map((line, i) => (
               <li key={i}>{line}</li>
             ))}
+            {status === 'streaming' && (
+              <li className="typing-line" aria-hidden="true"><Typing /></li>
+            )}
           </ul>
           {result?.output && <FinalCard report={result.output} snapshot={result.final_snapshot} />}
         </div>

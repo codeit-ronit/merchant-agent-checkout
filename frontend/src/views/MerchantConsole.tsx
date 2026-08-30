@@ -48,7 +48,7 @@ export function MerchantConsole() {
   }
 
   return (
-    <div className="merchant-shell">
+    <div className="merchant-shell cx">
       <div className="commerce-panel">
         <div className="panel-head">
           <h3>Catalog — {merchantName}</h3>
