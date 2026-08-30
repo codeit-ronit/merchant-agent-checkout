@@ -1,0 +1,29 @@
+{
+  "key": "ef707823c74da1000e33de95ea93e4367c7c0b4bc69f15ca99af77870f50c416",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-49d53e51-7ca0-471e-b7f7-35324c031f3e",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "quantity": 2,
+          "item_id": "itm_steamed-rice"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 13151,
+      "output_tokens": 956,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

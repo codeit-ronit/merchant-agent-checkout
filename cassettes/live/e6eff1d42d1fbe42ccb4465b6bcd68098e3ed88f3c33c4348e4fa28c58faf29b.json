@@ -1,0 +1,29 @@
+{
+  "key": "e6eff1d42d1fbe42ccb4465b6bcd68098e3ed88f3c33c4348e4fa28c58faf29b",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-690e03cb-fe35-4544-8d97-027e2e742f53",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "item_id": "itm_veg-biryani",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 13359,
+      "output_tokens": 1101,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

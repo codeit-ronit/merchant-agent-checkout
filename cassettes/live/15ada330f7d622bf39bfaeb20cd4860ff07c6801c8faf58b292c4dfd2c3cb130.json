@@ -1,0 +1,29 @@
+{
+  "key": "15ada330f7d622bf39bfaeb20cd4860ff07c6801c8faf58b292c4dfd2c3cb130",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-b1d5a202-7cb4-4331-a250-47cafcfc1a4c",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "quantity": 2,
+          "item_id": "itm_dal-makhani"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 6390,
+      "output_tokens": 595,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

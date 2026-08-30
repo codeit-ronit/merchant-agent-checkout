@@ -1,0 +1,37 @@
+{
+  "key": "188afa85975fe89c67c2c9d9e3390132aed192566d72e05d65239ba48d79704f",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-cf8e585e-67f4-44a8-b9d0-e1acf15c3e29",
+        "name": "catalog_search",
+        "arguments": {
+          "skip": 0,
+          "max_price_minor": 60000,
+          "in_stock_only": true,
+          "count": 20,
+          "exclude_attributes": [
+            "chicken",
+            "mutton",
+            "seafood",
+            "nuts"
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2838,
+      "output_tokens": 439,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

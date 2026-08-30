@@ -1,0 +1,34 @@
+{
+  "key": "00a090d485e62c9cb2d0dc20b38d817d0ad2e71bec9abc5084eba104ce177edf",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-60bd91be-21d0-4c0c-a7db-7d204a98aa2b",
+        "name": "catalog_search",
+        "arguments": {
+          "max_price_minor": 40000,
+          "count": 20,
+          "category": "dinner",
+          "attributes": [
+            "vegetarian"
+          ],
+          "in_stock_only": true
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 3316,
+      "output_tokens": 113,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}
