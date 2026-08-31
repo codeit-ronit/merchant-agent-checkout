@@ -42,6 +42,11 @@ class ProviderResponse:
     model: str = ""
     finish_reason: str = ""
     malformed_tool_call: bool = False   # provider emitted an unparseable tool call
+    # The provider's assistant message EXACTLY as returned, for echoing back
+    # into history. Providers attach fields the protocol requires round-tripped
+    # (Gemini 3.x: thought_signature on functionCall parts) — reconstruction
+    # from normalised fields drops them, so the raw dict is kept (ADR-042).
+    raw_assistant_message: Optional[dict] = None
 
     @property
     def has_tool_calls(self) -> bool:

@@ -224,12 +224,37 @@ class AgentRunner:
                     schema_violations += 1
                     if not malformed_retry_used:
                         malformed_retry_used = True
+                        required = ", ".join(agent.output_schema.get("required", []))
                         messages.append({"role": "user", "content":
-                                         "Your final output did not match the required schema. Re-emit it."})
+                                         "Your final output did not match the required schema. "
+                                         "If the task is not actually finished (e.g. an order is "
+                                         "committed but not yet paid), continue calling tools "
+                                         "instead of reporting. Otherwise re-emit the report as "
+                                         "ONE bare JSON object (no fences, no prose) containing "
+                                         f"ALL of these keys: {required}."})
                         step += 1
                         continue
                     terminal = TerminalState.FAILED
                 break
+
+            if resp.has_tool_calls and getattr(
+                    getattr(manager, "config", None), "echo_assistant_turns", False):
+                # OpenAI protocol: echo the model's own tool-calling turn into
+                # history before its tool results land. Live-only (ADR-042) —
+                # offline/golden cassettes are keyed on this history and must
+                # stay byte-identical.
+                if resp.raw_assistant_message is not None:
+                    # verbatim: providers attach fields that MUST round-trip
+                    # (Gemini 3.x thought_signature); never reconstruct.
+                    messages.append(resp.raw_assistant_message)
+                else:
+                    import json as _json
+                    messages.append({
+                        "role": "assistant", "content": resp.text,
+                        "tool_calls": [{"id": tc.id, "type": "function",
+                                        "function": {"name": tc.name,
+                                                     "arguments": _json.dumps(tc.arguments)}}
+                                       for tc in resp.tool_calls]})
 
             for tc in resp.tool_calls:
                 step_id = self._ids.step()
@@ -398,12 +423,25 @@ def _summarise(ctx) -> str:
 
 
 def _parse_output(text: str) -> dict | None:
+    """Bare JSON first; then fenced blocks; then the widest brace span. Real
+    models wrap their final JSON in ```fences``` or prose routinely (ADR-042) —
+    rejecting the whole run over formatting would measure markdown habits, not
+    behaviour. Offline brains emit bare JSON, so their path is unchanged."""
     import json
-    try:
-        obj = json.loads(text)
-        return obj if isinstance(obj, dict) else {"summary": text}
-    except Exception:
-        return {"summary": text}
+    import re
+    candidates = [text]
+    candidates += re.findall(r"```(?:json)?\s*(.*?)```", text, re.S)
+    widest = re.search(r"\{.*\}", text, re.S)
+    if widest:
+        candidates.append(widest.group(0))
+    for c in candidates:
+        try:
+            obj = json.loads(c.strip())
+            if isinstance(obj, dict):
+                return obj
+        except Exception:
+            continue
+    return {"summary": text}
 
 
 def _validate_output(output: dict | None, schema: dict) -> bool:

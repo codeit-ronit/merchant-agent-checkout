@@ -70,6 +70,24 @@ class RateLimitGovernor:
             self._record_locked(provider, model)
             return True
 
+    def minute_wait_ms(self, provider: str, model: str, limits: dict) -> int:
+        """Milliseconds until the MINUTE window frees a slot; 0 when there is
+        nothing useful to wait for (a slot is free now, or the DAY budget is
+        exhausted — which waiting cannot fix). Lets the manager pace a burst
+        instead of failing the run (ADR-042)."""
+        with self._lock:
+            now = self._clock_ms()
+            b = self._bucket(provider, model)
+            b["day"] = [t for t in b["day"] if now - t < 86_400_000]
+            rpd = limits.get("rpd")
+            if rpd is not None and len(b["day"]) >= rpd:
+                return 0
+            b["minute"] = [t for t in b["minute"] if now - t < 60_000]
+            rpm = limits.get("rpm")
+            if rpm is None or len(b["minute"]) < rpm:
+                return 0
+            return max(0, 60_000 - (now - min(b["minute"]))) + 250
+
     def remaining(self, provider: str, model: str, limits: dict) -> dict:
         now = self._clock_ms()
         b = self._bucket(provider, model)

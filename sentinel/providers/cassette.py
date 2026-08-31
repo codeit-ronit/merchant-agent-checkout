@@ -51,6 +51,7 @@ def _response_to_dict(r: ProviderResponse) -> dict[str, Any]:
                   "reported": r.usage.reported},
         "provider": r.provider, "model": r.model, "finish_reason": r.finish_reason,
         "malformed_tool_call": r.malformed_tool_call,
+        "raw_assistant_message": r.raw_assistant_message,
     }
 
 
@@ -63,6 +64,7 @@ def _dict_to_response(d: dict[str, Any]) -> ProviderResponse:
         provider=d.get("provider", ""), model=d.get("model", ""),
         finish_reason=d.get("finish_reason", ""),
         malformed_tool_call=d.get("malformed_tool_call", False),
+        raw_assistant_message=d.get("raw_assistant_message"),
     )
 
 

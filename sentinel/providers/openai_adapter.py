@@ -48,10 +48,20 @@ class OpenAICompatibleProvider:
                 "parameters": t.get("inputSchema", {"type": "object"})}} for t in tools],
             "temperature": 0,
         }
-        try:
-            resp = httpx.post(f"{self.base_url}/chat/completions",
+        def _post():
+            return httpx.post(f"{self.base_url}/chat/completions",
                               headers={"Authorization": f"Bearer {self.api_key}"},
-                              json=payload, timeout=60)
+                              json=payload, timeout=240)  # thinking models routinely exceed 60s (ADR-042)
+
+        try:
+            resp = _post()
+            if resp.status_code in (502, 503, 504):
+                # transient capacity blips ("high demand") — one paced retry
+                # before surfacing; killing a 12-step run over one 503 wastes
+                # every recorded step before it (ADR-042).
+                import time as _time
+                _time.sleep(10)
+                resp = _post()
         except Exception as exc:  # network error
             raise ProviderError(f"{self.name}: transport error: {exc}") from exc
 
@@ -87,6 +97,7 @@ class OpenAICompatibleProvider:
 
         return ProviderResponse(
             text=msg.get("content"), tool_calls=tuple(tool_calls), usage=u,
+            raw_assistant_message=msg,
             provider=self.name, model=real_model,   # record the REAL id served, not the tier
             finish_reason=choice.get("finish_reason", ""), malformed_tool_call=malformed,
         )

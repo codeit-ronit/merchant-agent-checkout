@@ -28,6 +28,13 @@ class ManagerConfig:
     policy_version: str = "0"
     fixture_version: str = "0"
     system_prompt: str = ""
+    # OpenAI protocol correctness for REAL providers: the model's own
+    # tool-calling turn must be echoed into history before its tool results.
+    # Lenient compat layers (Groq, OpenRouter) tolerate orphan tool messages;
+    # Gemini's rejects them (ADR-042). False by default so every recorded
+    # offline/golden cassette — keyed on the message history — stays
+    # byte-identical; the live factory path sets it True.
+    echo_assistant_turns: bool = False
 
 
 class ProviderManager:
@@ -98,9 +105,20 @@ class ProviderManager:
             limits = self.provider_limits.get(provider.name, {})
             # atomic check-and-record: two concurrent calls cannot both take the
             # last slot (the old would_exceed()+record() had a check-then-act race).
-            if self.governor and limits and not self.governor.try_acquire(provider.name, model, limits):
-                last_err = ProviderError(f"{provider.name}: local rate-limit ceiling reached")
-                continue
+            if self.governor and limits:
+                acquired = self.governor.try_acquire(provider.name, model, limits)
+                if not acquired:
+                    wait_ms = self.governor.minute_wait_ms(provider.name, model, limits)
+                    if wait_ms > 0:
+                        # pace, don't fail: only the minute window is hot and the
+                        # day budget is fine — this sleep IS the "degrades
+                        # gracefully" the governor promises (ADR-042).
+                        import time as _time
+                        _time.sleep(wait_ms / 1000)
+                        acquired = self.governor.try_acquire(provider.name, model, limits)
+                if not acquired:
+                    last_err = ProviderError(f"{provider.name}: local rate-limit ceiling reached")
+                    continue
             try:
                 resp = provider.complete(messages=messages, tools=tools, model=model)
                 if i > 0:

@@ -124,7 +124,8 @@ def build_manager(*, brain, model_id: Optional[str], model_tier: Optional[str],
             manager = ProviderManager(
                 providers, CassetteStore(live_dir),
                 ManagerConfig(mode=cassette_mode, policy_version=policy_version,
-                              fixture_version=fixture_version, system_prompt=system_prompt),
+                              fixture_version=fixture_version, system_prompt=system_prompt,
+                              echo_assistant_turns=True),
                 governor=governor, provider_limits=limits)
             return manager, tier
         # SENTINEL_LIVE set but no usable key -> fall through to scripted (fail safe)
