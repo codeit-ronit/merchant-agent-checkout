@@ -195,7 +195,12 @@ class Interceptor:
                 return InterceptOutcome(Disposition.ALLOW, decision, entry, result=stored,
                                         executed=False, idempotent_replay=True)
             if state == "refuse":
-                self.trace("idempotency_refused", {"tool": descriptor.name})
+                # NOT a member of the closed trace-event list as its own type —
+                # a refused duplicate of a money call is a security_event with
+                # a kind, found the first time a REAL model retried a payment
+                # (no deterministic test ever reached this emit; ADR-042).
+                self.trace("security_event",
+                           {"kind": "idempotency_refused", "tool": descriptor.name})
                 return self._deny(ctx, ReasonCode.DENY_UPSTREAM_ERROR, {"tool": descriptor.name},
                                   outcome="idempotency_refused",
                                   detail="a prior identical call is in flight or failed ambiguously")
