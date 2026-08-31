@@ -1,0 +1,30 @@
+{
+  "key": "d80a861748aa646b6a622ae5f163e772761213c1cd6bf54b4ec467ad8d532018",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_ef7337f0-02b0-45c1-80cb-8a0e2ca906c5",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_garlic-naan",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4433,
+      "output_tokens": 319,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

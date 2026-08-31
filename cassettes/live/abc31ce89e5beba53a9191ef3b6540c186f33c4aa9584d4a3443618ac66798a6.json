@@ -1,0 +1,29 @@
+{
+  "key": "abc31ce89e5beba53a9191ef3b6540c186f33c4aa9584d4a3443618ac66798a6",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-8e78e33f-e8d9-4563-abf6-c654a8e295f7",
+        "name": "catalog_check_availability",
+        "arguments": {
+          "item_id": "itm_garlic-naan",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7804,
+      "output_tokens": 988,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

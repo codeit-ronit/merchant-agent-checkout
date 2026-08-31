@@ -1,0 +1,30 @@
+{
+  "key": "57a4c71f3cf0b4905034e812e3b69e4b5350224e9839cd84e7333b521418067b",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-ac99c313-96d6-43fd-8a09-ebf3ddaaa9b7",
+        "name": "cart_add_item",
+        "arguments": {
+          "item_id": "itm_aloo-gobi",
+          "cart_id": "cart_000001",
+          "quantity": 1
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9211,
+      "output_tokens": 1393,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

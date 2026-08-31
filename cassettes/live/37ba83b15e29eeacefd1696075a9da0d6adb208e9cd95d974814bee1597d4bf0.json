@@ -1,0 +1,20 @@
+{
+  "key": "37ba83b15e29eeacefd1696075a9da0d6adb208e9cd95d974814bee1597d4bf0",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 2240,
+      "output_tokens": 6,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "error",
+    "malformed_tool_call": false
+  }
+}

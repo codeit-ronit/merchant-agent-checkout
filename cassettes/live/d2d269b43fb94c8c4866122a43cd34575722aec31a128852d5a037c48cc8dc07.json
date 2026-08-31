@@ -1,0 +1,28 @@
+{
+  "key": "d2d269b43fb94c8c4866122a43cd34575722aec31a128852d5a037c48cc8dc07",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "I'll help you order dinner for four under ₹800 with no beef using mandate mnd_000001. Let me start by clearing the existing cart and adding the appropriate items.\n\n",
+    "tool_calls": [
+      {
+        "id": "call-690979f4-045e-4569-986c-a99051b6a619",
+        "name": "cart_clear",
+        "arguments": {
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8118,
+      "output_tokens": 1722,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

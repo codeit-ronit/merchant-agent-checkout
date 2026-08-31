@@ -1,0 +1,30 @@
+{
+  "key": "a4a76d506611d3ba0bdf8bcbf8705f528f69328a0fecb70ad8451bc488848f8d",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call-91f1ae02-879a-4fb8-8806-c64c71efefdb",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 2,
+          "item_id": "itm_hyderabadi-veg-biryani",
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9711,
+      "output_tokens": 1461,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

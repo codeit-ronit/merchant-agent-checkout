@@ -1,0 +1,20 @@
+{
+  "key": "3a59fdeb2e876cd46d86d3988401149b694e8b8d8b11f8ac959776fcf69c476c",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": "",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 4433,
+      "output_tokens": 923,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "key": "aacf4dd92d9464ee7d95f46ccfcd56f11fcdd4bfdecaa3f43f0621562a3b3428",
+  "request": {
+    "model": "strong",
+    "provider": "groq"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "fc_9eee1519-dd71-4ed0-a5ce-9def07a07aff",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_dal-makhani",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 4433,
+      "output_tokens": 319,
+      "reported": true
+    },
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "key": "24d67b5504246789abeabfb6fa8ac98ce8b694816d204105c75699869595a3a0",
+  "request": {
+    "model": "strong",
+    "provider": "openrouter"
+  },
+  "response": {
+    "text": "**Constraint check**\n\n- The mandate `mnd_000001` currently has **₹10** remaining (`mandate_remaining_minor: 1000`).\n- The request is for a dinner for four **under ₹800** (₹80 000 minor).\n\nBecause the mandate’s available balance (₹10) is far below the ₹800 ceiling, any cart that totals ≤ ₹800 cannot be paid from this mandate. Adding any items would either exceed the mandate balance or cause `cart_commit` to reject the order.\n\n**Result**\n\nThe requested purchase cannot be satisfied under the given mandate. No items will be added, and no order will be placed.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7721,
+      "output_tokens": 580,
+      "reported": true
+    },
+    "provider": "openrouter",
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "finish_reason": "stop",
+    "malformed_tool_call": false
+  }
+}
