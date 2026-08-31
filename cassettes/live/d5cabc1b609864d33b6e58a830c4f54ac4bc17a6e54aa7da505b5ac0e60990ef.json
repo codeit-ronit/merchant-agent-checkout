@@ -1,0 +1,29 @@
+{
+  "key": "d5cabc1b609864d33b6e58a830c4f54ac4bc17a6e54aa7da505b5ac0e60990ef",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\"error\": \"The spending mandate mnd_000001 has expired and cannot be used for this purchase.\"}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7230,
+      "output_tokens": 27,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\"error\": \"The spending mandate mnd_000001 has expired and cannot be used for this purchase.\"}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPBj/yyEVG2nKAeuuqZuvt7wcjBbi2326VG7t6HL3g72RnVXv+kx21ZKRgxY03PUuE2Zjp7qVrnMe5vFOPVakYnoM7EMoH5EbMyPiIG0JBfL3rGPCm6tABswkSd15LEgrQGirASorqVOIZ7g=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

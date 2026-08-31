@@ -1,0 +1,46 @@
+{
+  "key": "39b5247a13814b14c514a89558826f7e7bf5ae92fcf7579d303f27f8e804b627",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2139193",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000002"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 13331,
+      "output_tokens": 27,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EqMICqAIARFNMg8OzKvxd+P7wybu6mytOBYTVT+AQfnxRhjxcr9BFf//I14fX7p1I1Y/xthOMlCYjRjgV7ac2hlTSNUxyglR/7l8kpWuWs7K7p+Gw2Tw1Ancl+3i2FhPSJ5vkIfblVOLzHRggqIvx7k+YEIu+NdAKA/+LOoYgXpLlgNqNBidhLwmedRD370ecLJu1Q6ZoGdTs7n1ie4HWvaGzxoTE1LFHlmMGdyZUz5uOgtBAZS5DEwNsbWQvLlivXF9G3CVAh9IPv5og9/nNJyq46vlJg2YS+6d681FYAH6o9R1+IisC7SVQrNZJRWlIpzZoUG6SVoojc95U+tKIZHKYHWmvG8l0TMrJJjtRzqT54VGpySrdjZdJSX84Omv9xvBRR8FzQ0/wqHqy1gtMzLe6LUZCHyqKjRhlJ/Gk33PK7zmVGrQ5GpKXSjU3iNXldavSy+wwxXxzcFu10D7jGJD27xktlBSnPlfGtk9plap4snhszwk1OIN1tNoJVIbNr8tYtBD3B+V/FE1dXHVmV3kiI26FVkxmYLoIUlwmYHM2O+0Ic1JU63c63ohimSxIF2qooUHrCNByS+o2ZOrQt8xmePR9Wc2+KcXdmTQVSm0Mwj9AU5rQA0yQhYUvBhityNTpkn158zFLSKDljy25499doVH9B6Gog2YkWm2V4hWOnRrOGxIq609mD31BCSotCAa1OmtAWCWVwcZ8AIKyUgSwUfvuzy3u8KVw2Fry4XGgQibg3cQH3maMjay0tXq+m61ElVZOMhdWPwcnGF99ilwRD7oPWh5CplX4ODTZbfqArKGyy33/8yzyNH/GswiKiFS3ncBi90lYVzYXbNUD6eU3GyliZ+RpBVcsDhsKl+tlwQZ2lnIxAWIMA09K79DyvcDuGP7VawpLlsFUlvdQTFgykxsSoIbm99wGduYsckGvGRWGHAs/+eXqUd6LFnzOZXrXVKibSOnpxtRxzP6ry7azdV4KBEpcQ9itoi1BlWrPr25VPu7mqsTeBcgcldkOrAaFEEy66kqJWdMI+w/bSS2kS1oQu5w78DPshaBuhtjFCBacdTH1atH5cNWSeB7gOy5yMxawKPFjTcvuYNQEIdw6JJOGs72S0kS22kJi6oTcPqj7l6OpcVrKTw/Zgdlx+1f4wP5wrtOOuYuYo0Kxy7YZbiETNjYzdG80cFgNeS0kS2dWh9WdjiYcyToxpBHYr9870rZpcmlOX27VWu6CqDqipW6HoM0qSIIEfPpb5iW36I3O/0bGXm4/MYeDWkEp0uKTn4bT7CHd6o1I53DsMo3LkJp5/B0uIo7Fa3lY9P3O4sOT3IdklxIgvi0l8uiSviZx5fkHoLDcmeo/QuMH5G2OUpK00PQR9SM98bATPNERKHCnkY0oVcPoisOJ6C2cuM3rClK"
+            }
+          },
+          "function": {
+            "arguments": "{\"mandate_id\":\"mnd_000002\"}",
+            "name": "cart_create"
+          },
+          "id": "call_2139193",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

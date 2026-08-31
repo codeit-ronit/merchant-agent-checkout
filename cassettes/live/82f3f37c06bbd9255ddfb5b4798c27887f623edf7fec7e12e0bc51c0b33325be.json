@@ -1,0 +1,46 @@
+{
+  "key": "82f3f37c06bbd9255ddfb5b4798c27887f623edf7fec7e12e0bc51c0b33325be",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_1377131",
+        "name": "cart_view",
+        "arguments": {
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 11851,
+      "output_tokens": 25,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "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"
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\"}",
+            "name": "cart_view"
+          },
+          "id": "call_1377131",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

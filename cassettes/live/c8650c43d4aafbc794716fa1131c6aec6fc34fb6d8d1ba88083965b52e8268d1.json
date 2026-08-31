@@ -1,0 +1,48 @@
+{
+  "key": "c8650c43d4aafbc794716fa1131c6aec6fc34fb6d8d1ba88083965b52e8268d1",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2542539",
+        "name": "cart_add_item",
+        "arguments": {
+          "item_id": "itm_mutton-rogan-josh",
+          "cart_id": "cart_000001",
+          "quantity": 1
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9532,
+      "output_tokens": 48,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPv+C61NqywtWD0AxvPvd9E5793cdq9xzov40QhHEAEZYiMk7YodoxbZxTGknqghZ2fcJGdAVMGzk/lVDtI6eb7a1RA7U2snk1PrQ1D2Yhnj6qpU9vQylvJD/6k0F+4+GfbtFFmPX6ERLOhg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"item_id\":\"itm_mutton-rogan-josh\",\"cart_id\":\"cart_000001\",\"quantity\":1}",
+            "name": "cart_add_item"
+          },
+          "id": "call_2542539",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

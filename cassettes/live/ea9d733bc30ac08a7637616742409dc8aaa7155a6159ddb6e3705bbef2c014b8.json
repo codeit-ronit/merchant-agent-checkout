@@ -1,0 +1,48 @@
+{
+  "key": "ea9d733bc30ac08a7637616742409dc8aaa7155a6159ddb6e3705bbef2c014b8",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2832633",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_gulab-jamun",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8444,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPKnzcy+4jJdeD3QryFH8LgQL+OnPDwPnQObqrtD3ictXE0NyV+y+kUg7VBwRfRHlRQcOSgSYhRKAKPgN1vjcbcsxn0C8uJB+D13fVKk2lfLwQaHDxazt0/RSQu+4X0340gdkyewQn5fSbJw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_gulab-jamun\",\"quantity\":2}",
+            "name": "cart_add_item"
+          },
+          "id": "call_2832633",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

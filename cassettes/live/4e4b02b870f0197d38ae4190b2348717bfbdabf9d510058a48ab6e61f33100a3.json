@@ -1,0 +1,29 @@
+{
+  "key": "4e4b02b870f0197d38ae4190b2348717bfbdabf9d510058a48ab6e61f33100a3",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\n  \"decision\": \"FAILED\",\n  \"items\": [\n    {\n      \"item_id\": \"itm_veg-biryani\",\n      \"quantity\": 4\n    }\n  ],\n  \"total_minor\": 79800,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no beef\",\n    \"dinner for four\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"budget under ₹800 (mandate expired)\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": \"NOT_INITIATED\",\n  \"mandate_remaining_minor\": 200000\n}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7977,
+      "output_tokens": 182,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\n  \"decision\": \"FAILED\",\n  \"items\": [\n    {\n      \"item_id\": \"itm_veg-biryani\",\n      \"quantity\": 4\n    }\n  ],\n  \"total_minor\": 79800,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no beef\",\n    \"dinner for four\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"budget under ₹800 (mandate expired)\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": \"NOT_INITIATED\",\n  \"mandate_remaining_minor\": 200000\n}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPySukwZGV+lp8i8zw60JFDB0R8S7vHw4zNoEGTwGh/FNCvzX0fqhGhW8C7XqiC27YJs8d4CVR550F9TY3JK2Bcsp9cmVwCsmCS2peia/rc5DSJOoHWIVU9WfMibzg3lJjL2f1ufMGuGNXJw=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

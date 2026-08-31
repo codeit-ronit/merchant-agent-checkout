@@ -1,0 +1,48 @@
+{
+  "key": "782d7cab66be464b265e60d1314d6fbce6978e2d76d737387b743cbb6c973786",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3374550",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 1,
+          "cart_id": "cart_000001",
+          "item_id": "itm_chettinad-chicken"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8819,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPNY//NOT8nSyF3uqcx5esQLAA7kAjkryDpdGWpQYzJsC+fM2lyBom/G+Ac3HsJpOWrjO/m7hSVF37Mb48Q5TVQa2FYTNQGl2oaSFCh8cO4kpTjSMX8DEhfeYbQjk5HLg6Co2Txv3zPBeEgg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"quantity\":1,\"cart_id\":\"cart_000001\",\"item_id\":\"itm_chettinad-chicken\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3374550",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

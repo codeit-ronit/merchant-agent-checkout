@@ -1,0 +1,29 @@
+{
+  "key": "160eb344d27bdc237709bca7a6b5ea18d9849618d34ca29d9553bae8cf496c35",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order dinner for two under ₹700 could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 12893,
+      "output_tokens": 39,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order dinner for two under ₹700 could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPolpWYoerC87x/C2yuxxz9jB7uRQRk6Un92V5YIM6P+9uiSxYppp0rU/KfLGgArSJjGKrrn1rYFsu34l7R2uFsPnMPmqYOIxJdH2eCgeFrvulGCU2tZi85MhjwxUGoUZ9PoAUVRsC/cJXCg=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

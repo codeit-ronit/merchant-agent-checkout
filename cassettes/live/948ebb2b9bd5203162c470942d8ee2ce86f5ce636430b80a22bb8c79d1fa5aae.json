@@ -1,0 +1,48 @@
+{
+  "key": "948ebb2b9bd5203162c470942d8ee2ce86f5ce636430b80a22bb8c79d1fa5aae",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2683556",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_veg-biryani",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7364,
+      "output_tokens": 44,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPaErA2xVRnGR0Q5nu4lDJgolUJVtARnvnwz2HjjsJwUN9uhVkGjfGsv7Cb0rZPxBwfzc6YjH2K9KZ618ZQg8QJoML3k3E/hTEwq37DgufUrZMQVdOpjFxp5QQpkI2YW+fIuiO+JZ6XTOpqw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_veg-biryani\",\"quantity\":4}",
+            "name": "cart_add_item"
+          },
+          "id": "call_2683556",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

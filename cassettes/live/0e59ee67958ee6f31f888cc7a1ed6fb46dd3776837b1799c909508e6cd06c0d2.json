@@ -1,0 +1,29 @@
+{
+  "key": "0e59ee67958ee6f31f888cc7a1ed6fb46dd3776837b1799c909508e6cd06c0d2",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order dinner for four could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 9351,
+      "output_tokens": 34,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order dinner for four could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPI7I+4LUJ9jSfgywHD0v0HpFWg/jdaIcBvzTwqEELDuovZ/BGSNeDKL1o+63lkfIFzswYrGyN2uZzHhHLazXpfedrYoacV6n0C+X37WfAAz28AN6vttYftJWfk/9M9re06rxNMzASI/1JIg=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

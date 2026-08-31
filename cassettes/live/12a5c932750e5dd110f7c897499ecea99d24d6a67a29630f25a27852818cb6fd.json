@@ -1,0 +1,46 @@
+{
+  "key": "12a5c932750e5dd110f7c897499ecea99d24d6a67a29630f25a27852818cb6fd",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3315641",
+        "name": "cart_clear",
+        "arguments": {
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9255,
+      "output_tokens": 25,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPDI7W2DnnAgPNjn93M+4SPZr167DJtEyTOe7NskID+0JZJAv6N7/lW4AstDm2pKoPR3riZSxs3fdyGyB6S9Fu7ifVLWxosrxqgKACrX2BrA1uZ+Eu60AaUGlKwfWxO5SYsdKWRNvG9CDM3g=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\"}",
+            "name": "cart_clear"
+          },
+          "id": "call_3315641",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "key": "d480d45935225b06c1137a09709b0caf0b2795e957879cf25c13a0c5dc01fed0",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3046283",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 4,
+          "item_id": "itm_garlic-naan"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7775,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPhm7XFdCupJMl9G+Lhqxt/UGkhfkbGOEf/MnS9HUDC2db6ip/iPob+70/8VIKrzH8mEtuHuM9gpJf3jg84CgLtqwWeN7LXENNgODRBWPloOfON+1bXQnEbkZwK5tmprzPu7bErp7sQJN6Ng=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":4,\"item_id\":\"itm_garlic-naan\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3046283",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

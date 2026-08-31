@@ -1,0 +1,29 @@
+{
+  "key": "e6eb5a7685ce71d559f4ce2c127ee8950ae729aecb3096ad94b2776a1014fb6d",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"veg lunch\",\n    \"for two\",\n    \"under ₹400\",\n    \"no extras\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"mandate mnd_000001 expired\"\n  ],\n  \"upsell_offered\": true,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 9853,
+      "output_tokens": 162,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"veg lunch\",\n    \"for two\",\n    \"under ₹400\",\n    \"no extras\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"mandate mnd_000001 expired\"\n  ],\n  \"upsell_offered\": true,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPcvMZ857o4ALRrg6dPrBCwxSIOuPPZ/wBVCBgohsaBr/52wtnp5fMSvkjC0DlwkjKhFXz4WWdb8/RikOBHQvzmqjTg5cCwuisCYBRFFB+D2nUv7UzDA1FltOfHcCJDqZpDb/zsYtxEZSRnA=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "key": "2fa6ffd6aaefcf1e7b2838d496ffca4f535a56516a871c6eff10db71a4052a09",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order a veg dinner for two could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7230,
+      "output_tokens": 36,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order a veg dinner for two could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIP2G6E1fADS6YsP73abcf4DTDhVF24bKf0vC16Loaf4G681jlPMn/oXK1J02eoZmIrf+OdglzSx45hnttkeA7UYnRgdIVkc/KYbM2N13vmy9UuBx6LoP84cyBD3pvWjMDYBxyV5fELZaEFUA=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

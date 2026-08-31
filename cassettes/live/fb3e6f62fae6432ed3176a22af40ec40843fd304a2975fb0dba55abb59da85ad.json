@@ -1,0 +1,48 @@
+{
+  "key": "fb3e6f62fae6432ed3176a22af40ec40843fd304a2975fb0dba55abb59da85ad",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3346745",
+        "name": "cart_add_item",
+        "arguments": {
+          "item_id": "itm_paneer-tikka",
+          "cart_id": "cart_000001",
+          "quantity": 2
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9479,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIP0ymat7+z32cJLe7Yku2Yjgid6yCWaqdtIJWBANh//oGX2ZnTdRj+POJSNgfyTn2briqyTBS9Xa7UCKXC2rQj2yJlqr8gikZzu6DozrHMjuE5G5QRo0XsoUhLJcYviFTxI4vg06zW9s7X3g=="
+            }
+          },
+          "function": {
+            "arguments": "{\"item_id\":\"itm_paneer-tikka\",\"cart_id\":\"cart_000001\",\"quantity\":2}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3346745",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

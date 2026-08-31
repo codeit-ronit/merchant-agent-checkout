@@ -1,0 +1,48 @@
+{
+  "key": "1f16a7edb27b27f33bdc779c7c1d37acdc099ff97303927730f619b2f02da043",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_1910716",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 3,
+          "item_id": "itm_aloo-gobi"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9843,
+      "output_tokens": 44,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPxc8OGEEJ7q2/4NbEDWE5g2O3JWu86vref8uI/Uh5e1Q/cm7fi5b6Ub81duU1aquy2iYaT9cq/gGJ2ewcsfCpqMyGpjSVcZKuF+UlRjkJyOjcfV7wqzQ7AC9fmkTYtE2U8mdCADrWQHdlsw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":3,\"item_id\":\"itm_aloo-gobi\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_1910716",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

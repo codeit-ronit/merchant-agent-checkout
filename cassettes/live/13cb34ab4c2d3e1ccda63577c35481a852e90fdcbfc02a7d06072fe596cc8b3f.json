@@ -1,0 +1,48 @@
+{
+  "key": "13cb34ab4c2d3e1ccda63577c35481a852e90fdcbfc02a7d06072fe596cc8b3f",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_4076004",
+        "name": "cart_update_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 3,
+          "item_id": "itm_malabar-parotta"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 11644,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPsbDV2PR2DMZA5JoONHh+khhvWPgi1eMBdHu5P7tUtg69dv6wrYxrwN/7Nu7IyKasV3FMot4dVMYUG/2+mB4WxXEyUvroAJjD9FLDs9TKhjv8vJt5dWHRxXrBFBGUMsewbaVIJjwNgbAsQg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":3,\"item_id\":\"itm_malabar-parotta\"}",
+            "name": "cart_update_item"
+          },
+          "id": "call_4076004",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

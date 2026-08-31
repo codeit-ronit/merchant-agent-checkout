@@ -1,0 +1,29 @@
+{
+  "key": "c2f5e3231dd092402293bb77a3e847bd74f7bd31e4842d44137e14ddb20a8e57",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order dinner for four under ₹800 could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 11031,
+      "output_tokens": 39,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order dinner for four under ₹800 could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPfLg/Z5MlfS3GdTZwiDJot9zc707K0BHugirSias8BlDoLlidqIrK33IO0sLtHFDIZUfOZF1Q5uXd0ISCerD0WXHcgNImkNz1GMckbDyyLsEYH+b2j+BJqSJMj2EdDOW5H/FJcaI/BTZlyQ=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

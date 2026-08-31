@@ -1,0 +1,29 @@
+{
+  "key": "90d39e58669c89d56cc362aa1fb054a62d1b43edbf781b7eb69cc34d91e8de44",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order dinner for four could not be completed because the spending mandate `mnd_000001` has been revoked. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7863,
+      "output_tokens": 35,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order dinner for four could not be completed because the spending mandate `mnd_000001` has been revoked. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPRfEOxX2eJ0RTcHW0tkeDjBOE9WCUiV9CZwiNQo2nb873Ws9IV4H7XmBKn9tdkH2Xuq+g0pb0U7H1NiUow6zaY0xRMDCNT/0TDHBoTxHfyRMM2B4plok/NXF9Nqqqk7JiveReHBbn0OCH7A=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

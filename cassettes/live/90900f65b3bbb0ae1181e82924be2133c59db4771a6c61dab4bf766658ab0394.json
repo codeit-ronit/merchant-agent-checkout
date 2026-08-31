@@ -1,0 +1,48 @@
+{
+  "key": "90900f65b3bbb0ae1181e82924be2133c59db4771a6c61dab4bf766658ab0394",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3336480",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 4,
+          "item_id": "itm_payasam"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 10490,
+      "output_tokens": 42,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPxfSG6d2P30bLF37LbtPAHdnbVO92Glj550uWON8vuhXZVKTpT1nrKLIuWo7pH97F8bz9XL3mN2CQWkvlac/3u6EExoeOZWJCAHA32R7LFiHBsoLyqQaHb3rRSyMVj3CFs5fRBigOhYQsSA=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":4,\"item_id\":\"itm_payasam\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3336480",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

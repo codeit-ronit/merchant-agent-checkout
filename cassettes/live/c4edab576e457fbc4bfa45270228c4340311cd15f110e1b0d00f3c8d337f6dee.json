@@ -1,0 +1,46 @@
+{
+  "key": "c4edab576e457fbc4bfa45270228c4340311cd15f110e1b0d00f3c8d337f6dee",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2332766",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 13686,
+      "output_tokens": 27,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "Et8CCtwCARFNMg9UYNA5oIPea6fZOm1E5Kj7Nwg61lNnzMPvu1sOnoZ1iuU/Wk8RPHoi9wV5XGYqza4C6sur3+7uBHpdvvSn6sTfEAYk5VqwD/q3C3QAnFwm//p7nndKNLLUeklpv4f09WZ/GQ2thCjsE6LppP3M2j2NtKdlE05MLWUqS563YF4cLB8KwDR9CNI0RtwkUhyqR9fABgFIK1H0y0GvCGKYgz+vVL9gf+/3VaYx3bNgagh90Cv1BHc4GvGO6wH9aoHzNR0dd3oK7uTHmY/BQazjDtsC9jP4/riHI+aXXH2TiP3sL01btEvGtH7UUoEP9pUWdtIkVjbYhnCMYdWbReyaeeMF5UqVC+JX6NHfe7UGn0eKSQ6aBf1Z5zewKrKkO2flYSBZwA9JHfhcZPPxeUYxzLQorV9rpC0SyFG9+rBuVi5ThNu8cWFq1JhrK8UwSD6sr7bUHfGSBsb8"
+            }
+          },
+          "function": {
+            "arguments": "{\"mandate_id\":\"mnd_000001\"}",
+            "name": "cart_create"
+          },
+          "id": "call_2332766",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}
