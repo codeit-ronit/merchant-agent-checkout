@@ -890,3 +890,15 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
 .onboard-items { list-style: none; margin: 6px 0; padding: 0; display: flex;
   flex-direction: column; gap: 4px; font-size: 13.5px; }
 .onboard-skips summary { cursor: pointer; }
+
+/* ---- bring-your-own-store section + example link ---- */
+.byo { display: grid; grid-template-columns: 1.5fr 1fr; gap: 26px; align-items: center;
+  background: var(--cta-wash); border: 1px solid color-mix(in srgb, var(--cta) 35%, transparent);
+  border-radius: var(--radius); padding: 26px 30px; }
+@media (max-width: 860px) { .byo { grid-template-columns: 1fr; } }
+.byo-steps { margin: 10px 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px;
+  font-size: 14.5px; }
+.byo-copy p { margin: 6px 0; }
+.link-btn { font: inherit; background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--cta-deep); text-decoration: underline; text-underline-offset: 3px; }
+.onboard-example { margin: 8px 0 0; }

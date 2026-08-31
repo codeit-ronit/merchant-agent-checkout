@@ -213,6 +213,32 @@ export function Home() {
         </div>
       </section>
 
+      <section className="land-section byo">
+        <div className="byo-copy">
+          <h2>Bring a real store — any store</h2>
+          <p>
+            This isn’t a fixture-only trick. On the <strong>For merchants</strong> page, paste any
+            product page that carries standard markup (schema.org JSON-LD — what mainstream store
+            platforms emit) and its items become agent-sellable in seconds. We verified it against
+            a real Indian storefront, live:
+          </p>
+          <ol className="byo-steps">
+            <li>Pasted <span className="mono">bluetokaicoffee.com/products/attikan-estate</span> — a real coffee company’s live product page</li>
+            <li>1 item imported from its JSON-LD: <strong>Attikan Estate · ₹700.00</strong>, description correctly held as untrusted data</li>
+            <li>Asked the agent: <em>“Buy one Attikan Estate coffee under ₹900”</em> — it bought exactly that item, nothing else</li>
+            <li>The merchant’s revenue view showed ₹700 captured via the agent channel</li>
+          </ol>
+          <p className="muted small">
+            Structure only, never prose · INR only in this demo · imports never overwrite existing
+            prices · the import fetch is live even on this hosted demo.
+          </p>
+        </div>
+        <div className="hood-links">
+          <Link to="/merchant" className="btn-cta">Try it with your store →</Link>
+          <Link to="/buy" className="btn-ghost">Then order from it</Link>
+        </div>
+      </section>
+
       <section className="land-section hood">
         <div>
           <h2>Under the hood: SENTINEL</h2>

@@ -106,3 +106,23 @@ measured, committed, and replayable with no credentials."
 
 *Cutting-room rule: if over three minutes, cut narration, never the
 two-verdict frame or the claim guard.*
+
+## OPTIONAL BEAT — Bring a real store (+20s, judge's-choice insert)
+
+If you can afford 3:20, or want to swap this in for part of the failure beat,
+it is the single strongest anti-toy moment the demo has. Placement: right
+after the clean purchase (≈1:35), before the decline.
+
+**Screen:** For merchants → "Make your own store agent-sellable". Click the
+pre-filled example (bluetokaicoffee.com/products/attikan-estate) → Import
+products. Then Order page → "Buy one Attikan Estate coffee under ₹900" → Send.
+
+**Say:** "That's a real coffee company's live product page — not our fixture.
+One paste and it's agent-sellable: the agent buys exactly the item I named,
+inside the cap, and the merchant's revenue view attributes it. Any store with
+standard product markup gets this for free."
+
+**Claim discipline:** the storefront fetch is genuinely live on the hosted
+demo; the order in fixture mode is minted by the modelled Razorpay surface —
+say "live store data", not "Razorpay minted this id", unless recording a
+keyed live-mode run.

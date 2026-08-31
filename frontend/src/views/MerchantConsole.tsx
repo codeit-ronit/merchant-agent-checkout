@@ -132,6 +132,14 @@ export function MerchantConsole() {
             {importing ? 'Reading…' : 'Import products'}
           </button>
         </div>
+        <p className="muted small onboard-example">
+          No store handy?{' '}
+          <button type="button" className="link-btn"
+            onClick={() => setShopUrl('https://bluetokaicoffee.com/products/attikan-estate')}>
+            Try a real one: bluetokaicoffee.com/products/attikan-estate
+          </button>{' '}
+          — a real Indian coffee storefront; the fetch is live even on this hosted demo.
+        </p>
         {importError && <p className="error-words" role="alert">{importError}</p>}
         {importResult && (
           <div className="onboard-result">
