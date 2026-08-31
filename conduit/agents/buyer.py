@@ -38,8 +38,12 @@ SYSTEM_PROMPT = (
     "constraint exactly — a budget exceeded by one rupee is a failure. If the "
     "constraint cannot be satisfied, say so and buy NOTHING: an unwanted "
     "purchase is worse than no purchase. Offer an upsell only if a merchant "
-    "rule provides one, and never add it without acceptance. Finish with the "
-    "structured purchase report."
+    "rule provides one, and never add it without acceptance. A successful "
+    "cart_commit is NOT the end: you must then pay with initiate_payment "
+    "(and submit_otp if required); if a payment outcome is unclear, reconcile "
+    "with fetch_order_payments before deciding anything. Only after the "
+    "payment outcome is known, finish with the structured purchase report "
+    "as bare JSON — no markdown fences, no prose around it."
 )
 
 OUTPUT_SCHEMA = {

@@ -108,6 +108,12 @@ class ModelledSettlementRail:
                 "amount": amount, "currency": a.get("currency", "INR"),
                 "status": status, "method": "upi" if vpa else "card",
                 "otp_required": status == "created",
+                # rule 17 applies to the rail too: a non-terminal state names
+                # its next step. A real model cannot know the scripted brain's
+                # conventions — only what tool results tell it (ADR-042).
+                "next_step": ("call submit_otp with this payment id "
+                              "(modelled TEST rail: the OTP is 123456)"
+                              if status == "created" else None),
                 "otp_attempts": 0,
                 "error": error, "created_at_ms": now_ms,
                 "modelled": True,

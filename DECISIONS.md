@@ -2079,3 +2079,60 @@ changes must flow through `set_price` so the re-price diff can name them.
 The named-intent matcher is deterministic and humble: it matches exact naming,
 not paraphrase — paraphrase is the live model's job, and the scripted brain
 must never pretend otherwise.
+
+## ADR-042 (2026-08-31) — what the first strict provider taught the live path
+
+**Context.** A working Gemini key (fresh personal account — ADR-002c's block
+was account-level, and the AQ-prefix theory died on contact: the same prefix
+works fine on an unblocked account) made Gemini the first STRICT OpenAI-compat
+dialect this system ever ran against. Groq and OpenRouter are lenient; two
+days of their tolerance had been hiding real defects. One live afternoon
+surfaced five:
+
+1. **The loop never echoed the model's own tool-calling turns.** History ran
+   user → tool → tool with no assistant turns between. Lenient providers
+   accept orphan tool messages; Gemini's mapper 400s ("function_response.name
+   cannot be empty"). Every prior live recording ran degraded conversations —
+   models never saw their own previous calls. Fix: echo, gated behind
+   `ManagerConfig.echo_assistant_turns`, set ONLY on the live factory path so
+   every offline/golden cassette (keyed on message history) stays
+   byte-identical. Trade-off accepted: the 216 pre-fix live cassettes are
+   obsolete as resume points — they recorded malformed conversations.
+2. **Gemini 3.x tool calls carry a `thought_signature` that must round-trip.**
+   Reconstructing the echo from normalised fields drops it. Fix: providers
+   return `raw_assistant_message`; the loop echoes it verbatim; the cassette
+   layer round-trips it (old cassettes read back None — backward compatible).
+3. **The idempotency REFUSAL path emitted a trace type outside the closed
+   list** ('idempotency_refused' → instant ValueError). No deterministic test
+   had ever reached that emit; the first real model that retried a payment
+   crashed the run. Now a `security_event` with kind=idempotency_refused,
+   plus the regression test that was always missing.
+4. **Bursty models met a fail-instead-of-pace governor.** A 3s/call model
+   trips a 10-rpm ceiling mid-run and the run DIED. The governor now exposes
+   `minute_wait_ms`; the manager sleeps exactly that long when only the
+   minute window (never the day budget) is hot — the "degrades gracefully"
+   its docstring always promised. Adapter: 60s→240s timeout (thinking models
+   exceed 60s routinely; this was also behind OpenRouter "timeouts"), plus
+   one paced retry on 502/503/504.
+5. **Real models are honest about what tool results never told them.** The
+   scripted brain "knows" the test OTP and the success VPA by convention; a
+   real model stalled at OTP and reported failure — correctly. Fix per rule
+   17: the modelled rail's otp_required response now names its next step
+   (submit_otp, test OTP). Plus: `_parse_output` accepts fenced/prose-wrapped
+   JSON (rejecting markdown habits would measure formatting, not behaviour),
+   the schema-retry message names the missing keys, and the buyer prompt
+   states the commit→pay→reconcile→report order explicitly.
+
+**Model tier selection (probed live, this date):** the whole Gemini 2.5
+family 404s for new accounts; 3.6-flash generates but thinks for 30-90s/call
+(64s even at reasoning_effort=low) — wrong for a watchable demo. strong =
+gemini-3.1-flash-lite (3.0s, correct tool call), weak = gemini-3-flash-preview
+(2.0s, older generation for a genuine tier gap; the -latest lite alias risks
+resolving onto the strong model).
+
+**The enforcement scorecard across every live run today: zero wrong charges,
+zero unsafe paths.** One live run bound ₹1,239 against an ₹800 ask — inside
+the ₹2,000 mandate, so the gate correctly allowed it, payment failed, money
+visibly returned, and the model reported NO_PURCHASE with the budget named
+unsatisfied. The user's stated budget is the agent's discipline; the mandate
+is the system's. Both behaved exactly as designed, on camera-quality display.

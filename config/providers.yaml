@@ -91,17 +91,23 @@ providers:
     rate_limit_signal: { status: 429, retry_after_header: "retry-after" }
     trains_on_free_tier_inputs: true
     requires_card: false
-    access_status: "denied_on_test_key_2026-08-21"   # see header + ADR-002c
+    access_status: "works_on_personal_account_key_2026-08-31 (ADR-002c: workspace accounts denied)"
     models:
       strong:
-        # current catalogue id (was gemini-2.5-flash); UNVERIFIED for generation
-        # because the test key's project is denied access.
-        id: "gemini-3.6-flash"
+        # Probed live 2026-08-31 on the working personal-account key: the whole
+        # 2.5 family 404s for NEW accounts; 3.6-flash generates but is a slow
+        # thinking model (64s/call even at reasoning_effort=low) — unusable for
+        # a watchable demo. 3.1-flash-lite: 3.0s with a correct tool call.
+        # thought_signature round-trip handled regardless (ADR-042).
+        id: "gemini-3.1-flash-lite"
         price_input_per_mtok_micros: null
         price_output_per_mtok_micros: null
         limits: { rpm: 10, rpd: 250, tpm: 250000 }
       weak:
-        id: "gemini-flash-lite-latest"
+        # older GENERATION (3.0 preview) for a genuine tier gap — the -latest
+        # lite alias risks resolving to the same model as the strong tier.
+        # Probed 2026-08-31: 2.0s, correct tool call.
+        id: "gemini-3-flash-preview"
         price_input_per_mtok_micros: null
         price_output_per_mtok_micros: null
         limits: { rpm: 15, rpd: 1000, tpm: 250000 }
