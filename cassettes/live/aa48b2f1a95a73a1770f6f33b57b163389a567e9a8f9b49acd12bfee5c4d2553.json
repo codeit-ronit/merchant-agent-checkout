@@ -1,0 +1,46 @@
+{
+  "key": "aa48b2f1a95a73a1770f6f33b57b163389a567e9a8f9b49acd12bfee5c4d2553",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2936823",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "veg dinner"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2130,
+      "output_tokens": 17,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIP8lOspRWCUGDLYc8Uegggy4agoes/I5AKoGrBfCsTPXyjHbRXOH0jVF23fy5GCr0yOYKNtJPBONgdQR2UoJ9QiljrDF6IrlHqOuGUodlpzrxajocQ9t+PooN0frW/QAqLdnTP+EpJToIfgg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"category\":\"veg dinner\"}",
+            "name": "catalog_search"
+          },
+          "id": "call_2936823",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

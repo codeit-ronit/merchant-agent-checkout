@@ -1,0 +1,48 @@
+{
+  "key": "1626c9d94fd68b790d0a96478be4c426e43e9dcf77e8b3804ed56e745b1ec74a",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2567825",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 2,
+          "cart_id": "cart_000001",
+          "item_id": "itm_butter-chicken"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7356,
+      "output_tokens": 43,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPE81v6ZaN/S2yfLhTAorAPc1Burl6aTr35VuQOrgzHIIx3JFoPDFxq7nmHVoYO9cuGBCEGEHF15pKIAxDuLw8OaSujLtdEJm66GWXGGzYi7UBe5HpFS/7dkt1F8KPjGo8aQmtG//ncp1fFg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"quantity\":2,\"cart_id\":\"cart_000001\",\"item_id\":\"itm_butter-chicken\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_2567825",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

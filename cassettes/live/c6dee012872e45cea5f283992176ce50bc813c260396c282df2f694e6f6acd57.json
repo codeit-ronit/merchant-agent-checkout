@@ -1,0 +1,29 @@
+{
+  "key": "c6dee012872e45cea5f283992176ce50bc813c260396c282df2f694e6f6acd57",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [\n    {\n      \"item_id\": \"itm_chettinad-chicken\",\n      \"quantity\": 1\n    },\n    {\n      \"item_id\": \"itm_mutton-rogan-josh\",\n      \"quantity\": 1\n    },\n    {\n      \"item_id\": \"itm_malabar-parotta\",\n      \"quantity\": 3\n    }\n  ],\n  \"total_minor\": 66990,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"under ₹700\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"mandate mnd_000001 expired\"\n  ],\n  \"upsell_offered\": true,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 13001,
+      "output_tokens": 241,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [\n    {\n      \"item_id\": \"itm_chettinad-chicken\",\n      \"quantity\": 1\n    },\n    {\n      \"item_id\": \"itm_mutton-rogan-josh\",\n      \"quantity\": 1\n    },\n    {\n      \"item_id\": \"itm_malabar-parotta\",\n      \"quantity\": 3\n    }\n  ],\n  \"total_minor\": 66990,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"under ₹700\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"mandate mnd_000001 expired\"\n  ],\n  \"upsell_offered\": true,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPkJAiIDo+muTgsSWEdaqOCpK8PsqefnRsd0O34wrnpdPogkdOhwKhBZwHVPUM+VQu8hXhfGTPjsliPDve5PcLQFM7s12ur+5/QT8KI6joALlqcLvyT4RzOZ4TrASTH5XC/7SuCTyLsT5n1w=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

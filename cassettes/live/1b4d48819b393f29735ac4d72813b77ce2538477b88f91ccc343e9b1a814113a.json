@@ -1,0 +1,46 @@
+{
+  "key": "1b4d48819b393f29735ac4d72813b77ce2538477b88f91ccc343e9b1a814113a",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2351321",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7442,
+      "output_tokens": 27,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "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"
+            }
+          },
+          "function": {
+            "arguments": "{\"mandate_id\":\"mnd_000001\"}",
+            "name": "cart_create"
+          },
+          "id": "call_2351321",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

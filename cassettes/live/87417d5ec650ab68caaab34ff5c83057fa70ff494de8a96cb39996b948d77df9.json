@@ -1,0 +1,48 @@
+{
+  "key": "87417d5ec650ab68caaab34ff5c83057fa70ff494de8a96cb39996b948d77df9",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3458392",
+        "name": "cart_commit",
+        "arguments": {
+          "currency": "INR",
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 78750
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 11686,
+      "output_tokens": 43,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EtECCs4CARFNMg9rGXje1dFiD11iM4IZfVCkB0Gxr5Ir+/pGxrTSoept7Q2sydILna1bRu2LK2rh6mk/Aw54ZGluW+1xQ59iOdHq61Unf20BkVYr/SbpObyY5Cc5fCCkPmTx+d2K9YV3LJWBaZGnyxZEV3vzT0XrhuRkb7mXGUU/4dNUBoHYh/VqfueBx2zPUlrHYKiB96ZgfQNrVMUq15tRnUnMLNULPs3TSBkNmL+J7I8bltmEJbRKVByM1cQtK+WJdJ8ByDV/594kIeCrn1CKJUELFR9tUMkNxxOCw6DLBHD4yUpGzDX/OCCDK01+EcOIagGpT0TukPqAbHil7POaKfom+48v09SNasGhQX6WKRlBPbNXGJn8SZ1+ViAe9MbKJyoQXNeb1+Gm3luFK6ZlAy8WoJ9T/9mYUhbIA/MFp53jVXvuHI8Xg+ebt2zHLhnFsw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"currency\":\"INR\",\"cart_id\":\"cart_000001\",\"expected_amount_minor\":78750}",
+            "name": "cart_commit"
+          },
+          "id": "call_3458392",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

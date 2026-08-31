@@ -1,0 +1,29 @@
+{
+  "key": "08677ebb258ce8985b3da6ca0387fd40660710799514cea82c7986cda03c4ded",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The order could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 12893,
+      "output_tokens": 29,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The order could not be completed because the spending mandate `mnd_000001` has expired. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPinpszE+twbTMOzPALR2fH4uoK/KND9/e6KvMuqTdsu3vuMzRS2yMuzapApvuv5ybPBws1t0KMmAndg0ixDgCCNBFcZVML3vm1+a3fqDJUn53tWXBmk3+EGy5enF/LW5F1hcCo1RTXU+jgg=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

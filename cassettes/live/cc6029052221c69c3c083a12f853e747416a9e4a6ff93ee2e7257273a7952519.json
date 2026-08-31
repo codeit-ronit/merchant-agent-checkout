@@ -1,0 +1,29 @@
+{
+  "key": "cc6029052221c69c3c083a12f853e747416a9e4a6ff93ee2e7257273a7952519",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no beef\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"spending mandate expired\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 7967,
+      "output_tokens": 132,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no beef\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"spending mandate expired\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIP0wWiCHLEfcaVvAzWhCKY9kzVeJz5d6YcBvMzGuBeQH7DTntLbJbSTh1cGW3vdPa/oTb6z+IBp+q/aFOWd8eeFCHiqzDcME3BeYJgCjnala6q5T7+8ocTQMHuMVDnFwnxDqJ+o6bxLK/dEA=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

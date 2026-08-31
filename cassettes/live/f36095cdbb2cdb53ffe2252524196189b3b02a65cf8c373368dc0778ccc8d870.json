@@ -1,0 +1,46 @@
+{
+  "key": "f36095cdbb2cdb53ffe2252524196189b3b02a65cf8c373368dc0778ccc8d870",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2663279",
+        "name": "catalog_feed",
+        "arguments": {
+          "count": 20
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2354,
+      "output_tokens": 15,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EvEBCu4BARFNMg/Ykyz+NC3LW6tTefWopE4vnmOvlfxZX2zxxRiB3zsVSUaUlnT7kB9PXBkk3TDvLK39kjmQybGzkvWvdWr/MrOB1tW+RvWV0hOuHSU2LxwUu7I8JGP8jQN+D5VJoCqHAvoLLorpd35I4Q4B+nxTZ4h2tKNYEyYN7LUmXcUPqiuezi0WCLswN/aAdl3Nj/X47BzrFeTXssLKHLdxYomAHUS6VBacSkAmoNgF+5ygXl5Cq3GJqx1G8RJXPos+SJD7jL2bj173ze+jPVSpc8pMUcrTtLVLii7ufJce7NRYJN/Fyiw/1yK3YUI37Q=="
+            }
+          },
+          "function": {
+            "arguments": "{\"count\":20}",
+            "name": "catalog_feed"
+          },
+          "id": "call_2663279",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

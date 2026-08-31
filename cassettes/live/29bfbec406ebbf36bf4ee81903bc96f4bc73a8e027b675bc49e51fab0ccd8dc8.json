@@ -1,0 +1,29 @@
+{
+  "key": "29bfbec406ebbf36bf4ee81903bc96f4bc73a8e027b675bc49e51fab0ccd8dc8",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no chicken\",\n    \"no mutton\",\n    \"no seafood\",\n    \"no nuts\",\n    \"under ₹600\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"spending mandate mnd_000001 is expired\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 9459,
+      "output_tokens": 169,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "{\n  \"decision\": \"NO_PURCHASE\",\n  \"items\": [],\n  \"total_minor\": 0,\n  \"currency\": \"INR\",\n  \"constraints_satisfied\": [\n    \"no chicken\",\n    \"no mutton\",\n    \"no seafood\",\n    \"no nuts\",\n    \"under ₹600\"\n  ],\n  \"constraints_unsatisfied\": [\n    \"spending mandate mnd_000001 is expired\"\n  ],\n  \"upsell_offered\": false,\n  \"upsell_accepted\": false,\n  \"order_id\": null,\n  \"payment_status\": null,\n  \"mandate_remaining_minor\": 200000\n}",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIPjUxbALUKTPj5glSf504eNwAdQMAxt6GP5teb1D8LU1qxdteZtth7MOcjopIIEgB/L7np8PSbVdT/8zJ452ZizfAJIgqstwMhRL8QyppBsgZw6j0DG4RpUPHvmu6sk8gMjCCWBRFIw0xzYw=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

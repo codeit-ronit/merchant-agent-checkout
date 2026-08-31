@@ -1,0 +1,48 @@
+{
+  "key": "a759a79b8ea32ba5a619c8137afc671742298b2f7f6bf62e74fb941216332760",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3364736",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 2,
+          "item_id": "itm_dal-makhani",
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8005,
+      "output_tokens": 45,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPwoXknH8kjhNKF4S1m6HQGncWAevPheHn1IkfXKfTuXF/fsiNJCfVw7UJrmC4CkvhLBlXJ4HTcZSYI5Yo5heMV/8BeWnXZAvtwnYx3mvutPZ9jt+ryTnm3IpQ78CfQ9ZfHyByj1rgxnlHKw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"quantity\":2,\"item_id\":\"itm_dal-makhani\",\"cart_id\":\"cart_000001\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3364736",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

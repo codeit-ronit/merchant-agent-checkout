@@ -1,0 +1,48 @@
+{
+  "key": "a27a3435958921d464b22b144d183d815774e64a47a952f85ec083b7e1f47aba",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3187375",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_hyderabadi-veg-biryani",
+          "quantity": 4
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8832,
+      "output_tokens": 49,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPv0oovhkY8H8ZeP3k0H7RKK3uH1sGc2Iwe4KiViyhwzry3KGjPNsiJge1/LtwFg7NhKvO1Q9ZsEKz+2uLxYkaH7GZCWctUziu5prph99csuc7WjF18qULaPE8jt3hYKKReQ/yfqGqQHmQ8g=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_hyderabadi-veg-biryani\",\"quantity\":4}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3187375",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

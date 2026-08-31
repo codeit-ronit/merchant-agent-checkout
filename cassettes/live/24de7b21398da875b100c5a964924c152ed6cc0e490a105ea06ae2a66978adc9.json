@@ -1,0 +1,48 @@
+{
+  "key": "24de7b21398da875b100c5a964924c152ed6cc0e490a105ea06ae2a66978adc9",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3178104",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 2,
+          "item_id": "itm_family-thali"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9463,
+      "output_tokens": 44,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPG1vb/wd3Cadi/6Q84v8qrFwIvBTtkh6f0gfKtNybtxZ8+9reR3aWRAXh5ifZJDuEorJQoZkeSCuxZWHo6jhzQ0oLnewd5AjG0opYsywXinqcVWlsZ/I/+9g91PgFS0WeNMxcVSQf55ArhA=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":2,\"item_id\":\"itm_family-thali\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3178104",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

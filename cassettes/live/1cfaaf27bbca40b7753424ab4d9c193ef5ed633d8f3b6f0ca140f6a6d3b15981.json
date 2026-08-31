@@ -1,0 +1,29 @@
+{
+  "key": "1cfaaf27bbca40b7753424ab4d9c193ef5ed633d8f3b6f0ca140f6a6d3b15981",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": "The request to order dinner for four under ₹800 could not be completed because the spending mandate `mnd_000001` has been revoked. No purchase was made.",
+    "tool_calls": [],
+    "usage": {
+      "input_tokens": 9975,
+      "output_tokens": 40,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "stop",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "content": "The request to order dinner for four under ₹800 could not be completed because the spending mandate `mnd_000001` has been revoked. No purchase was made.",
+      "extra_content": {
+        "google": {
+          "thought_signature": "EnEKbwERTTIP/ekmCMIeUJDu5QD9ZfL0wzB1JmJrsqC2wtKF+STkVWSnwbxxx9fkYb2fNbI0/Kk3DfiFUAfpx2t3EtrCc0Jn8gyEGmdGDtug0Qn79j3etp7wrm6A+Qj/vCF+HQIkABNE7krSITts0HdrbQ=="
+        }
+      },
+      "role": "assistant"
+    }
+  }
+}

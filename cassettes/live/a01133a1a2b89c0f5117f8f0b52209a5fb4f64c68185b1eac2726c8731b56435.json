@@ -1,0 +1,99 @@
+{
+  "key": "a01133a1a2b89c0f5117f8f0b52209a5fb4f64c68185b1eac2726c8731b56435",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3823689",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_butter-chicken",
+          "quantity": 1
+        }
+      },
+      {
+        "id": "call_3823690",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_dal-makhani",
+          "quantity": 1
+        }
+      },
+      {
+        "id": "call_3823691",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "item_id": "itm_garlic-naan",
+          "quantity": 4
+        }
+      },
+      {
+        "id": "call_3823692",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 1,
+          "cart_id": "cart_000001",
+          "item_id": "itm_steamed-rice"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8307,
+      "output_tokens": 177,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EvMBCvABARFNMg8qU9APX4D+25DntZbgfKuYIz5fzh7JVD7V+XHDzx5CLbowrF52q0PLx3m+dQ3q5bf374HKAC2Uy+/HqOA59fRKyQn9io2c3vXgb2AvEecpyg3R4WsNj/bHk9PHgxeey0Ng0oXl5fE27VV1i2qyfG04pq/wpV1da4X7u06L9YqgeTstMZRsgOhr9tp3Q3x78t7XHl4SMmq7TTlECZRGPCnfMbT9i7IzJyJjKBo2rFqVSe8w7rYPdzVzh98NBcNhdLEFSv0SVH7tmgbtd9TMKP4eUcIAV+4wqmuL8Yu1+3kUvW8KJNrpiQGUOfQu"
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_butter-chicken\",\"quantity\":1}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3823689",
+          "type": "function"
+        },
+        {
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_dal-makhani\",\"quantity\":1}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3823690",
+          "type": "function"
+        },
+        {
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"item_id\":\"itm_garlic-naan\",\"quantity\":4}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3823691",
+          "type": "function"
+        },
+        {
+          "function": {
+            "arguments": "{\"quantity\":1,\"cart_id\":\"cart_000001\",\"item_id\":\"itm_steamed-rice\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_3823692",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

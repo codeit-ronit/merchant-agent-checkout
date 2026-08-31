@@ -1,0 +1,46 @@
+{
+  "key": "c06149d1c6d1c7eec0af5c851fd2c6f8cbb16f806f05c04b202482063e977bec",
+  "request": {
+    "model": "weak",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3752289",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "dinner"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2131,
+      "output_tokens": 16,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EusECugEARFNMg+gtjLKGK9fY/nrkz35LygFVVRbuOjMkQYV/riDh7l1hjyfpDZnvEb/l+1fjTe/JlV4FxeZ473cKbg3pr7tIYUZRqVxPTEKoxVCKFhdB7ztjGb6cS1E6ypyA+v6gTmTPHO2bLe6HJEp0BNocJ2NofMcrQrNr3suQtWrES0ZSNLhco2f8vzUycr63gQ0FKc6dWlpatiE7r8uJJC1yn4Tqc1rJZdxHDEtYSWE04LPKWutdrZXUKR65NhFFWwplUv/hPmQJTQGDM7+2jYKmpHIvjYeHxbyjwYO1oPp4iFR5z7IccjcwJXHyg7BON+PkLiGLNXgoJPYqhrmbUkl/yPPZ47BZQl1L2GVpPnsJ4pMu9Iso8mQm0FqJF+TDGx6DSDFO9U/iRnBwhDJok1A5twdix4cK+qFrGXEZiCgds91RZFU9yPltOO2v+TDjBs65hl5y+oIRcv20875tSeb9vZI6QzQMRmtmF9vhqWZ8K87T3ylgWFyFqSY49sPsegsOIJWma2ZXU5yDawtNtw2HO0LVybBq3KXyyPNL5nE62P/oDbYR3QNqRBWaBQWQo9F54BK1au6+4IoQ7tetjSpmstz3nvoflcFcFnKwhJx+YP5mAwVjvwaiG51sYrgNRXdDVWEW/5TJDryqLUHW4zKMoCh3EmB/QoR47badct306K7Ll+ieWkwoN64na3PxJZaqts7AqDuGNcDRwKooCuXo7QMvbdMiEg2+xwFuWZB3dfvhGQN6mkjvtKMm6p5DwB9bwr8JoxoP6zoAFzRRkJXuohXj3ycgQGnejSYwbYnFtHVk6G3vyIPOg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"category\":\"dinner\"}",
+            "name": "catalog_search"
+          },
+          "id": "call_3752289",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

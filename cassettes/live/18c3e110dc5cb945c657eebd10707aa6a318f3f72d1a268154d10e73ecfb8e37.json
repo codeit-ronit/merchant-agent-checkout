@@ -1,0 +1,46 @@
+{
+  "key": "18c3e110dc5cb945c657eebd10707aa6a318f3f72d1a268154d10e73ecfb8e37",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3219981",
+        "name": "catalog_search",
+        "arguments": {
+          "category": "veg lunch"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 2133,
+      "output_tokens": 17,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPoiHE5qhq+m4gd6Pq7WmTFONhMbtCaRjeJ786lRrMQf7m6mLKcAIKLlp+wx/0K9GTmREGjUx5ROFNbhfkgHZNQ0pmB1++M4V1Fj85hfhA2lie1sVDpGmmyaLZip6qwfBOZ+S/HMnWzKmjpg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"category\":\"veg lunch\"}",
+            "name": "catalog_search"
+          },
+          "id": "call_3219981",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

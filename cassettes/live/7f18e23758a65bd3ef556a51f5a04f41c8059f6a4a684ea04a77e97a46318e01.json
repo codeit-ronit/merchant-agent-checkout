@@ -1,0 +1,48 @@
+{
+  "key": "7f18e23758a65bd3ef556a51f5a04f41c8059f6a4a684ea04a77e97a46318e01",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_4538672",
+        "name": "cart_add_item",
+        "arguments": {
+          "cart_id": "cart_000001",
+          "quantity": 4,
+          "item_id": "itm_tandoori-roti"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 8720,
+      "output_tokens": 46,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPDl9SYeQYDZfRKFrpuPwAhrq/qkltOAVgfmqB5ovk7pwozscsXqSbMJ4VotPGP767rcSvPjoSV3HAr5i1zHB1FGzEPRE8YyA1MQCXZl01HHEKXpcLbAPePlnD4RDlw6GSi3YJqqWm/aedtQ=="
+            }
+          },
+          "function": {
+            "arguments": "{\"cart_id\":\"cart_000001\",\"quantity\":4,\"item_id\":\"itm_tandoori-roti\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_4538672",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "key": "780cac24795aaa06518ad6042f867970082091be68be8c336089cb6a003c2dc3",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2944558",
+        "name": "cart_create",
+        "arguments": {
+          "mandate_id": "mnd_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 7186,
+      "output_tokens": 27,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIPkR0K8CmT5xttibAx65fNulmTKoyqG7niRROUSYcRcvE+An8wZqXg9holwg6GsBYakoRB1OUblHdj41d4fi8lj81KCArthQCo+6CagRytPGz7jTnFkknBoeJDrUF8QkzsOuTWLnNObIboQg=="
+            }
+          },
+          "function": {
+            "arguments": "{\"mandate_id\":\"mnd_000001\"}",
+            "name": "cart_create"
+          },
+          "id": "call_2944558",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

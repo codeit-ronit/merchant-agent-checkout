@@ -1,0 +1,48 @@
+{
+  "key": "ce978d7cb6e4ede4f9e11709022d5d7d0f2a6eb845396b72328c737c2f5de824",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_2801894",
+        "name": "cart_add_item",
+        "arguments": {
+          "quantity": 2,
+          "item_id": "itm_steamed-rice",
+          "cart_id": "cart_000001"
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9004,
+      "output_tokens": 44,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIP24PA2nNiljYv1jJ97dn0Z2kWOfmskbWF/NaUq2B/6hY5g9xWi6IfifjRrtElGBobaYLkNoH2jEew4GH7M0VFHPslmPBI2Nh1HIo1SwbfEKtGj4+OFW3pKRrJWsZN55ipgKGAFnpNyb2ZxQ=="
+            }
+          },
+          "function": {
+            "arguments": "{\"quantity\":2,\"item_id\":\"itm_steamed-rice\",\"cart_id\":\"cart_000001\"}",
+            "name": "cart_add_item"
+          },
+          "id": "call_2801894",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}

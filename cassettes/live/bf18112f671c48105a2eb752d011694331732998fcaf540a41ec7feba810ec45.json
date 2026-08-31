@@ -1,0 +1,48 @@
+{
+  "key": "bf18112f671c48105a2eb752d011694331732998fcaf540a41ec7feba810ec45",
+  "request": {
+    "model": "strong",
+    "provider": "gemini"
+  },
+  "response": {
+    "text": null,
+    "tool_calls": [
+      {
+        "id": "call_3182278",
+        "name": "cart_commit",
+        "arguments": {
+          "currency": "INR",
+          "cart_id": "cart_000001",
+          "expected_amount_minor": 94500
+        }
+      }
+    ],
+    "usage": {
+      "input_tokens": 9890,
+      "output_tokens": 43,
+      "reported": true
+    },
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "finish_reason": "tool_calls",
+    "malformed_tool_call": false,
+    "raw_assistant_message": {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "extra_content": {
+            "google": {
+              "thought_signature": "EnEKbwERTTIP7VU+/pRuqvQ9MlRhWtG9V7EjCCtNg7RAoCLh1zMlG8BJQBofcgCIVJp62cG6X35DvF4GTXn1LUeWP5QPALOQ0AmdykkRG5ubXyxsQkomMwGXDCUVxKYEwKcJ9c7qG+/nfC5jph4Pqgy4cw=="
+            }
+          },
+          "function": {
+            "arguments": "{\"currency\":\"INR\",\"cart_id\":\"cart_000001\",\"expected_amount_minor\":94500}",
+            "name": "cart_commit"
+          },
+          "id": "call_3182278",
+          "type": "function"
+        }
+      ]
+    }
+  }
+}
